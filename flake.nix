@@ -20,7 +20,6 @@
           inherit version;
           src = self;
           vendorHash = null;
-          CGO_ENABLED = 0;
           ldflags = [
             "-s"
             "-w"
