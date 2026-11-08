@@ -4,6 +4,11 @@ Hearthlight is a small Go web app that draws your home network as a live map.
 Each device is a bubble. Each TCP service orbits its device. Zoom out for the
 whole map, zoom in for service names, ports and device details.
 
+Hearthlight also maps your Tailscale tailnet as a second territory. Peers come
+from `tailscale status --json` and are probed over their tailnet addresses, then
+merged with LAN devices. Hosts that are on both networks sit in the bright
+overlap lens.
+
 ![Hearthlight demo map](docs/hearthlight.png)
 
 Devices seen in earlier scans stay on the map as dim, dashed bubbles. Devices
@@ -14,8 +19,12 @@ at overview zoom. Service bubbles and labels appear as you zoom in.
 
 - One static Go binary with the browser app embedded.
 - Unprivileged LAN discovery using ARP plus a TCP RST liveness sweep.
+- Tailnet discovery from the local Tailscale daemon, merged with LAN devices by
+  hostname and self identity.
 - TCP service probing with HTTP title, SSH banner and TLS certificate
-  fingerprints.
+  fingerprints, on both networks.
+- A dual-membership map: warm LAN territory, cool tailnet territory, and a lens
+  where hosts belong to both.
 - Device names from reverse DNS, vendors from a curated MAC OUI table, and
   kind classification for routers, servers, computers, phones, NAS boxes,
   media players, printers and IoT devices.
@@ -36,12 +45,16 @@ make demo
 # Open http://127.0.0.1:8090
 ```
 
-Demo mode serves a fixed sample network. To scan the real LAN:
+Demo mode serves a fixed sample network, including a simulated tailnet. To scan
+the real LAN:
 
 ```bash
 make run
 # Open http://127.0.0.1:8090
 ```
+
+If Tailscale is installed and `tailscaled` is running, tailnet peers are picked
+up automatically. Pass `-tailscale=false` to keep Hearthlight LAN-only.
 
 The default interval is 60 seconds. A scan normally finishes in a few seconds on
 a `/24`. Hearthlight needs no root privileges.
@@ -113,6 +126,19 @@ From another machine, open:
 http://<host>:8090
 ```
 
+Tailnet discovery is on by default. When `tailnet = true` the module puts
+`pkgs.tailscale` on the service `PATH` so Hearthlight can run
+`tailscale status --json`; it adds no privileges. Hearthlight talks to the local
+`tailscaled` socket, which is normally accessible to every local user
+(`srw-rw-rw-`). If you have hardened that socket, grant the dynamic
+`hearthlight` user access separately. tailscaled itself must already be running
+and logged in:
+
+```nix
+services.tailscale.enable = true;
+services.hearthlight.tailnet = true;
+```
+
 Check the service:
 
 ```bash
@@ -137,6 +163,7 @@ The service stores its inventory at `/var/lib/hearthlight/state.json` with mode
 | `concurrency` | `16` | Hosts probed in parallel. |
 | `cidrs` | `[]` | Explicit IPv4 ranges. Empty means auto-detect. |
 | `extraPorts` | `[]` | Extra TCP ports to probe. |
+| `tailnet` | `true` | Discover Tailscale peers and put `tailscale` on the service `PATH`. |
 
 ### Standalone package check
 
@@ -157,10 +184,12 @@ nix build .#hearthlight
 | `-timeout` | `350ms` | Per-connection timeout. |
 | `-concurrency` | `16` | Parallel host probes. |
 | `-demo` | `false` | Serve sample data without scanning. |
+| `-tailscale` | `true` | Discover Tailscale peers via `tailscale status --json`. |
 | `-version` | | Print the version and exit. |
 
 Environment variables `HEARTHLIGHT_LISTEN` and `HEARTHLIGHT_DATA` set the listen
 address and state path when the corresponding flag is not provided.
+`HEARTHLIGHT_TAILSCALE` overrides the path or name of the `tailscale` binary.
 
 ## How discovery works
 
@@ -168,7 +197,7 @@ One scan does the following:
 
 1. Enumerates the IPv4 LAN interfaces. Networks larger than `/24` are capped to
    the local `/24`. Docker, Podman, Tailscale and other virtual interfaces are
-   skipped.
+   skipped; the tailnet is discovered separately.
 2. Sends one UDP packet to each address to wake the kernel's ARP cache.
 3. Connects to a closed TCP port on every address. A reset means the host is
    alive, even when it exposes no services.
@@ -179,6 +208,24 @@ One scan does the following:
 7. Resolves PTR names and maps known MAC prefixes to vendors.
 8. Merges the observation into the state file. Everything not seen recently
    becomes history rather than being deleted.
+9. Unless `-tailscale=false`, runs `tailscale status --json` with a 5 second
+   timeout and reads Self plus every Peer: node ID/public key, hostname,
+   MagicDNS name, OS, IPv4 address in `100.64.0.0/10`, tags, online state and
+   last seen.
+10. Probes online peers over the same port list, timeout and concurrency as the
+    LAN, then fingerprints their services the same way.
+11. Matches peers to LAN devices by unique normalized short hostname
+    (case-insensitive, trailing dot and DNS suffix removed) and matches the
+    local host through the `Self` flag. Ambiguous duplicate hostnames are never
+    merged.
+12. Merges memberships. A dual host keeps its LAN identity, MAC and history;
+    services merge by port and record both reach paths. A tailnet-only peer gets
+    the stable ID `ts:<node ID or public key>`. If an online peer refuses all TCP
+    probes it stays a device because Tailscale says it is up.
+
+A missing `tailscale` binary, a stopped `tailscaled`, a timeout or malformed
+JSON is logged and skipped. That reading is ignored, the LAN scan still
+succeeds, and the previous tailnet state is kept.
 
 The browser gets a full snapshot over `/api/state` and receives live snapshots
 over `/api/events`.
@@ -190,6 +237,18 @@ over `/api/events`.
 - A device that answers neither ARP nor TCP can be missed.
 - Sleeping Wi-Fi devices can move to history while asleep. They return on the
   next scan that sees them.
+- Tailnet discovery shells out to the local `tailscale` CLI. It needs a running,
+  logged-in `tailscaled`; there is no API token or remote discovery.
+- Tailnet peers are matched by normalized short hostname. If two LAN devices or
+  two peers share a hostname, the peer stays separate instead of risking a wrong
+  merge. A peer whose MagicDNS name differs from its reverse-DNS name will not
+  merge either.
+- Tailnet ACLs may block service probes. The peer still appears as an online
+  device from Tailscale status, just without services.
+- Tailscale `Online` is the liveness signal for tailnet members; a failed TCP
+  probe never marks an online peer offline. LAN members still use recent
+  observation time.
+- Tags, OS and MagicDNS names are informational and come from Tailscale status.
 - The OUI table is a curated list, not the full IEEE registry. Unknown vendors
   are shown as blank.
 - Service names come from common port conventions and fingerprinting. A
@@ -207,7 +266,13 @@ it directly to the internet; use an SSH tunnel or a tailnet-only firewall rule
 instead.
 
 Active service probing can trigger intrusion detection or logging on managed
-networks. Use it only on networks you own or administer.
+networks. Use it only on networks you own or administer. The same applies to
+your tailnet: probes cross Tailscale ACLs and show up as connections from this
+host, so make sure your policy allows them.
+
+State files created before tailnet support are migrated automatically: existing
+devices and services default to `local=true`, `tailnet=false`. The state file
+version is bumped on the next save.
 
 ## Development
 
@@ -221,11 +286,12 @@ make build    # bin/hearthlight
 The main packages are:
 
 - `internal/discovery`: network enumeration, liveness, port probes and
-  fingerprints.
-- `internal/store`: merges observations and derives online/history states.
+  fingerprints, plus Tailscale status discovery.
+- `internal/store`: merges LAN and tailnet observations into one inventory and
+  derives online/history states.
 - `internal/api`: JSON API, SSE stream and the embedded UI.
-- `internal/demo`: sample network for UI work.
-- `web`: canvas map, interaction and detail panel.
+- `internal/demo`: sample network for UI work, including a simulated tailnet.
+- `web`: canvas map, Aurora territories, interaction and detail panel.
 
 ## Releases
 

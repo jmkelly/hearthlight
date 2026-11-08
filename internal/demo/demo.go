@@ -10,6 +10,11 @@ import (
 	"github.com/jmkelly/hearthlight/internal/model"
 )
 
+const (
+	tailnetName   = "foxglove-heron"
+	tailnetSuffix = "foxglove-heron.ts.net"
+)
+
 type serviceTemplate struct {
 	port       int
 	name       string
@@ -17,6 +22,10 @@ type serviceTemplate struct {
 	category   string
 	online     bool
 	offlineFor time.Duration
+	// tailnetOnly / localOnly override the reach implied by the host. A port
+	// on a dual-membership host is normally reachable both ways.
+	tailnetOnly bool
+	localOnly   bool
 }
 
 type deviceTemplate struct {
@@ -27,10 +36,17 @@ type deviceTemplate struct {
 	vendor   string
 	kind     string
 	gateway  bool
+	self     bool
 	online   bool
 	seenFor  time.Duration
 	age      time.Duration
 	services []serviceTemplate
+
+	tailnetOnly bool
+	tailnetIP   string
+	tailnetName string
+	tailnetOS   string
+	tailnetTags []string
 }
 
 var templates = []deviceTemplate{
@@ -48,12 +64,13 @@ var templates = []deviceTemplate{
 		id: "mac:b0:83:fe:44:55:66", ip: "192.0.2.30", mac: "b0:83:fe:44:55:66",
 		hostname: "server", vendor: "Dell", kind: "server", online: true,
 		seenFor: 9 * time.Second, age: 38 * 24 * time.Hour,
+		tailnetIP: "100.101.102.42", tailnetOS: "linux",
 		services: []serviceTemplate{
 			{port: 22, name: "SSH", product: "OpenSSH 9.6", category: "remote", online: true},
 			{port: 80, name: "HTTP", product: "Caddy", category: "web", online: true},
 			{port: 443, name: "HTTPS", product: "Caddy", category: "web", online: true},
-			{port: 5432, name: "PostgreSQL", product: "PostgreSQL 17", category: "data", online: true},
-			{port: 8090, name: "Hearthlight", product: "Hearthlight", category: "web", online: true},
+			{port: 5432, name: "PostgreSQL", product: "PostgreSQL 17", category: "data", online: true, localOnly: true},
+			{port: 8090, name: "Hearthlight", product: "Hearthlight", category: "web", online: true, tailnetOnly: true},
 			{port: 8096, name: "Jellyfin", product: "Jellyfin", category: "media", online: false, offlineFor: 3 * time.Hour},
 		},
 	},
@@ -61,9 +78,10 @@ var templates = []deviceTemplate{
 		id: "mac:00:11:32:77:88:99", ip: "192.0.2.20", mac: "00:11:32:77:88:99",
 		hostname: "nas", vendor: "Synology", kind: "nas", online: true,
 		seenFor: 12 * time.Second, age: 160 * 24 * time.Hour,
+		tailnetIP: "100.101.102.18", tailnetOS: "linux", tailnetTags: []string{"tag:storage"},
 		services: []serviceTemplate{
 			{port: 22, name: "SSH", product: "OpenSSH 9.6", category: "remote", online: true},
-			{port: 445, name: "SMB", product: "Synology DSM", category: "data", online: true},
+			{port: 445, name: "SMB", product: "Synology DSM", category: "data", online: true, localOnly: true},
 			{port: 5000, name: "HTTP", product: "Synology DSM", category: "web", online: true},
 			{port: 5001, name: "HTTPS", product: "Synology DSM", category: "web", online: true},
 		},
@@ -79,11 +97,12 @@ var templates = []deviceTemplate{
 	},
 	{
 		id: "mac:3c:58:c2:12:34:56", ip: "192.0.2.58", mac: "3c:58:c2:12:34:56",
-		hostname: "workstation", vendor: "Intel", kind: "computer", online: true,
+		hostname: "workstation", vendor: "Intel", kind: "computer", self: true, online: true,
 		seenFor: 2 * time.Second, age: 320 * 24 * time.Hour,
+		tailnetIP: "100.101.102.103", tailnetOS: "linux",
 		services: []serviceTemplate{
 			{port: 22, name: "SSH", product: "OpenSSH 10.0", category: "remote", online: true},
-			{port: 3000, name: "HTTP", product: "Dev server", category: "web", online: true},
+			{port: 3000, name: "HTTP", product: "Dev server", category: "web", online: true, localOnly: true},
 			{port: 8384, name: "Syncthing", product: "Syncthing", category: "web", online: false, offlineFor: 55 * time.Minute},
 		},
 	},
@@ -117,6 +136,7 @@ var templates = []deviceTemplate{
 		id: "mac:3c:22:fb:aa:bb:cc", ip: "192.0.2.77", mac: "3c:22:fb:aa:bb:cc",
 		hostname: "phone", vendor: "Apple", kind: "phone", online: true,
 		seenFor: 18 * time.Second, age: 400 * 24 * time.Hour,
+		tailnetIP: "100.101.102.77", tailnetOS: "ios",
 	},
 	{
 		id: "mac:24:0a:c4:de:ad:01", ip: "192.0.2.31", mac: "24:0a:c4:de:ad:01",
@@ -135,13 +155,44 @@ var templates = []deviceTemplate{
 			{port: 22, name: "SSH", product: "OpenSSH 8.9", category: "remote", online: false, offlineFor: 11 * 24 * time.Hour},
 		},
 	},
+	{
+		id: "ts:nMacBookAir01", ip: "100.101.102.64",
+		hostname: "macbook-air", kind: "computer", online: true,
+		seenFor: 6 * time.Second, age: 210 * 24 * time.Hour,
+		tailnetOnly: true, tailnetIP: "100.101.102.64", tailnetOS: "macos",
+		services: []serviceTemplate{
+			{port: 22, name: "SSH", product: "OpenSSH 9.9", category: "remote", online: true},
+			{port: 8384, name: "Syncthing", product: "Syncthing", category: "web", online: true},
+		},
+	},
+	{
+		id: "ts:nIPadPro01", ip: "100.101.102.80",
+		hostname: "ipad", kind: "phone", online: false,
+		seenFor: 6 * time.Hour, age: 500 * 24 * time.Hour,
+		tailnetOnly: true, tailnetIP: "100.101.102.80", tailnetOS: "ios",
+	},
+	{
+		id: "ts:nCloudNode01", ip: "100.101.102.9",
+		hostname: "cloud-1", kind: "server", online: true,
+		seenFor: 22 * time.Second, age: 90 * 24 * time.Hour,
+		tailnetOnly: true, tailnetIP: "100.101.102.9", tailnetOS: "linux",
+		tailnetTags: []string{"tag:cloud", "tag:monitoring"},
+		services: []serviceTemplate{
+			{port: 22, name: "SSH", product: "OpenSSH 9.6", category: "remote", online: true},
+			{port: 443, name: "HTTPS", product: "Caddy", category: "web", online: true},
+			{port: 3000, name: "Grafana", product: "Grafana", category: "web", online: true},
+		},
+	},
 }
 
 // Generate rebuilds the demo snapshot relative to now so relative timestamps in
-// the UI always look fresh.
+// the UI always look fresh. The set is chosen to exercise the dual-membership
+// map: seven local-only hosts, four hosts on both networks, and three remote
+// peers, one of them offline.
 func Generate(now time.Time) model.Snapshot {
 	devices := make([]model.Device, 0, len(templates))
 	stats := model.Stats{}
+	tailnet := model.Tailnet{Name: tailnetName, MagicDNSSuffix: tailnetSuffix}
 
 	for _, td := range templates {
 		lastSeen := now.Add(-td.seenFor)
@@ -153,9 +204,27 @@ func Generate(now time.Time) model.Snapshot {
 			Vendor:    td.vendor,
 			Kind:      td.kind,
 			Gateway:   td.gateway,
+			Self:      td.self,
 			FirstSeen: now.Add(-td.age),
 			LastSeen:  lastSeen,
+			Local:     !td.tailnetOnly,
 			Online:    td.online,
+		}
+		if td.tailnetIP != "" {
+			d.Tailnet = true
+			d.TailnetIP = td.tailnetIP
+			d.TailnetName = td.hostname + "." + tailnetSuffix
+			d.TailnetOS = td.tailnetOS
+			d.TailnetTags = td.tailnetTags
+			d.TailnetOnline = td.online
+			d.TailnetID = td.id
+			if td.tailnetOnly {
+				d.TailnetID = "nodekey:" + td.id
+			}
+			tailnet.PeersTotal++
+			if td.online {
+				tailnet.PeersOnline++
+			}
 		}
 		services := make([]model.Service, 0, len(td.services))
 		for _, ts := range td.services {
@@ -167,6 +236,16 @@ func Generate(now time.Time) model.Snapshot {
 					svcLast = lastSeen
 				}
 			}
+			local := d.Local
+			tailnetReach := d.Tailnet
+			if ts.tailnetOnly {
+				local = false
+				tailnetReach = true
+			}
+			if ts.localOnly {
+				tailnetReach = false
+				local = true
+			}
 			services = append(services, model.Service{
 				ID:        td.id + "/" + strconv.Itoa(ts.port),
 				Port:      ts.port,
@@ -177,6 +256,8 @@ func Generate(now time.Time) model.Snapshot {
 				Source:    "demo",
 				FirstSeen: now.Add(-td.age),
 				LastSeen:  svcLast,
+				Local:     local,
+				Tailnet:   tailnetReach,
 				Online:    online,
 			})
 			if online {
@@ -200,6 +281,7 @@ func Generate(now time.Time) model.Snapshot {
 		ScanIntervalSec: 60,
 		ScanDurationMS:  684,
 		Networks:        []string{"192.0.2.0/24"},
+		Tailnet:         &tailnet,
 		Stats:           stats,
 		Devices:         devices,
 	}

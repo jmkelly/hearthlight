@@ -288,6 +288,32 @@ func (s *Scanner) probeHost(ctx context.Context, addr netip.Addr, mac string, is
 		hostname = s.reverseLookup(ctx, ip)
 	}
 
+	services := s.identifyServices(ctx, ip, openPorts, now)
+	for i := range services {
+		services[i].Local = true
+	}
+
+	vendor := vendorForMAC(mac)
+	return model.Device{
+		ID:        deviceID(ip, mac),
+		IP:        ip,
+		MAC:       mac,
+		Hostname:  hostname,
+		Vendor:    vendor,
+		Kind:      classifyDevice(isGateway, hostname, vendor, services),
+		Gateway:   isGateway,
+		Self:      isSelf,
+		FirstSeen: now,
+		LastSeen:  now,
+		Local:     true,
+		Online:    true,
+		Services:  services,
+	}, true
+}
+
+// identifyServices names and fingerprints a set of open ports. It is shared by
+// LAN and tailnet probing so both paths produce the same labels.
+func (s *Scanner) identifyServices(ctx context.Context, ip string, openPorts []int, now time.Time) []model.Service {
 	services := make([]model.Service, 0, len(openPorts))
 	for _, port := range openPorts {
 		name, category := describePort(port)
@@ -304,22 +330,7 @@ func (s *Scanner) probeHost(ctx context.Context, addr netip.Addr, mac string, is
 			Online:    true,
 		})
 	}
-
-	vendor := vendorForMAC(mac)
-	return model.Device{
-		ID:        deviceID(ip, mac),
-		IP:        ip,
-		MAC:       mac,
-		Hostname:  hostname,
-		Vendor:    vendor,
-		Kind:      classifyDevice(isGateway, hostname, vendor, services),
-		Gateway:   isGateway,
-		Self:      isSelf,
-		FirstSeen: now,
-		LastSeen:  now,
-		Online:    true,
-		Services:  services,
-	}, true
+	return services
 }
 
 func (s *Scanner) scanPorts(ctx context.Context, ip string) []int {
