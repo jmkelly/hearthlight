@@ -1,0 +1,71 @@
+package discovery
+
+import "strings"
+
+// A deliberately small OUI table for hardware commonly found in a home lab.
+// It is not a full IEEE registry; unknown prefixes simply produce no vendor.
+var ouiVendors = map[string]string{
+	"00:1b:63": "Apple",
+	"00:1c:b3": "Apple",
+	"14:7d:da": "Apple",
+	"3c:22:fb": "Apple",
+	"a4:83:e7": "Apple",
+	"f0:18:98": "Apple",
+	"b8:27:eb": "Raspberry Pi",
+	"dc:a6:32": "Raspberry Pi",
+	"e4:5f:01": "Raspberry Pi",
+	"d8:3a:dd": "Raspberry Pi",
+	"24:0a:c4": "Espressif",
+	"30:ae:a4": "Espressif",
+	"7c:9e:bd": "Espressif",
+	"84:f3:eb": "Espressif",
+	"24:a4:3c": "Ubiquiti",
+	"74:83:c2": "Ubiquiti",
+	"78:45:58": "Ubiquiti",
+	"fc:ec:da": "Ubiquiti",
+	"50:c7:bf": "TP-Link",
+	"60:32:b1": "TP-Link",
+	"98:da:c4": "TP-Link",
+	"3c:58:c2": "Intel",
+	"8c:16:45": "Intel",
+	"a4:bb:6d": "Intel",
+	"8c:77:12": "Samsung",
+	"34:23:ba": "Samsung",
+	"00:0e:58": "Sonos",
+	"48:a6:b8": "Sonos",
+	"78:28:ca": "Sonos",
+	"70:3a:cb": "Google",
+	"3c:84:6a": "TP-Link",
+	"34:ce:00": "Xiaomi",
+	"00:11:32": "Synology",
+	"90:09:d0": "Synology",
+	"00:08:9b": "QNAP",
+	"24:5e:be": "QNAP",
+	"3c:5a:b4": "Google",
+	"54:60:09": "Google",
+	"f4:f5:d8": "Google",
+	"44:65:0d": "Amazon",
+	"68:37:e9": "Amazon",
+	"fc:65:de": "Amazon",
+	"00:17:88": "Philips Hue",
+	"00:1f:29": "HP",
+	"3c:d9:2b": "HP",
+	"00:14:22": "Dell",
+	"b0:83:fe": "Dell",
+	"f8:bc:12": "Dell",
+	"dc:cd:2f": "Epson",
+	"00:25:90": "Supermicro",
+	"3c:ec:ef": "Supermicro",
+	"20:4e:7f": "Netgear",
+	"44:94:fc": "Netgear",
+	"04:d4:c4": "ASUS",
+	"2c:56:dc": "ASUS",
+}
+
+func vendorForMAC(mac string) string {
+	mac = strings.ToLower(strings.TrimSpace(mac))
+	if len(mac) < 8 {
+		return ""
+	}
+	return ouiVendors[mac[:8]]
+}

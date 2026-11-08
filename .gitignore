@@ -1,0 +1,17 @@
+# Runtime state (contains your network inventory)
+hearthlight-state.json
+*.state.json
+
+# Build output
+/bin/
+/dist/
+/result
+/result-*
+
+# Local tooling
+.direnv/
+.envrc.local
+
+# Editor / OS noise
+.DS_Store
+*.swp
