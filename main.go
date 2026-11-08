@@ -32,6 +32,7 @@ func main() {
 	timeout := flag.Duration("timeout", 350*time.Millisecond, "per-connection TCP timeout")
 	concurrency := flag.Int("concurrency", 16, "parallel host probes")
 	demoMode := flag.Bool("demo", false, "serve a simulated network without scanning")
+	tailnetEnabled := flag.Bool("tailscale", true, "discover Tailscale peers via `tailscale status --json`")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
 
@@ -87,8 +88,8 @@ func main() {
 		if err != nil {
 			fatal("configure scanner: %v", err)
 		}
-		logger.Info("starting hearthlight", "version", version, "interval", *interval)
-		go runScannerLoop(ctx, app, st, scanner, *interval, scanRequests, logger)
+		logger.Info("starting hearthlight", "version", version, "interval", *interval, "tailscale", *tailnetEnabled)
+		go runScannerLoop(ctx, app, st, scanner, *interval, *tailnetEnabled, scanRequests, logger)
 	}
 
 	handler := app.Handler(web.Files)
@@ -123,7 +124,7 @@ func main() {
 	}
 }
 
-func runScannerLoop(ctx context.Context, app *api.App, st *store.Store, scanner *discovery.Scanner, interval time.Duration, trigger <-chan struct{}, logger *slog.Logger) {
+func runScannerLoop(ctx context.Context, app *api.App, st *store.Store, scanner *discovery.Scanner, interval time.Duration, tailnetEnabled bool, trigger <-chan struct{}, logger *slog.Logger) {
 	scan := func() {
 		app.SetScanning(true)
 		start := time.Now()
@@ -144,13 +145,37 @@ func runScannerLoop(ctx context.Context, app *api.App, st *store.Store, scanner 
 			logger.Info("scan complete", "devices", len(result.Devices), "duration", elapsed.Round(time.Millisecond))
 		}
 
-		snapshot := st.Snapshot(store.SnapshotOptions{
-			Now:          time.Now(),
-			Interval:     interval,
-			ScanDuration: elapsed,
-			LastError:    lastError,
-		})
-		app.SetSnapshot(snapshot)
+		publish := func(scanning bool) {
+			app.SetSnapshot(st.Snapshot(store.SnapshotOptions{
+				Now:          time.Now(),
+				Interval:     interval,
+				Scanning:     scanning,
+				ScanDuration: elapsed,
+				LastError:    lastError,
+			}))
+		}
+		// Publish the LAN result before touching Tailscale so a wedged daemon
+		// can never delay the local map update.
+		publish(tailnetEnabled)
+
+		// Tailnet discovery is independent: a missing binary, a stopped
+		// tailscaled or malformed output only skips this reading and leaves the
+		// previous tailnet state intact.
+		if tailnetEnabled {
+			tailnet, tailnetErr := scanner.ScanTailnet(ctx)
+			if ctx.Err() != nil {
+				return
+			}
+			if tailnetErr != nil {
+				logger.Warn("tailnet discovery skipped", "error", tailnetErr)
+			} else {
+				if applyErr := st.ApplyTailnet(tailnet, time.Now()); applyErr != nil {
+					logger.Error("save tailnet state", "error", applyErr)
+				}
+				logger.Info("tailnet scan complete", "tailnet", tailnet.Name, "peers", len(tailnet.Peers))
+			}
+			publish(false)
+		}
 	}
 
 	scan()

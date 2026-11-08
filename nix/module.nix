@@ -28,6 +28,9 @@ let
   ++ lib.optional (cfg.extraPorts != [ ]) [
     "-ports"
     (lib.concatMapStringsSep "," toString cfg.extraPorts)
+  ]
+  ++ [
+    "-tailscale=${lib.boolToString cfg.tailnet}"
   ];
 in
 {
@@ -92,6 +95,16 @@ in
       ];
       description = "Extra TCP ports to probe in addition to the built-in list.";
     };
+
+    tailnet = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Discover Tailscale peers by running `tailscale status --json` and probe
+        them over their tailnet addresses. Requires tailscaled on the same host;
+        a missing binary or a stopped daemon is logged and skipped.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -100,6 +113,9 @@ in
       wantedBy = [ "multi-user.target" ];
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
+      # Makes `tailscale` reachable without adding privileges. The CLI only
+      # talks to the local tailscaled socket.
+      path = lib.optionals cfg.tailnet [ pkgs.tailscale ];
       serviceConfig = {
         Type = "simple";
         DynamicUser = true;

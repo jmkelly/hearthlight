@@ -18,7 +18,9 @@ import (
 	"github.com/jmkelly/hearthlight/internal/model"
 )
 
-const stateVersion = 1
+// stateVersion 2 adds dual local/tailnet membership. Version 1 records could
+// only have been observed on the LAN, so they migrate to local=true.
+const stateVersion = 2
 
 // Store is safe for concurrent use.
 type Store struct {
@@ -27,27 +29,40 @@ type Store struct {
 	devices  map[string]*deviceRecord
 	lastScan time.Time
 	networks []string
+	tailnet  model.Tailnet
 }
 
 type persisted struct {
 	Version  int                      `json:"version"`
 	LastScan time.Time                `json:"lastScan"`
 	Networks []string                 `json:"networks,omitempty"`
+	Tailnet  *model.Tailnet           `json:"tailnet,omitempty"`
 	Devices  map[string]*deviceRecord `json:"devices"`
 }
 
 type deviceRecord struct {
-	ID        string                 `json:"id"`
-	IP        string                 `json:"ip"`
-	MAC       string                 `json:"mac,omitempty"`
-	Hostname  string                 `json:"hostname,omitempty"`
-	Vendor    string                 `json:"vendor,omitempty"`
-	Kind      string                 `json:"kind,omitempty"`
-	Gateway   bool                   `json:"gateway,omitempty"`
-	Self      bool                   `json:"self,omitempty"`
-	FirstSeen time.Time              `json:"firstSeen"`
-	LastSeen  time.Time              `json:"lastSeen"`
-	Services  map[int]*serviceRecord `json:"services,omitempty"`
+	ID        string    `json:"id"`
+	IP        string    `json:"ip"`
+	MAC       string    `json:"mac,omitempty"`
+	Hostname  string    `json:"hostname,omitempty"`
+	Vendor    string    `json:"vendor,omitempty"`
+	Kind      string    `json:"kind,omitempty"`
+	Gateway   bool      `json:"gateway,omitempty"`
+	Self      bool      `json:"self,omitempty"`
+	FirstSeen time.Time `json:"firstSeen"`
+	LastSeen  time.Time `json:"lastSeen"`
+	Local     bool      `json:"local,omitempty"`
+	Tailnet   bool      `json:"tailnet,omitempty"`
+
+	TailnetID       string    `json:"tailnetId,omitempty"`
+	TailnetIP       string    `json:"tailnetIp,omitempty"`
+	TailnetName     string    `json:"tailnetName,omitempty"`
+	TailnetOS       string    `json:"tailnetOs,omitempty"`
+	TailnetTags     []string  `json:"tailnetTags,omitempty"`
+	LocalLastSeen   time.Time `json:"localLastSeen,omitempty"`
+	TailnetLastSeen time.Time `json:"tailnetLastSeen,omitempty"`
+
+	Services map[int]*serviceRecord `json:"services,omitempty"`
 }
 
 type serviceRecord struct {
@@ -59,6 +74,8 @@ type serviceRecord struct {
 	Source    string    `json:"source,omitempty"`
 	FirstSeen time.Time `json:"firstSeen"`
 	LastSeen  time.Time `json:"lastSeen"`
+	Local     bool      `json:"local,omitempty"`
+	Tailnet   bool      `json:"tailnet,omitempty"`
 }
 
 // Load reads a state file. A missing file yields an empty store, not an error.
@@ -85,6 +102,9 @@ func Load(path string) (*Store, error) {
 	if p.Devices != nil {
 		s.devices = p.Devices
 	}
+	if p.Tailnet != nil {
+		s.tailnet = *p.Tailnet
+	}
 	s.lastScan = p.LastScan
 	s.networks = append([]string(nil), p.Networks...)
 	for key, rec := range s.devices {
@@ -94,11 +114,21 @@ func Load(path string) (*Store, error) {
 		if rec.ID == "" {
 			rec.ID = key
 		}
+		if p.Version < 2 {
+			// A pre-tailnet state file only contains LAN observations.
+			rec.Local = true
+			if rec.LocalLastSeen.IsZero() {
+				rec.LocalLastSeen = rec.LastSeen
+			}
+			for _, svc := range rec.Services {
+				svc.Local = true
+			}
+		}
 	}
 	return s, nil
 }
 
-// Apply merges one scan into the store and writes the state file.
+// Apply merges one LAN scan into the store and writes the state file.
 func (s *Store) Apply(observed []model.Device, now time.Time, networks []string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -142,6 +172,8 @@ func (s *Store) Apply(observed []model.Device, now time.Time, networks []string)
 		}
 		rec.Gateway = obs.Gateway
 		rec.Self = obs.Self
+		rec.Local = true
+		rec.LocalLastSeen = now
 		if rec.FirstSeen.IsZero() || (!obs.FirstSeen.IsZero() && obs.FirstSeen.Before(rec.FirstSeen)) {
 			rec.FirstSeen = obs.FirstSeen
 		}
@@ -174,6 +206,7 @@ func (s *Store) Apply(observed []model.Device, now time.Time, networks []string)
 			if svc.Source != "" {
 				sr.Source = svc.Source
 			}
+			sr.Local = true
 			sr.LastSeen = now
 		}
 	}
@@ -181,6 +214,236 @@ func (s *Store) Apply(observed []model.Device, now time.Time, networks []string)
 	s.lastScan = now
 	s.networks = cleanNetworks(networks)
 	return s.saveLocked()
+}
+
+// ApplyTailnet merges one Tailscale status reading. Peers that share a unique
+// normalized short hostname with a LAN device are folded into that record;
+// the others become tailnet-only devices keyed by ts:<node id>. An ambiguous
+// hostname is never merged.
+func (s *Store) ApplyTailnet(obs model.TailnetObservation, now time.Time) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	online := 0
+	for _, peer := range obs.Peers {
+		if peer.Online {
+			online++
+		}
+	}
+	// The snapshot counts come from the latest successful reading, not from
+	// every peer ever seen, so decommissioned peers do not inflate "x/y up".
+	s.tailnet = model.Tailnet{
+		Name:           obs.Name,
+		MagicDNSSuffix: obs.MagicDNSSuffix,
+		PeersOnline:    online,
+		PeersTotal:     len(obs.Peers),
+	}
+
+	nameCounts := make(map[string]int)
+	for _, peer := range obs.Peers {
+		for _, name := range peerNames(peer) {
+			nameCounts[name]++
+		}
+	}
+	lanIndex := s.lanNameIndexLocked()
+
+	for _, peer := range obs.Peers {
+		if peer.NodeID == "" && peer.IP == "" {
+			continue
+		}
+		named := s.matchLANLocked(peer, nameCounts, lanIndex)
+		bound := s.findByTailnetIDLocked(peer.NodeID)
+
+		if named != nil && bound != nil && named != bound {
+			// The peer previously existed as tailnet-only and has now turned up
+			// on the scanned LAN. Fold the old record into the LAN record.
+			s.mergeRecordLocked(named, bound)
+			lanIndex = s.lanNameIndexLocked()
+		}
+
+		rec := named
+		if rec == nil {
+			rec = bound
+		}
+		if rec == nil {
+			rec = s.newTailnetRecordLocked(peer)
+		}
+		s.applyPeerLocked(rec, peer, now)
+	}
+
+	return s.saveLocked()
+}
+
+func (s *Store) newTailnetRecordLocked(peer model.TailnetPeer) *deviceRecord {
+	key := tailnetKey(peer)
+	rec := s.devices[key]
+	if rec == nil {
+		rec = &deviceRecord{
+			ID:       key,
+			Services: make(map[int]*serviceRecord),
+		}
+		s.devices[key] = rec
+	}
+	return rec
+}
+
+func (s *Store) applyPeerLocked(rec *deviceRecord, peer model.TailnetPeer, now time.Time) {
+	if rec.Services == nil {
+		rec.Services = make(map[int]*serviceRecord)
+	}
+	rec.Tailnet = true
+	if peer.NodeID != "" {
+		rec.TailnetID = peer.NodeID
+	}
+	if peer.IP != "" {
+		if !rec.Local {
+			rec.IP = peer.IP
+		}
+		rec.TailnetIP = peer.IP
+	}
+	if name := peerDisplayName(peer); name != "" && rec.Hostname == "" {
+		rec.Hostname = name
+	}
+	rec.TailnetName = strings.TrimSuffix(strings.TrimSpace(peer.DNSName), ".")
+	if peer.OS != "" {
+		rec.TailnetOS = peer.OS
+	}
+	rec.TailnetTags = cleanTags(peer.Tags)
+	if kind := peer.Kind; kind != "" && (rec.Kind == "" || rec.Kind == "device") {
+		rec.Kind = kind
+	}
+	if peer.Self {
+		// A stale tailnet-only self record may be merged later; keep the flag
+		// consistent with the strongest observation.
+		rec.Self = true
+	}
+	if rec.FirstSeen.IsZero() {
+		rec.FirstSeen = now
+	}
+	if peer.Online {
+		rec.TailnetLastSeen = now
+		// Tailscale knows the peer is up even when every TCP probe failed.
+		rec.LastSeen = now
+	} else if !peer.LastSeen.IsZero() && peer.LastSeen.After(rec.LastSeen) {
+		// Preserve the last time Tailscale saw an offline peer so history shows
+		// a meaningful timestamp instead of "never".
+		rec.LastSeen = peer.LastSeen
+	}
+
+	for _, svc := range peer.Services {
+		sr := rec.Services[svc.Port]
+		if sr == nil {
+			sr = &serviceRecord{Port: svc.Port, FirstSeen: now}
+			rec.Services[svc.Port] = sr
+		}
+		if !svc.FirstSeen.IsZero() && (sr.FirstSeen.IsZero() || svc.FirstSeen.Before(sr.FirstSeen)) {
+			sr.FirstSeen = svc.FirstSeen
+		}
+		if svc.Protocol != "" && sr.Protocol == "" {
+			sr.Protocol = svc.Protocol
+		}
+		if svc.Name != "" && sr.Name == "" {
+			sr.Name = svc.Name
+		}
+		if svc.Product != "" && sr.Product == "" {
+			sr.Product = svc.Product
+		}
+		if svc.Category != "" && sr.Category == "" {
+			sr.Category = svc.Category
+		}
+		if svc.Source != "" && sr.Source == "" {
+			sr.Source = svc.Source
+		}
+		sr.Tailnet = true
+		sr.LastSeen = now
+	}
+}
+
+// mergeRecordLocked keeps target (the LAN record) and folds source into it.
+// Services merge by port so history and both reach flags survive.
+func (s *Store) mergeRecordLocked(target, source *deviceRecord) {
+	if target == nil || source == nil || target == source {
+		return
+	}
+	if target.Services == nil {
+		target.Services = make(map[int]*serviceRecord)
+	}
+	for port, src := range source.Services {
+		dst := target.Services[port]
+		if dst == nil {
+			target.Services[port] = src
+			continue
+		}
+		dst.Local = dst.Local || src.Local
+		dst.Tailnet = dst.Tailnet || src.Tailnet
+		if !src.FirstSeen.IsZero() && (dst.FirstSeen.IsZero() || src.FirstSeen.Before(dst.FirstSeen)) {
+			dst.FirstSeen = src.FirstSeen
+		}
+		if src.LastSeen.After(dst.LastSeen) {
+			dst.LastSeen = src.LastSeen
+		}
+		if dst.Protocol == "" {
+			dst.Protocol = src.Protocol
+		}
+		if dst.Name == "" {
+			dst.Name = src.Name
+		}
+		if dst.Product == "" {
+			dst.Product = src.Product
+		}
+		if dst.Category == "" {
+			dst.Category = src.Category
+		}
+		if dst.Source == "" {
+			dst.Source = src.Source
+		}
+	}
+	if target.FirstSeen.IsZero() || (!source.FirstSeen.IsZero() && source.FirstSeen.Before(target.FirstSeen)) {
+		target.FirstSeen = source.FirstSeen
+	}
+	if source.LastSeen.After(target.LastSeen) {
+		target.LastSeen = source.LastSeen
+	}
+	if source.LocalLastSeen.After(target.LocalLastSeen) {
+		target.LocalLastSeen = source.LocalLastSeen
+	}
+	if source.TailnetLastSeen.After(target.TailnetLastSeen) {
+		target.TailnetLastSeen = source.TailnetLastSeen
+	}
+	target.Local = target.Local || source.Local
+	target.Tailnet = target.Tailnet || source.Tailnet
+	target.Self = target.Self || source.Self
+	target.Gateway = target.Gateway || source.Gateway
+	if target.Hostname == "" {
+		target.Hostname = source.Hostname
+	}
+	if target.MAC == "" {
+		target.MAC = source.MAC
+	}
+	if target.Vendor == "" {
+		target.Vendor = source.Vendor
+	}
+	if target.Kind == "" || target.Kind == "device" {
+		if source.Kind != "" {
+			target.Kind = source.Kind
+		}
+	}
+	if target.TailnetID == "" {
+		target.TailnetID = source.TailnetID
+	}
+	if target.TailnetIP == "" {
+		target.TailnetIP = source.TailnetIP
+	}
+	if target.TailnetName == "" {
+		target.TailnetName = source.TailnetName
+	}
+	if target.TailnetOS == "" {
+		target.TailnetOS = source.TailnetOS
+	}
+	if len(target.TailnetTags) == 0 {
+		target.TailnetTags = source.TailnetTags
+	}
+	delete(s.devices, source.ID)
 }
 
 func (s *Store) findLocked(mac, ip string) (string, *deviceRecord) {
@@ -199,6 +462,147 @@ func (s *Store) findLocked(mac, ip string) (string, *deviceRecord) {
 		}
 	}
 	return "", nil
+}
+
+func (s *Store) findByTailnetIDLocked(id string) *deviceRecord {
+	if id == "" {
+		return nil
+	}
+	for _, rec := range s.devices {
+		if rec.TailnetID == id {
+			return rec
+		}
+	}
+	return nil
+}
+
+// lanNameIndexLocked maps a normalized short hostname to LAN records. Only
+// records that have been observed on the LAN participate in name matching.
+func (s *Store) lanNameIndexLocked() map[string][]*deviceRecord {
+	index := make(map[string][]*deviceRecord)
+	for _, rec := range s.devices {
+		if !rec.Local {
+			continue
+		}
+		if name := shortName(rec.Hostname); name != "" {
+			index[name] = append(index[name], rec)
+		}
+	}
+	return index
+}
+
+// matchLANLocked returns the LAN record a peer belongs to, or nil when the
+// match would be ambiguous.
+func (s *Store) matchLANLocked(peer model.TailnetPeer, peerNameCounts map[string]int, index map[string][]*deviceRecord) *deviceRecord {
+	if peer.Self {
+		candidates := make([]*deviceRecord, 0, 1)
+		for _, rec := range s.devices {
+			if rec.Self && rec.Local {
+				candidates = append(candidates, rec)
+			}
+		}
+		if len(candidates) == 1 {
+			return candidates[0]
+		}
+	}
+	seen := make(map[*deviceRecord]struct{})
+	var match *deviceRecord
+	for _, name := range peerNames(peer) {
+		if peerNameCounts[name] > 1 {
+			// Two peers claim this name; refuse to guess.
+			return nil
+		}
+		candidates := index[name]
+		if len(candidates) != 1 {
+			if len(candidates) > 1 {
+				return nil
+			}
+			continue
+		}
+		if _, ok := seen[candidates[0]]; ok {
+			continue
+		}
+		seen[candidates[0]] = struct{}{}
+		match = candidates[0]
+	}
+	if len(seen) > 1 {
+		return nil
+	}
+	return match
+}
+
+// peerNames returns the normalized short names a peer could be known by.
+func peerNames(peer model.TailnetPeer) []string {
+	var names []string
+	for _, raw := range []string{peer.DNSName, peer.HostName} {
+		name := shortName(raw)
+		if name == "" {
+			continue
+		}
+		duplicate := false
+		for _, existing := range names {
+			if existing == name {
+				duplicate = true
+				break
+			}
+		}
+		if !duplicate {
+			names = append(names, name)
+		}
+	}
+	return names
+}
+
+// peerDisplayName prefers the MagicDNS label, which is the name Tailscale
+// shows, and falls back to HostName unless it is the generic "localhost".
+func peerDisplayName(peer model.TailnetPeer) string {
+	if name := shortName(peer.DNSName); name != "" {
+		return name
+	}
+	if name := shortName(peer.HostName); name != "" && name != "localhost" {
+		return name
+	}
+	return ""
+}
+
+// shortName normalizes a hostname for matching: lower case, no trailing dot,
+// no DNS suffix and no leading underscore from PTR records.
+func shortName(raw string) string {
+	name := strings.ToLower(strings.TrimSpace(raw))
+	name = strings.TrimSuffix(name, ".")
+	if dot := strings.IndexByte(name, '.'); dot >= 0 {
+		name = name[:dot]
+	}
+	name = strings.TrimPrefix(name, "_")
+	if name == "" || name == "localhost" {
+		return ""
+	}
+	return name
+}
+
+func tailnetKey(peer model.TailnetPeer) string {
+	id := strings.TrimSpace(peer.NodeID)
+	if id == "" {
+		id = strings.TrimSpace(peer.IP)
+	}
+	return "ts:" + id
+}
+
+func cleanTags(in []string) []string {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(in))
+	for _, tag := range in {
+		tag = strings.TrimSpace(tag)
+		if tag != "" {
+			out = append(out, tag)
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 // SnapshotOptions controls the derived online/offline view of the store.
@@ -223,26 +627,37 @@ func (s *Store) Snapshot(opts SnapshotOptions) model.Snapshot {
 	if onlineFor < 45*time.Second {
 		onlineFor = 45 * time.Second
 	}
+	fresh := func(t time.Time) bool {
+		return !t.IsZero() && now.Sub(t) <= onlineFor
+	}
 
 	devices := make([]model.Device, 0, len(s.devices))
 	stats := model.Stats{}
 	for _, rec := range s.devices {
 		d := model.Device{
-			ID:        rec.ID,
-			IP:        rec.IP,
-			MAC:       rec.MAC,
-			Hostname:  rec.Hostname,
-			Vendor:    rec.Vendor,
-			Kind:      rec.Kind,
-			Gateway:   rec.Gateway,
-			Self:      rec.Self,
-			FirstSeen: rec.FirstSeen,
-			LastSeen:  rec.LastSeen,
+			ID:            rec.ID,
+			IP:            rec.IP,
+			MAC:           rec.MAC,
+			Hostname:      rec.Hostname,
+			Vendor:        rec.Vendor,
+			Kind:          rec.Kind,
+			Gateway:       rec.Gateway,
+			Self:          rec.Self,
+			FirstSeen:     rec.FirstSeen,
+			LastSeen:      rec.LastSeen,
+			Local:         rec.Local,
+			Tailnet:       rec.Tailnet,
+			TailnetID:     rec.TailnetID,
+			TailnetIP:     rec.TailnetIP,
+			TailnetName:   rec.TailnetName,
+			TailnetOS:     rec.TailnetOS,
+			TailnetTags:   append([]string(nil), rec.TailnetTags...),
+			TailnetOnline: rec.Tailnet && fresh(rec.TailnetLastSeen),
 		}
 		if d.Kind == "" {
 			d.Kind = "device"
 		}
-		d.Online = !rec.LastSeen.IsZero() && now.Sub(rec.LastSeen) <= onlineFor
+		d.Online = fresh(rec.LastSeen)
 
 		services := make([]model.Service, 0, len(rec.Services))
 		for _, sr := range rec.Services {
@@ -256,6 +671,8 @@ func (s *Store) Snapshot(opts SnapshotOptions) model.Snapshot {
 				Source:    sr.Source,
 				FirstSeen: sr.FirstSeen,
 				LastSeen:  sr.LastSeen,
+				Local:     sr.Local,
+				Tailnet:   sr.Tailnet,
 			}
 			if svc.Protocol == "" {
 				svc.Protocol = "tcp"
@@ -263,7 +680,7 @@ func (s *Store) Snapshot(opts SnapshotOptions) model.Snapshot {
 			if svc.Category == "" {
 				svc.Category = "other"
 			}
-			svc.Online = d.Online && !sr.LastSeen.IsZero() && now.Sub(sr.LastSeen) <= onlineFor
+			svc.Online = d.Online && fresh(sr.LastSeen)
 			if svc.Online {
 				stats.ServicesOnline++
 			}
@@ -280,6 +697,12 @@ func (s *Store) Snapshot(opts SnapshotOptions) model.Snapshot {
 	}
 	sort.Slice(devices, func(i, j int) bool { return ipLess(devices[i].IP, devices[j].IP) })
 
+	var tailnet *model.Tailnet
+	if s.tailnet.Name != "" || s.tailnet.MagicDNSSuffix != "" || s.tailnet.PeersTotal > 0 {
+		t := s.tailnet
+		tailnet = &t
+	}
+
 	return model.Snapshot{
 		GeneratedAt:     now,
 		LastScan:        s.lastScan,
@@ -288,6 +711,7 @@ func (s *Store) Snapshot(opts SnapshotOptions) model.Snapshot {
 		ScanDurationMS:  opts.ScanDuration.Milliseconds(),
 		Networks:        append([]string(nil), s.networks...),
 		LastError:       opts.LastError,
+		Tailnet:         tailnet,
 		Stats:           stats,
 		Devices:         devices,
 	}
@@ -306,6 +730,10 @@ func (s *Store) saveLocked() error {
 		LastScan: s.lastScan,
 		Networks: s.networks,
 		Devices:  s.devices,
+	}
+	if s.tailnet.Name != "" || s.tailnet.MagicDNSSuffix != "" || s.tailnet.PeersTotal > 0 {
+		t := s.tailnet
+		p.Tailnet = &t
 	}
 	tmp, err := os.CreateTemp(dir, ".hearthlight-*.json")
 	if err != nil {
