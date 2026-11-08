@@ -25,8 +25,9 @@ at overview zoom. Service bubbles and labels appear as you zoom in.
 
 ## Quick start
 
-Requirements: Linux and Go 1.23 or newer. The scanner reads `/proc/net/arp`,
-so macOS and Windows are not supported.
+Requirements: Go 1.23 or newer. Real network scanning requires Linux because
+the scanner reads `/proc/net/arp`; the macOS and Windows builds run in demo
+mode.
 
 ```bash
 git clone https://github.com/jmkelly/hearthlight.git
@@ -51,6 +52,12 @@ Build a binary:
 make build
 ./bin/hearthlight -listen :8090
 ```
+
+## Prebuilt binaries
+
+Versioned Linux, macOS and Windows archives are published on the
+[releases page](https://github.com/jmkelly/hearthlight/releases). Linux builds
+support real scanning; macOS and Windows builds run in demo mode with `-demo`.
 
 ## Run it on a NixOS host
 
@@ -219,6 +226,19 @@ The main packages are:
 - `internal/api`: JSON API, SSE stream and the embedded UI.
 - `internal/demo`: sample network for UI work.
 - `web`: canvas map, interaction and detail panel.
+
+## Releases
+
+Release archives are built from tags. To publish a new version, update
+`VERSION`, commit, and push a matching tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The release workflow runs the tests, builds Linux, macOS and Windows archives,
+generates `checksums.txt`, and attaches everything to the GitHub release.
 
 ## License
 

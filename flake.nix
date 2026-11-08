@@ -11,7 +11,7 @@
         "aarch64-linux"
       ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
-      version = "0.1.0";
+      version = nixpkgs.lib.removeSuffix "\n" (builtins.readFile ./VERSION);
     in
     {
       packages = forAllSystems (pkgs: rec {
