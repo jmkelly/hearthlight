@@ -425,7 +425,7 @@ func classifyDevice(gateway bool, hostname, vendor string, services []model.Serv
 	case vend == "hp" || hasVendor("epson", "brother", "canon") ||
 		hasHost("printer", "epson", "brother", "canon", "laserjet", "officejet", "deskjet"):
 		return "printer"
-	case hasHost("iphone", "ipad", "phone", "pixel", "galaxy"):
+	case hasHost("iphone", "ipad", "phone", "android", "pixel", "galaxy"):
 		return "phone"
 	case has(445) || has(2049) || has(5000) || has(5001):
 		return "nas"
@@ -438,7 +438,7 @@ func classifyDevice(gateway bool, hostname, vendor string, services []model.Serv
 	case has(1883) || has(8123):
 		return "iot"
 	case hasVendor("espressif", "philips hue", "xiaomi", "tuya", "sonoff") ||
-		hasHost("esp_", "esp-", "esp", "yeelink", "yeelight", "hs110", "shelly", "tasmota", "miio", "plug", "bulb", "light", "rako", "echo", "alexa", "amazon-"):
+		hasHost("esp_", "esp-", "esp", "yeelink", "yeelight", "hs110", "shelly", "tasmota", "miio", "plug", "bulb", "light", "rako", "rakmodule", "echo", "alexa", "amazon-"):
 		return "iot"
 	case has(22) || has(8006) || has(9090) || has(9100) || has(5432) || has(6379) || has(2375) || has(9200):
 		return "server"

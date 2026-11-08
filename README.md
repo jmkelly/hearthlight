@@ -98,7 +98,14 @@ services.hearthlight = {
 };
 ```
 
-Deploy as usual from the NixOS checkout:
+This integration is already applied in `/etc/nixos` on this
+machine. Its full server system closure builds successfully with:
+
+```bash
+nix build .#nixosConfigurations.server.config.system.build.toplevel
+```
+
+Deploy as usual from the NixOS checkout when the server host is ready:
 
 ```bash
 cd /etc/nixos
