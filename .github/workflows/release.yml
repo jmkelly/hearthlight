@@ -16,7 +16,6 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-          cache: true
       - name: Check tag matches VERSION
         run: test "v$(cat VERSION)" = "$GITHUB_REF_NAME"
       - name: Test
@@ -46,7 +45,6 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-          cache: true
       - name: Build archive
         env:
           VERSION: ${{ github.ref_name }}
