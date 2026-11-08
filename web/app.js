@@ -72,6 +72,27 @@
     return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
   };
 
+  const HOUSE_SVG = '<svg viewBox="-4 -4 8 8" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M -3.3 0.6 L 0 -2.8 L 3.3 0.6"/><path d="M -2.5 -0.1 V 3.3 H 2.5 V -0.1"/></svg>';
+  const KNOT_SVG = '<svg viewBox="-4 -4 8 8" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M -2.7 2.2 L 0 -2.9 L 2.7 2.2 Z"/><circle cx="-2.7" cy="2.2" r=".85" fill="currentColor" stroke="none"/><circle cx="0" cy="-2.9" r=".85" fill="currentColor" stroke="none"/><circle cx="2.7" cy="2.2" r=".85" fill="currentColor" stroke="none"/></svg>';
+
+  const hasLocal = (device) => (device.local === undefined ? !device.tailnet : Boolean(device.local));
+  const hasTailnet = (device) => Boolean(device.tailnet);
+  const deviceReach = (device) => {
+    if (hasLocal(device) && hasTailnet(device)) return "both";
+    if (hasTailnet(device)) return "tailnet";
+    return "local";
+  };
+  const reachLabel = (reach) => {
+    if (reach === "both") return "LAN + Tailnet";
+    if (reach === "tailnet") return "Tailnet";
+    return "LAN";
+  };
+  const reachShort = (reach) => {
+    if (reach === "both") return "L+T";
+    if (reach === "tailnet") return "TS";
+    return "LAN";
+  };
+
   const validTime = (value) => {
     const parsed = Date.parse(value || "");
     return Number.isFinite(parsed) && parsed > 946684800000;
@@ -96,6 +117,7 @@
   const subtitle = document.getElementById("subtitle");
   const stats = document.getElementById("stats");
   const historyBtn = document.getElementById("historyBtn");
+  const tailnetBtn = document.getElementById("tailnetBtn");
   const scanBtn = document.getElementById("scanBtn");
   const conn = document.getElementById("conn");
   const legend = document.getElementById("legend");
@@ -105,6 +127,7 @@
     width: window.innerWidth,
     height: window.innerHeight,
     dpr: Math.min(window.devicePixelRatio || 1, 2),
+    chromeTop: 94,
   };
 
   const view = {
@@ -117,6 +140,12 @@
     selectedDeviceId: null,
     selectedServiceId: null,
     showOffline: true,
+    showTailnet: true,
+    tailnetPresent: false,
+    territories: null,
+    territoryVersion: 0,
+    territorySig: "",
+    territoryLayer: null,
     dragging: false,
     dragMoved: false,
     dragStart: null,
@@ -136,14 +165,28 @@
     if (window.localStorage.getItem("hearthlight.history") === "0") {
       view.showOffline = false;
     }
+    if (window.localStorage.getItem("hearthlight.tailnet") === "0") {
+      view.showTailnet = false;
+    }
   } catch (_error) {
     // Private browsing can disable localStorage; history stays on.
+  }
+
+  function tailnetShown() {
+    return view.showTailnet && view.tailnetPresent;
+  }
+
+  function deviceVisible(device) {
+    if (hasTailnet(device) && !hasLocal(device) && !view.showTailnet) return false;
+    return Boolean(device.online) || view.showOffline;
   }
 
   function resize() {
     size.width = window.innerWidth;
     size.height = window.innerHeight;
     size.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const topbar = document.querySelector(".topbar");
+    size.chromeTop = topbar ? topbar.getBoundingClientRect().bottom + 10 : 94;
     canvas.width = Math.round(size.width * size.dpr);
     canvas.height = Math.round(size.height * size.dpr);
     if (view.snapshot && !view.userAdjusted) {
@@ -179,7 +222,7 @@
 
   function fitView(animate) {
     const devices = [...view.nodes.values()].filter(
-      (node) => node.type === "device" && (view.showOffline || node.data.online),
+      (node) => node.type === "device" && deviceVisible(node.data),
     );
     if (!devices.length) {
       const target = { x: 0, y: 0, zoom: 1 };
@@ -198,7 +241,7 @@
     let maxX = -Infinity;
     let maxY = -Infinity;
     for (const node of devices) {
-      const pad = node.baseR + ((node.data.services || []).length ? 58 : 32);
+      const pad = node.baseR + ((node.data.services || []).length ? 58 : 32) + (view.tailnetPresent ? 34 : 0);
       minX = Math.min(minX, node.x - pad);
       minY = Math.min(minY, node.y - pad);
       maxX = Math.max(maxX, node.x + pad);
@@ -208,10 +251,11 @@
     const width = Math.max(1, maxX - minX);
     const height = Math.max(1, maxY - minY);
     const narrow = size.width < 700;
-    const horizontalPad = narrow ? 50 : 90;
+    const horizontalPad = narrow ? 26 : 90;
+    const verticalPad = narrow ? Math.max(260, size.chromeTop + 150) : 230;
     const zoom = clamp(
-      Math.min((size.width - horizontalPad) / width, (size.height - 230) / height),
-      narrow ? 0.38 : 0.28,
+      Math.min((size.width - horizontalPad) / width, (size.height - verticalPad) / height),
+      narrow ? 0.2 : 0.28,
       1.55,
     );
     const target = {
@@ -251,7 +295,8 @@
       if (!view.showOffline) return 0;
       return smoothstep(0.9, 1.2, zoom) * 0.65;
     }
-    return 0.16 + 0.84 * smoothstep(0.5, 0.9, zoom);
+    const floor = view.tailnetPresent ? 0.42 : 0.16;
+    return floor + (1 - floor) * smoothstep(0.5, 0.9, zoom);
   }
 
   function serviceLabelAlpha(node, zoom) {
@@ -263,6 +308,415 @@
     if (node.data.online) return 1;
     if (!view.showOffline) return 0;
     return 0.5 + 0.3 * smoothstep(0.8, 1.3, zoom);
+  }
+
+  // --- Aurora territories -------------------------------------------------
+
+  function convexHull(points) {
+    if (points.length <= 3) return points.slice();
+    const sorted = points.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const lower = [];
+    for (const point of sorted) {
+      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], point) <= 0) lower.pop();
+      lower.push(point);
+    }
+    const upper = [];
+    for (let i = sorted.length - 1; i >= 0; i -= 1) {
+      const point = sorted[i];
+      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], point) <= 0) upper.pop();
+      upper.push(point);
+    }
+    lower.pop();
+    upper.pop();
+    return lower.concat(upper);
+  }
+
+  // territoryHull pads every member host by its bubble plus service ring, then
+  // takes the convex hull so the boundary always tracks pan and zoom.
+  function territoryHull(nodes, pad) {
+    const points = [];
+    for (const node of nodes) {
+      const radius = node.baseR + pad;
+      for (let i = 0; i < 14; i += 1) {
+        const angle = (i / 14) * TAU;
+        points.push({ x: node.x + Math.cos(angle) * radius, y: node.y + Math.sin(angle) * radius });
+      }
+    }
+    return convexHull(points);
+  }
+
+  function updateTerritories() {
+    const devices = [...view.nodes.values()].filter((node) => node.type === "device");
+    const local = devices.filter((node) => hasLocal(node.data));
+    const tailnet = devices.filter((node) => hasTailnet(node.data));
+    view.territories = {
+      lan: local.length ? territoryHull(local, 56) : null,
+      tailnet: tailnet.length ? territoryHull(tailnet, 56) : null,
+      lanCount: local.length,
+      tailnetCount: tailnet.length,
+    };
+    view.territoryVersion += 1;
+    view.territorySig = "";
+  }
+
+  function hullScreen(points) {
+    return points.map((point) => worldToScreen(point.x, point.y));
+  }
+
+  // tracedPath rounds a convex hull by joining edge midpoints with quadratic
+  // curves through the vertices. The result is a smooth closed membrane.
+  function tracedPath(target, points) {
+    const n = points.length;
+    if (n < 3) return;
+    const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    const start = mid(points[n - 1], points[0]);
+    target.beginPath();
+    target.moveTo(start.x, start.y);
+    for (let i = 0; i < n; i += 1) {
+      const current = points[i];
+      const next = points[(i + 1) % n];
+      const end = mid(current, next);
+      target.quadraticCurveTo(current.x, current.y, end.x, end.y);
+    }
+    target.closePath();
+  }
+
+  function pointsBounds(points) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const point of points) {
+      minX = Math.min(minX, point.x);
+      minY = Math.min(minY, point.y);
+      maxX = Math.max(maxX, point.x);
+      maxY = Math.max(maxY, point.y);
+    }
+    return { minX, minY, maxX, maxY };
+  }
+
+  function drawTerritoryFill(target, points, tailnet) {
+    const bounds = pointsBounds(points);
+    const gradient = target.createLinearGradient(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+    if (tailnet) {
+      gradient.addColorStop(0, "rgba(94, 231, 255, 0.22)");
+      gradient.addColorStop(0.5, "rgba(177, 140, 255, 0.14)");
+      gradient.addColorStop(1, "rgba(94, 224, 165, 0.05)");
+    } else {
+      gradient.addColorStop(0, "rgba(255, 226, 166, 0.24)");
+      gradient.addColorStop(0.55, "rgba(255, 209, 102, 0.12)");
+      gradient.addColorStop(1, "rgba(94, 231, 255, 0.04)");
+    }
+    target.save();
+    if (typeof target.filter === "string") target.filter = "blur(26px)";
+    target.fillStyle = gradient;
+    tracedPath(target, points);
+    target.fill();
+    target.restore();
+
+    target.save();
+    target.fillStyle = tailnet ? "rgba(94, 231, 255, 0.028)" : "rgba(255, 209, 102, 0.022)";
+    tracedPath(target, points);
+    target.fill();
+    target.restore();
+  }
+
+  function drawAuroraRibbon(target, lan, tailnet) {
+    const from = pointsBounds(lan);
+    const to = pointsBounds(tailnet);
+    const start = { x: (from.minX + from.maxX) / 2, y: (from.minY + from.maxY) / 2 - 40 };
+    const end = { x: (to.minX + to.maxX) / 2, y: (to.minY + to.maxY) / 2 - 30 };
+    const gradient = target.createLinearGradient(start.x, 0, end.x, 0);
+    gradient.addColorStop(0, "rgba(94, 231, 255, 0.2)");
+    gradient.addColorStop(0.55, "rgba(177, 140, 255, 0.13)");
+    gradient.addColorStop(1, "rgba(94, 231, 255, 0)");
+    target.save();
+    if (typeof target.filter === "string") target.filter = "blur(16px)";
+    target.strokeStyle = gradient;
+    target.lineWidth = 54;
+    target.lineCap = "round";
+    target.beginPath();
+    target.moveTo(start.x, start.y);
+    target.bezierCurveTo(
+      lerp(start.x, end.x, 0.35), start.y - 70,
+      lerp(start.x, end.x, 0.7), end.y + 55,
+      end.x, end.y,
+    );
+    target.stroke();
+    target.restore();
+  }
+
+  function drawOverlapLens(target, lan, tailnet) {
+    const dual = [...view.nodes.values()].filter(
+      (node) => node.type === "device" && hasLocal(node.data) && hasTailnet(node.data),
+    );
+    if (!dual.length) return;
+    let cx = 0;
+    let cy = 0;
+    for (const node of dual) {
+      const point = worldToScreen(node.x, node.y);
+      cx += point.x;
+      cy += point.y;
+    }
+    cx /= dual.length;
+    cy /= dual.length;
+    let rx = 150;
+    let ry = 165;
+    for (const node of dual) {
+      const point = worldToScreen(node.x, node.y);
+      rx = Math.max(rx, Math.abs(point.x - cx) + 100);
+      ry = Math.max(ry, Math.abs(point.y - cy) + 105);
+    }
+    target.save();
+    target.beginPath();
+    tracedPath(target, lan);
+    target.clip();
+    tracedPath(target, tailnet);
+    target.clip();
+    target.globalCompositeOperation = "screen";
+    if (typeof target.filter === "string") target.filter = "blur(14px)";
+    const glow = target.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
+    glow.addColorStop(0, "rgba(232, 255, 255, 0.26)");
+    glow.addColorStop(0.46, "rgba(94, 231, 255, 0.1)");
+    glow.addColorStop(1, "rgba(94, 231, 255, 0)");
+    target.fillStyle = glow;
+    target.fillRect(cx - rx * 1.7, cy - ry * 1.7, rx * 3.4, ry * 3.4);
+    target.restore();
+  }
+
+  function renderTerritoryLayer() {
+    const signature = [
+      size.width, size.height, view.camera.x.toFixed(2), view.camera.y.toFixed(2),
+      view.camera.zoom.toFixed(4), view.territoryVersion, view.tailnetPresent, view.showTailnet,
+    ].join("|");
+    if (view.territoryLayer && view.territorySig === signature) return view.territoryLayer;
+    const pixelWidth = Math.max(1, Math.round(size.width * size.dpr));
+    const pixelHeight = Math.max(1, Math.round(size.height * size.dpr));
+    let layer = view.territoryLayer;
+    if (!layer || layer.width !== pixelWidth || layer.height !== pixelHeight) {
+      layer = document.createElement("canvas");
+      layer.width = pixelWidth;
+      layer.height = pixelHeight;
+    }
+    const target = layer.getContext("2d");
+    target.setTransform(1, 0, 0, 1, 0, 0);
+    target.clearRect(0, 0, pixelWidth, pixelHeight);
+    target.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+    const territories = view.territories;
+    if (territories) {
+      const lan = territories.lan ? hullScreen(territories.lan) : null;
+      const tailnet = territories.tailnet ? hullScreen(territories.tailnet) : null;
+      target.save();
+      target.globalCompositeOperation = "screen";
+      if (lan) drawTerritoryFill(target, lan, false);
+      if (tailnet) drawTerritoryFill(target, tailnet, true);
+      if (lan && tailnet) {
+        drawAuroraRibbon(target, lan, tailnet);
+        drawOverlapLens(target, lan, tailnet);
+      }
+      target.restore();
+    }
+    view.territoryLayer = layer;
+    view.territorySig = signature;
+    return layer;
+  }
+
+  function drawBoundary(points, color, glow) {
+    ctx.save();
+    ctx.setLineDash([1.5, 7]);
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = color;
+    ctx.shadowColor = glow;
+    ctx.shadowBlur = 9;
+    tracedPath(ctx, points);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawTerritoryBoundaries() {
+    if (!view.territories) return;
+    if (view.territories.lan) {
+      drawBoundary(hullScreen(view.territories.lan), "rgba(255, 226, 166, 0.66)", "rgba(255, 209, 102, 0.42)");
+    }
+    if (view.territories.tailnet) {
+      drawBoundary(hullScreen(view.territories.tailnet), "rgba(126, 240, 255, 0.82)", "rgba(94, 231, 255, 0.62)");
+    }
+  }
+
+  function topPoint(points) {
+    let best = null;
+    for (const point of points) {
+      const screen = worldToScreen(point.x, point.y);
+      if (!best || screen.y < best.y) best = screen;
+    }
+    return best || { x: size.width / 2, y: 120 };
+  }
+
+  function rectsOverlap(a, b, margin = 8) {
+    return a.left < b.left + b.width + margin &&
+      a.left + a.width + margin > b.left &&
+      a.top < b.top + b.height + margin &&
+      a.top + a.height + margin > b.top;
+  }
+
+  // deviceLabelRect reserves the space a host label will occupy so service
+  // labels can dodge it. Device labels themselves always win.
+  function deviceLabelRect(node, zoom) {
+    if (!deviceVisible(node.data)) return null;
+    const forced = view.hoverId === node.id || view.selectedDeviceId === node.id;
+    const labelAlpha = forced ? 1 : smoothstep(0.26, 0.52, zoom);
+    if (labelAlpha <= 0.01) return null;
+    const device = node.data;
+    const point = worldToScreen(node.x, node.y);
+    const radius = node.baseR * zoom * (1 + node.hover * 0.06);
+    const name = truncate(device.hostname || device.ip, 24);
+    const fontSize = Math.max(9.5, 13 * zoom);
+    const textY = point.y + radius + 8 * zoom + 3;
+    const reach = deviceReach(device);
+    const subline = view.tailnetPresent && hasTailnet(device) && (reach === "tailnet" || device.self)
+      ? (device.self ? `this host · ${device.tailnetIp || device.ip}` : (device.tailnetIp || device.ip))
+      : "";
+    ctx.save();
+    ctx.font = `600 ${fontSize}px ${FONT}`;
+    let width = ctx.measureText(name).width;
+    let height = fontSize + 2;
+    if (subline) {
+      const subSize = Math.max(8.5, 10.5 * zoom);
+      ctx.font = `500 ${subSize}px ${MONO}`;
+      width = Math.max(width, ctx.measureText(subline).width);
+      height += subSize + 3;
+    }
+    ctx.restore();
+    return { left: point.x - width / 2, top: textY, width, height };
+  }
+
+  function drawRegionPill(x, y, title, detail, tailnet, placed) {
+    ctx.save();
+    ctx.font = `600 9px ${MONO}`;
+    const titleWidth = ctx.measureText(title).width;
+    ctx.font = `500 9px ${MONO}`;
+    const detailWidth = ctx.measureText(detail).width;
+    const height = 24;
+    const width = 30 + titleWidth + 9 + detailWidth;
+    let left = clamp(x - width / 2, 18, size.width - width - 18);
+    let top = Math.max(size.chromeTop + 2, y - height - 12);
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const rect = { left, top, width, height };
+      if (!placed.some((other) => rectsOverlap(other, rect))) break;
+      top += 30;
+    }
+    top = Math.min(top, size.height - 110);
+
+    ctx.shadowColor = tailnet ? "rgba(94, 231, 255, 0.14)" : "rgba(0, 0, 0, 0.45)";
+    ctx.shadowBlur = 14;
+    roundRectPath(left, top, width, height, height / 2);
+    ctx.fillStyle = tailnet ? "rgba(7, 18, 28, 0.78)" : "rgba(7, 14, 24, 0.78)";
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = tailnet ? "rgba(94, 231, 255, 0.32)" : "rgba(151, 196, 225, 0.2)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(left + 14, top + height / 2, 2.6, 0, TAU);
+    ctx.fillStyle = tailnet ? "#5ee7ff" : "#dbe7f3";
+    ctx.fill();
+
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    ctx.font = `600 9px ${MONO}`;
+    ctx.fillStyle = tailnet ? "#d7fbff" : "#e6eff8";
+    ctx.fillText(title, left + 23, top + height / 2 + 0.5);
+    ctx.font = `500 9px ${MONO}`;
+    ctx.fillStyle = tailnet ? "#96dbe8" : "#8fa2b8";
+    ctx.fillText(detail, left + 23 + titleWidth + 9, top + height / 2 + 0.5);
+    ctx.restore();
+    return { left, top, width, height };
+  }
+
+  function drawRegionLabels() {
+    if (!view.territories || !view.snapshot) return;
+    const { lan, tailnet, lanCount, tailnetCount } = view.territories;
+    const network = view.snapshot.networks && view.snapshot.networks.length
+      ? view.snapshot.networks[0]
+      : "local network";
+    const info = view.snapshot.tailnet;
+    const suffix = info && (info.magicDnsSuffix || info.name) ? (info.magicDnsSuffix || info.name) : "tailnet";
+    const peers = info && info.peersTotal ? info.peersTotal : tailnetCount;
+    const placed = [];
+    if (lan) {
+      const top = topPoint(lan);
+      placed.push(drawRegionPill(top.x, top.y, "HOME LAN", `${network} · ${lanCount} HOSTS`, false, placed));
+    }
+    if (tailnet) {
+      const top = topPoint(tailnet);
+      placed.push(drawRegionPill(top.x, top.y, "TAILNET", `${suffix} · ${peers} PEERS`, true, placed));
+    }
+  }
+
+  function drawReachBadge(point, radius, reach, alpha) {
+    const scale = clamp(0.82 + view.camera.zoom * 0.2, 0.82, 1.04);
+    const height = 17 * scale;
+    const width = (reach === "both" ? 30 : 17) * scale;
+    const cx = point.x - radius * 0.72;
+    const cy = point.y - radius * 0.72;
+    const left = cx - width / 2;
+    const top = cy - height / 2;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    roundRectPath(left, top, width, height, height / 2);
+    ctx.fillStyle = "rgba(6, 15, 25, 0.94)";
+    ctx.fill();
+    ctx.strokeStyle = reach === "local" ? "rgba(219, 231, 243, 0.28)" : "rgba(94, 231, 255, 0.36)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    const glyph = height * 0.58;
+    ctx.lineWidth = Math.max(0.8, height * 0.065);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    if (reach === "tailnet" || reach === "both") {
+      ctx.strokeStyle = "#5ee7ff";
+      ctx.fillStyle = "#5ee7ff";
+      traceKnot(reach === "both" ? left + width * 0.31 : cx, cy, glyph);
+    }
+    if (reach === "local" || reach === "both") {
+      ctx.strokeStyle = "#dbe7f3";
+      ctx.fillStyle = "#dbe7f3";
+      traceHouse(reach === "both" ? left + width * 0.7 : cx, cy, glyph);
+    }
+    ctx.restore();
+  }
+
+  function traceHouse(x, y, size) {
+    const u = size / 2;
+    ctx.beginPath();
+    ctx.moveTo(x - u * 0.85, y + u * 0.12);
+    ctx.lineTo(x, y - u * 0.85);
+    ctx.lineTo(x + u * 0.85, y + u * 0.12);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x - u * 0.62, y - u * 0.04);
+    ctx.lineTo(x - u * 0.62, y + u * 0.78);
+    ctx.lineTo(x + u * 0.62, y + u * 0.78);
+    ctx.lineTo(x + u * 0.62, y - u * 0.04);
+    ctx.stroke();
+  }
+
+  function traceKnot(x, y, size) {
+    const u = size / 2;
+    ctx.beginPath();
+    ctx.moveTo(x - u * 0.9, y + u * 0.72);
+    ctx.lineTo(x, y - u * 0.92);
+    ctx.lineTo(x + u * 0.9, y + u * 0.72);
+    ctx.closePath();
+    ctx.stroke();
+    for (const [dx, dy] of [[-0.9, 0.72], [0, -0.92], [0.9, 0.72]]) {
+      ctx.beginPath();
+      ctx.arc(x + dx * u, y + dy * u, Math.max(0.8, u * 0.2), 0, TAU);
+      ctx.fill();
+    }
   }
 
   function physicsStep(dt) {
@@ -286,7 +740,9 @@
           dy = 0;
           distance = 1;
         }
-        const desired = 205 + (a.baseR + b.baseR) * 0.8;
+        const desired = (178 + (a.baseR + b.baseR) * 0.8) *
+          (view.tailnetPresent && ((deviceReach(a.data) === "local" && deviceReach(b.data) === "tailnet") ||
+            (deviceReach(a.data) === "tailnet" && deviceReach(b.data) === "local")) ? 1.22 : 1);
         if (distance < desired) {
           const push = ((desired - distance) / distance) * 0.32;
           const px = dx * push;
@@ -345,6 +801,15 @@
 
     for (const device of devices) {
       const move = displacement.get(device.id);
+      if (view.tailnetPresent) {
+        // Bias the two memberships into left and right territories, with
+        // dual-membership hosts held near the center so the lens sits between.
+        const reach = deviceReach(device.data);
+        const lane = reach === "local" ? -600 : reach === "tailnet" ? 620 : 0;
+        const spread = reach === "both" ? 140 : 210;
+        const targetX = lane + (device.seed - 0.5) * spread * 2;
+        move.x += (targetX - device.x) * 0.012;
+      }
       move.x -= device.x * 0.0012;
       move.y -= device.y * 0.0012;
     }
@@ -359,7 +824,9 @@
 
   function applySnapshot(snapshot) {
     if (!snapshot || !Array.isArray(snapshot.devices)) return;
+    const wasTailnet = view.tailnetPresent;
     view.snapshot = snapshot;
+    view.tailnetPresent = Boolean(snapshot.tailnet) || snapshot.devices.some((device) => hasTailnet(device));
     const presentDevices = new Set();
     const presentServices = new Set();
 
@@ -370,11 +837,13 @@
         const seed = hashString(device.id);
         const angle = ((seed % 3600) / 3600) * TAU;
         const radius = 120 + (seed % 240);
+        const reach = deviceReach(device);
+        const bias = !view.tailnetPresent ? 0 : reach === "local" ? -600 : reach === "tailnet" ? 620 : 0;
         node = {
           id: device.id,
           type: "device",
           data: device,
-          x: Math.cos(angle) * radius,
+          x: Math.cos(angle) * radius * 0.45 + bias,
           y: Math.sin(angle) * radius,
           seed: (seed % 1000) / 1000,
           baseR: 30,
@@ -449,8 +918,10 @@
       for (let i = 0; i < 40; i += 1) physicsStep(1 / 60);
     }
 
+    updateTerritories();
     hideTooltip();
     syncChrome();
+    if (wasTailnet !== view.tailnetPresent) renderLegend();
     if (panel.classList.contains("open")) {
       renderPanel();
     }
@@ -479,11 +950,21 @@
     const snapshot = view.snapshot;
     if (!snapshot) return;
     const summary = snapshot.stats || computeStats(snapshot.devices);
+    const tailnetStat = snapshot.tailnet
+      ? `<div class="stat tailnet"><b>${snapshot.tailnet.peersOnline}<em>/${snapshot.tailnet.peersTotal}</em></b><span>tailnet up</span></div>`
+      : "";
     stats.innerHTML = `
       <div class="stat"><b>${summary.devicesOnline}<em>/${summary.devicesTotal}</em></b><span>devices up</span></div>
       <div class="stat"><b>${summary.servicesOnline}<em>/${summary.servicesTotal}</em></b><span>services up</span></div>
+      ${tailnetStat}
       <div class="stat"><b>${snapshot.scanIntervalSeconds || 60}s</b><span>scan cadence</span></div>
     `;
+
+    if (tailnetBtn) {
+      tailnetBtn.hidden = !view.tailnetPresent;
+      tailnetBtn.setAttribute("aria-pressed", String(view.showTailnet));
+      tailnetBtn.title = view.showTailnet ? "Hide tailnet hosts and overlays" : "Show tailnet hosts and overlays";
+    }
 
     scanBtn.disabled = Boolean(snapshot.scanning);
     scanBtn.dataset.scanning = String(Boolean(snapshot.scanning));
@@ -520,11 +1001,14 @@
     const networks = snapshot.networks && snapshot.networks.length
       ? snapshot.networks.join(" · ")
       : "discovering local networks";
+    const tailnet = snapshot.tailnet && (snapshot.tailnet.magicDnsSuffix || snapshot.tailnet.name)
+      ? (snapshot.tailnet.magicDnsSuffix || snapshot.tailnet.name)
+      : "";
     const scanned = validTime(snapshot.lastScan) ? `last scan ${relativeTime(snapshot.lastScan)}` : "waiting for first scan";
     const prefix = snapshot.scanning ? "scanning · " : "";
     const error = snapshot.lastError ? " · scan error" : "";
-    subtitle.textContent = `${prefix}${networks} · ${scanned}${error}`;
-    subtitle.title = snapshot.lastError || networks;
+    subtitle.textContent = `${prefix}${[networks, tailnet, scanned].filter(Boolean).join(" · ")}${error}`;
+    subtitle.title = snapshot.lastError || [networks, tailnet].filter(Boolean).join(" · ");
   }
 
   function renderLegend() {
@@ -534,6 +1018,19 @@
     const categories = Object.entries(CATEGORY)
       .map(([name, color]) => `<span class="legend-item"><i class="legend-dot" style="--c:${color}"></i>${name}</span>`)
       .join("");
+    const tailnet = view.tailnetPresent;
+    const tailnetOnly = tailnet
+      ? '<span class="legend-item"><i class="legend-halo"></i>tailnet-only</span>'
+      : "";
+    const reach = tailnet
+      ? `<div class="legend-row">
+        <span class="legend-label">reach</span>
+        <span class="legend-item"><i class="legend-badge">${HOUSE_SVG}</i>local</span>
+        <span class="legend-item"><i class="legend-badge tail">${KNOT_SVG}</i>tailnet</span>
+        <span class="legend-item"><i class="legend-badge both">${HOUSE_SVG}${KNOT_SVG}</i>both</span>
+        <span class="legend-item"><i class="legend-line"></i>tailnet boundary</span>
+      </div>`
+      : "";
     legend.innerHTML = `
       <div class="legend-row">
         <span class="legend-label">status</span>
@@ -547,7 +1044,9 @@
       <div class="legend-row">
         <span class="legend-label">service</span>
         ${categories}
+        ${tailnetOnly}
       </div>
+      ${reach}
     `;
   }
 
@@ -571,6 +1070,7 @@
     const device = snapshot.devices.find((candidate) => candidate.id === view.selectedDeviceId);
     if (!device) return;
     const kind = KIND[device.kind] || KIND.device;
+    const reach = deviceReach(device);
     const services = [...(device.services || [])].sort(
       (a, b) => Number(b.online) - Number(a.online) || a.port - b.port,
     );
@@ -583,29 +1083,52 @@
           ? service.name
           : (service.protocol || "tcp").toUpperCase();
         const selected = service.id === view.selectedServiceId;
+        const serviceReach = service.tailnet && service.local ? "both" : service.tailnet ? "tailnet" : "local";
+        const reachTag = view.tailnetPresent
+          ? `<span class="svc-reach ${serviceReach}" title="${escapeHTML(reachLabel(serviceReach))}">${reachShort(serviceReach)}</span>`
+          : "";
         return `
           <li class="service-row ${service.online ? "on" : "off"} ${selected ? "selected" : ""}" data-service-id="${escapeHTML(service.id)}">
             <span class="svc-dot" style="--c:${color}"></span>
             <span class="svc-main"><strong>${escapeHTML(name)}</strong><span>${escapeHTML(sub)}</span></span>
+            ${reachTag}
             <span class="svc-port">:${service.port}</span>
           </li>
         `;
       })
       .join("");
 
+    const meta = [];
+    if (view.tailnetPresent) {
+      meta.push(`<div><dt>Reach</dt><dd>${escapeHTML(reachLabel(reach))}</dd></div>`);
+    }
+    if (device.tailnetIp) {
+      meta.push(`<div><dt>Tailnet IP</dt><dd>${escapeHTML(device.tailnetIp)}</dd></div>`);
+    }
+    if (device.tailnetName) {
+      meta.push(`<div><dt>MagicDNS</dt><dd>${escapeHTML(device.tailnetName)}</dd></div>`);
+    }
+    if (device.tailnetOs) {
+      meta.push(`<div><dt>Tailnet OS</dt><dd>${escapeHTML(device.tailnetOs)}</dd></div>`);
+    }
+    if (device.tailnetTags && device.tailnetTags.length) {
+      meta.push(`<div><dt>Tags</dt><dd>${escapeHTML(device.tailnetTags.join(", "))}</dd></div>`);
+    }
+    meta.push(`<div><dt>Vendor</dt><dd>${escapeHTML(device.vendor || "unknown")}</dd></div>`);
+    meta.push(`<div><dt>MAC</dt><dd>${escapeHTML(device.mac || "unknown")}</dd></div>`);
+    meta.push(`<div><dt>First seen</dt><dd>${escapeHTML(relativeTime(device.firstSeen))}</dd></div>`);
+    meta.push(`<div><dt>Last seen</dt><dd>${escapeHTML(relativeTime(device.lastSeen))}</dd></div>`);
+
     panel.innerHTML = `
       <button class="panel-close" type="button" aria-label="Close details">×</button>
       <div class="panel-kicker">
         <span class="status-dot ${device.online ? "on" : "off"}"></span>
-        ${device.online ? "online" : "history"} · ${escapeHTML(kind.label)}
+        ${device.online ? "online" : "history"} · ${escapeHTML(kind.label)}${view.tailnetPresent ? ` · ${escapeHTML(reachLabel(reach))}` : ""}
       </div>
       <h2>${escapeHTML(device.hostname || device.ip)}</h2>
       <p class="ip">${escapeHTML(device.ip)}${device.self ? " · this host" : ""}</p>
       <dl class="meta">
-        <div><dt>Vendor</dt><dd>${escapeHTML(device.vendor || "unknown")}</dd></div>
-        <div><dt>MAC</dt><dd>${escapeHTML(device.mac || "unknown")}</dd></div>
-        <div><dt>First seen</dt><dd>${escapeHTML(relativeTime(device.firstSeen))}</dd></div>
-        <div><dt>Last seen</dt><dd>${escapeHTML(relativeTime(device.lastSeen))}</dd></div>
+        ${meta.join("")}
       </dl>
       <h3>Services <span>${onlineCount}/${services.length} up</span></h3>
       ${rows || '<div class="empty-services">No TCP services found on this device.</div>'}
@@ -630,17 +1153,23 @@
       const services = device.services || [];
       const online = services.filter((service) => service.online).length;
       const kind = KIND[device.kind] || KIND.device;
+      const reach = deviceReach(device);
+      const tailnet = device.tailnetIp
+        ? `<div class="tip-meta">${escapeHTML(device.tailnetIp)}${device.tailnetOs ? ` · ${escapeHTML(device.tailnetOs)}` : ""}${device.tailnetName ? ` · ${escapeHTML(device.tailnetName)}` : ""}</div>`
+        : "";
       tooltip.innerHTML = `
         <strong>${escapeHTML(device.hostname || device.ip)}</strong>
         <div>${escapeHTML(device.ip)} · ${escapeHTML(kind.label)}${device.online ? "" : " · history"}</div>
-        <div class="tip-meta">${online}/${services.length} services up${device.vendor ? ` · ${escapeHTML(device.vendor)}` : ""}</div>
+        <div class="tip-meta">${view.tailnetPresent ? `${escapeHTML(reachLabel(reach))} · ` : ""}${online}/${services.length} services up${device.vendor ? ` · ${escapeHTML(device.vendor)}` : ""}</div>
+        ${tailnet}
       `;
     } else {
       const parent = view.nodes.get(node.parentId);
+      const serviceReach = node.data.tailnet && node.data.local ? "both" : node.data.tailnet ? "tailnet" : "local";
       tooltip.innerHTML = `
         <strong>${escapeHTML(node.data.product || node.data.name || "service")}</strong>
         <div>${escapeHTML(node.data.name || "TCP")} · port ${node.data.port}</div>
-        <div class="tip-meta">${parent ? `${escapeHTML(parent.data.hostname || parent.data.ip)} · ` : ""}${node.data.online ? "online" : "history"}</div>
+        <div class="tip-meta">${parent ? `${escapeHTML(parent.data.hostname || parent.data.ip)} · ` : ""}${node.data.online ? "online" : "history"}${view.tailnetPresent ? ` · ${escapeHTML(reachLabel(serviceReach))}` : ""}</div>
       `;
     }
     tooltip.classList.add("show");
@@ -674,6 +1203,8 @@
     let serviceDistance = Infinity;
     for (const node of view.nodes.values()) {
       if (node.type !== "service" || serviceAlpha(node, zoom) < 0.15) continue;
+      const parent = view.nodes.get(node.parentId);
+      if (!parent || !deviceVisible(parent.data)) continue;
       const point = worldToScreen(node.x, node.y);
       const dx = screenX - point.x;
       const dy = screenY - point.y;
@@ -690,7 +1221,7 @@
     let deviceDistance = Infinity;
     for (const node of view.nodes.values()) {
       if (node.type !== "device") continue;
-      if (!node.data.online && !view.showOffline) continue;
+      if (!deviceVisible(node.data)) continue;
       const point = worldToScreen(node.x, node.y);
       const dx = screenX - point.x;
       const dy = screenY - point.y;
@@ -901,6 +1432,7 @@
 
   function drawDevice(node, time, zoom) {
     const device = node.data;
+    if (!deviceVisible(device)) return;
     const historicAlpha = deviceHistoricAlpha(node, zoom);
     if (historicAlpha <= 0.01) return;
     const point = worldToScreen(node.x, node.y);
@@ -916,6 +1448,7 @@
 
     const color = (KIND[device.kind] || KIND.device).color;
     const active = device.online;
+    const reach = deviceReach(device);
 
     if (active) {
       const glow = ctx.createRadialGradient(
@@ -977,6 +1510,21 @@
     drawDeviceIcon(device.kind, point.x, point.y, radius * 1.52, rgba(color, active ? 0.92 : 0.55));
     ctx.restore();
 
+    if (tailnetShown()) {
+      if (device.self) {
+        ctx.save();
+        ctx.globalAlpha = historicAlpha * 0.9;
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, radius + 6.5, 0, TAU);
+        ctx.setLineDash([2, 4]);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.38)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+      }
+      drawReachBadge(point, radius, reach, historicAlpha);
+    }
+
     if (view.selectedDeviceId === node.id || view.hoverId === node.id) {
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius + 5, 0, TAU);
@@ -1021,16 +1569,31 @@
     ctx.font = `600 ${fontSize}px ${FONT}`;
     const textY = point.y + radius + 8 * zoom + 3;
     strokeLabel(name, point.x, textY, fontSize);
-    ctx.fillStyle = active ? "#eaf4fd" : "#8b9aad";
+    ctx.fillStyle = active ? (reach === "tailnet" ? "#d8f8ff" : "#eaf4fd") : "#8b9aad";
     ctx.fillText(name, point.x, textY);
+
+    const subline = view.tailnetPresent && hasTailnet(device) && (reach === "tailnet" || device.self)
+      ? (device.self ? `this host · ${device.tailnetIp || device.ip}` : (device.tailnetIp || device.ip))
+      : "";
+    let subY = textY + fontSize + 3;
+    const subSize = Math.max(8.5, 10.5 * zoom);
+    if (subline) {
+      ctx.globalAlpha = labelAlpha * historicAlpha * smoothstep(0.4, 0.62, zoom);
+      ctx.font = `500 ${subSize}px ${MONO}`;
+      ctx.fillStyle = device.self ? "#9bb0c5" : "#7abccc";
+      strokeLabel(subline, point.x, subY, subSize);
+      ctx.fillText(subline, point.x, subY);
+      subY += subSize + 3;
+    }
 
     if (zoom > 1.25) {
       ctx.globalAlpha = labelAlpha * historicAlpha * smoothstep(1.25, 1.6, zoom);
-      ctx.font = `500 ${Math.max(8.5, 10.5 * zoom)}px ${MONO}`;
+      ctx.font = `500 ${subSize}px ${MONO}`;
       ctx.fillStyle = "#73869c";
-      const ipY = textY + fontSize + 3;
-      strokeLabel(device.ip, point.x, ipY, Math.max(8.5, 10.5 * zoom));
-      ctx.fillText(device.ip, point.x, ipY);
+      if (reach !== "tailnet") {
+        strokeLabel(device.ip, point.x, subY, subSize);
+        ctx.fillText(device.ip, point.x, subY);
+      }
     }
     ctx.restore();
   }
@@ -1038,6 +1601,8 @@
   function drawService(node, zoom) {
     const alpha = serviceAlpha(node, zoom);
     if (alpha <= 0.015) return;
+    const parentNode = view.nodes.get(node.parentId);
+    if (!parentNode || !deviceVisible(parentNode.data)) return;
     const point = worldToScreen(node.x, node.y);
     const radius = Math.max(3, SERVICE_R * zoom * (1 + node.hover * 0.35));
     if (
@@ -1091,6 +1656,15 @@
       ctx.stroke();
       ctx.setLineDash([]);
     }
+    if (tailnetShown() && node.data.tailnet && !node.data.local) {
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, radius + 4.4, 0, TAU);
+      ctx.setLineDash([1.5, 3.2]);
+      ctx.strokeStyle = "rgba(94, 231, 255, 0.55)";
+      ctx.lineWidth = 0.9;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
     ctx.restore();
 
     if (view.hoverId === node.id || view.selectedServiceId === node.id) {
@@ -1130,12 +1704,26 @@
       }
     }
     ctx.save();
-    ctx.globalAlpha = labelAlpha * alpha;
     ctx.textAlign = align;
     ctx.textBaseline = "middle";
     ctx.font = `500 ${fontSize}px ${FONT}`;
+    const labelWidth = ctx.measureText(label).width;
+    const labelLeft = align === "center" ? textX - labelWidth / 2 : align === "right" ? textX - labelWidth : textX;
+    const labelRect = { left: labelLeft, top: textY - fontSize * 0.7, width: labelWidth, height: fontSize * 1.4 };
+    const blocked = !forced && (
+      view.deviceLabelRects.some((rect) => rectsOverlap(rect, labelRect, 4)) ||
+      view.serviceLabelRects.some((rect) => rectsOverlap(rect, labelRect, 4))
+    );
+    if (blocked) {
+      ctx.restore();
+      return;
+    }
+    view.serviceLabelRects.push(labelRect);
+    ctx.globalAlpha = labelAlpha * alpha;
     strokeLabel(label, textX, textY, fontSize);
-    ctx.fillStyle = active ? "#d8e8f6" : "#8191a5";
+    ctx.fillStyle = active
+      ? (node.data.tailnet && !node.data.local ? "#a9e7f1" : "#d8e8f6")
+      : "#8191a5";
     ctx.fillText(label, textX, textY);
 
     if (zoom > 1.45) {
@@ -1155,11 +1743,29 @@
     ctx.clearRect(0, 0, size.width, size.height);
     drawBackground();
 
+    view.deviceLabelRects = [];
+    view.serviceLabelRects = [];
+    if (tailnetShown() && view.territories) {
+      const layer = renderTerritoryLayer();
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      ctx.drawImage(layer, 0, 0, size.width, size.height);
+      ctx.restore();
+      drawTerritoryBoundaries();
+      drawRegionLabels();
+    }
+
     const zoom = view.camera.zoom;
+    for (const node of view.nodes.values()) {
+      if (node.type !== "device") continue;
+      const rect = deviceLabelRect(node, zoom);
+      if (rect) view.deviceLabelRects.push(rect);
+    }
     for (const link of view.links) {
       const service = view.nodes.get(link.serviceId);
       const device = view.nodes.get(link.deviceId);
       if (!service || !device) continue;
+      if (!deviceVisible(device.data)) continue;
       const alpha = serviceAlpha(service, zoom);
       if (alpha <= 0.01) continue;
       if (!device.data.online && !view.showOffline) continue;
@@ -1364,6 +1970,22 @@
     showToast(view.showOffline ? "History shown" : "History hidden");
     hideTooltip();
   });
+
+  if (tailnetBtn) {
+    tailnetBtn.addEventListener("click", () => {
+      view.showTailnet = !view.showTailnet;
+      tailnetBtn.setAttribute("aria-pressed", String(view.showTailnet));
+      try {
+        window.localStorage.setItem("hearthlight.tailnet", view.showTailnet ? "1" : "0");
+      } catch (_error) {
+        // Storage is optional.
+      }
+      view.territorySig = "";
+      showToast(view.showTailnet ? "Tailnet shown" : "Tailnet hidden");
+      hideTooltip();
+      syncChrome();
+    });
+  }
 
   document.getElementById("zoomIn").addEventListener("click", () => {
     zoomAt(size.width / 2, size.height / 2, 1.25);

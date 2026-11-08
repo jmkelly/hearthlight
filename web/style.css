@@ -161,6 +161,15 @@ canvas.dragging {
   font-size: 9px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.stat.tailnet b {
+  color: #bff6ff;
+}
+
+.stat.tailnet span {
+  color: #6ea6b4;
 }
 
 .actions {
@@ -298,6 +307,33 @@ button:focus-visible {
   color: var(--ink);
 }
 
+.actions button[hidden] {
+  display: none;
+}
+
+.actions .tailnet-btn {
+  border: 1px solid rgba(94, 231, 255, 0.18);
+  background: rgba(94, 231, 255, 0.075);
+  color: #bff6ff;
+}
+
+.actions .tailnet-btn:hover {
+  background: rgba(94, 231, 255, 0.15);
+  color: #eaffff;
+}
+
+.actions .tailnet-btn[aria-pressed="false"] {
+  border-color: rgba(151, 196, 225, 0.14);
+  background: transparent;
+  color: #7f93a8;
+}
+
+.tailnet-btn .knot {
+  display: block;
+  width: 13px;
+  height: 13px;
+}
+
 /* Legend and hint */
 
 .legend {
@@ -352,6 +388,52 @@ button:focus-visible {
 
 .legend-dot.pulse {
   animation: legendPulse 2.4s ease-out infinite;
+}
+
+.legend-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border: 1px solid rgba(151, 196, 225, 0.22);
+  border-radius: 50%;
+  color: #dbe7f3;
+}
+
+.legend-badge.tail {
+  border-color: rgba(94, 231, 255, 0.4);
+  color: var(--accent);
+}
+
+.legend-badge.both {
+  width: 27px;
+  border-radius: 999px;
+  gap: 1px;
+}
+
+.legend-badge svg {
+  display: block;
+  width: 9px;
+  height: 9px;
+}
+
+.legend-line {
+  display: inline-block;
+  width: 26px;
+  height: 1px;
+  background-image: linear-gradient(90deg, rgba(94, 231, 255, 0.7) 42%, transparent 42%);
+  background-size: 6px 1px;
+  filter: drop-shadow(0 0 3px rgba(94, 231, 255, 0.4));
+}
+
+.legend-halo {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1px dotted rgba(94, 231, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(94, 231, 255, 0.28);
 }
 
 @keyframes legendPulse {
@@ -545,7 +627,7 @@ button:focus-visible {
 
 .service-row {
   display: grid;
-  grid-template-columns: 9px minmax(0, 1fr) auto;
+  grid-template-columns: 9px minmax(0, 1fr) auto auto;
   gap: 9px;
   align-items: center;
   padding: 9px;
@@ -607,6 +689,22 @@ button:focus-visible {
   color: #8497ad;
   font-family: var(--mono);
   font-size: 10.5px;
+}
+
+.svc-reach {
+  padding: 1px 4px;
+  border: 1px solid rgba(151, 196, 225, 0.16);
+  border-radius: 4px;
+  color: #8fa2b8;
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: 0.08em;
+}
+
+.svc-reach.tailnet,
+.svc-reach.both {
+  border-color: rgba(94, 231, 255, 0.28);
+  color: #7adfee;
 }
 
 .empty-services {
@@ -752,7 +850,7 @@ button:focus-visible {
 
 /* Responsive */
 
-@media (max-width: 1080px) {
+@media (max-width: 1260px) {
   .stats {
     display: none;
   }
@@ -796,6 +894,10 @@ button:focus-visible {
   }
 
   #historyBtn span:last-child {
+    display: none;
+  }
+
+  #tailnetBtn span:last-child {
     display: none;
   }
 
