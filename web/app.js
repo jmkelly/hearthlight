@@ -1457,7 +1457,8 @@
     const dt = clamp((now - lastFrame) / 1000, 0.001, 0.05);
     lastFrame = now;
     updateCamera(dt);
-    if (view.nodes.size) physicsStep(dt);
+    // Layout settles when a snapshot arrives; stepping physics every frame
+    // made the bubbles jitter at low frame rates.
     for (const node of view.nodes.values()) {
       const target = view.hoverId === node.id ? 1 : 0;
       node.hover += (target - node.hover) * Math.min(1, dt * 12);
