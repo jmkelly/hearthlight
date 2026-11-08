@@ -120,6 +120,8 @@ in
           "AF_INET"
           "AF_INET6"
           "AF_UNIX"
+          # net.Interfaces() uses netlink on Linux.
+          "AF_NETLINK"
         ];
         RestrictNamespaces = true;
         RestrictSUIDSGID = true;
