@@ -1,8 +1,8 @@
 # Hearthlight
 
-Hearthlight is a small Go web app that draws your home network as a live
-constellation. Each device is a bubble. Each TCP service orbits its device. Zoom
-out for the whole map, zoom in for service names, ports and device details.
+Hearthlight is a small Go web app that draws your home network as a live map.
+Each device is a bubble. Each TCP service orbits its device. Zoom out for the
+whole map, zoom in for service names, ports and device details.
 
 ![Hearthlight demo map](docs/hearthlight.png)
 
@@ -21,7 +21,7 @@ at overview zoom. Service bubbles and labels appear as you zoom in.
   media players, printers and IoT devices.
 - Persistent history in a small JSON state file.
 - Live updates over Server-Sent Events.
-- A Nix flake and a NixOS module for the server server.
+- A Nix flake and a NixOS module.
 
 ## Quick start
 
@@ -29,6 +29,7 @@ Requirements: Linux and Go 1.23 or newer. The scanner reads `/proc/net/arp`,
 so macOS and Windows are not supported.
 
 ```bash
+git clone https://github.com/jmkelly/hearthlight.git
 cd hearthlight
 make demo
 # Open http://127.0.0.1:8090
@@ -51,10 +52,10 @@ make build
 ./bin/hearthlight -listen :8090
 ```
 
-## Run it on the server NixOS host
+## Run it on a NixOS host
 
-Run Hearthlight natively, not in a container. The scanner needs to resolve ARP and
-open TCP connections on the home LAN. The NixOS service runs as a dynamic
+Run Hearthlight natively, not in a container. The scanner needs to resolve ARP
+and open TCP connections on the home LAN. The NixOS service runs as a dynamic
 unprivileged user and still has normal network access.
 
 This repository exposes:
@@ -63,29 +64,28 @@ This repository exposes:
 - `nixosModules.default`
 - a development shell with Go and gopls
 
-### Wire it into the existing NixOS flake
+### Add it to a NixOS flake
 
-The server configuration lives in `/etc/nixos`. Add Hearthlight as
-a flake input that points at this repository:
+Add Hearthlight as a flake input:
 
 ```nix
-# nixos-config/flake.nix
+# flake.nix
 inputs = {
   # ...
-  hearthlight.url = "path:/path/to/hearthlight";
+  hearthlight.url = "github:jmkelly/hearthlight";
 };
 ```
 
 Add `hearthlight` to the flake output arguments:
 
 ```nix
-outputs = { self, nixpkgs, disko, hearthlight, ... }:
+outputs = { self, nixpkgs, hearthlight, ... }:
 ```
 
-Then import the module into the server host and enable the service:
+Import the module and enable the service:
 
 ```nix
-# nixos-config/hosts/server/default.nix
+# configuration.nix
 imports = [
   # ...
   hearthlight.nixosModules.default
@@ -98,36 +98,17 @@ services.hearthlight = {
 };
 ```
 
-This integration is already applied in `/etc/nixos` on this
-machine. Its full server system closure builds successfully with:
-
-```bash
-nix build .#nixosConfigurations.server.config.system.build.toplevel
-```
-
-Deploy as usual from the NixOS checkout when the server host is ready:
-
-```bash
-cd /etc/nixos
-scripts/deploy.sh
-```
-
-The module opens port 8090 in the firewall by default. From the LAN, open:
+The module binds to all interfaces but leaves the firewall closed by default.
+Set `openFirewall = true` if you want other machines on the LAN to reach it.
+From another machine, open:
 
 ```text
-http://192.0.2.30:8090
-```
-
-From the tailnet, use the server MagicDNS name:
-
-```text
-http://server:8090
+http://<host>:8090
 ```
 
 Check the service:
 
 ```bash
-ssh user@192.0.2.30
 systemctl status hearthlight
 journalctl -u hearthlight -f
 ```
@@ -143,7 +124,7 @@ The service stores its inventory at `/var/lib/hearthlight/state.json` with mode
 | `package` | flake package | Hearthlight package to run. |
 | `listenAddress` | `0.0.0.0` | HTTP bind address. |
 | `port` | `8090` | HTTP port. |
-| `openFirewall` | `true` | Open the HTTP port in the NixOS firewall. |
+| `openFirewall` | `false` | Open the HTTP port in the NixOS firewall. |
 | `interval` | `60` | Seconds between scans. |
 | `timeoutMs` | `350` | Per-connection probe timeout. |
 | `concurrency` | `16` | Hosts probed in parallel. |
@@ -171,8 +152,8 @@ nix build .#hearthlight
 | `-demo` | `false` | Serve sample data without scanning. |
 | `-version` | | Print the version and exit. |
 
-Environment variables `HEARTHLIGHT_LISTEN` and `HEARTHLIGHT_DATA` set the listen address
-and state path when the corresponding flag is not provided.
+Environment variables `HEARTHLIGHT_LISTEN` and `HEARTHLIGHT_DATA` set the listen
+address and state path when the corresponding flag is not provided.
 
 ## How discovery works
 
@@ -213,9 +194,10 @@ over `/api/events`.
 Hearthlight has no authentication. Its API exposes hostnames, IP addresses, MAC
 addresses and open ports. Run it only on a trusted LAN or tailnet.
 
-The NixOS module binds to all interfaces and opens the port by default. Set
-`openFirewall = false` and use an SSH tunnel or a tailnet-only firewall rule if
-you do not want LAN access. Do not publish it directly to the internet.
+The NixOS module binds to all interfaces and leaves the firewall closed by
+default. Set `openFirewall = true` only when you want LAN access. Do not publish
+it directly to the internet; use an SSH tunnel or a tailnet-only firewall rule
+instead.
 
 Active service probing can trigger intrusion detection or logging on managed
 networks. Use it only on networks you own or administer.
@@ -237,3 +219,7 @@ The main packages are:
 - `internal/api`: JSON API, SSE stream and the embedded UI.
 - `internal/demo`: sample network for UI work.
 - `web`: canvas map, interaction and detail panel.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

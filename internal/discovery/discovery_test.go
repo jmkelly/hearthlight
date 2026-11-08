@@ -71,7 +71,7 @@ func TestEnumerateHosts(t *testing.T) {
 }
 
 func TestParseProcHexAddr(t *testing.T) {
-	addr, ok := parseProcHexAddr("0157A8C0")
+	addr, ok := parseProcHexAddr("010200C0")
 	if !ok || addr.String() != "192.0.2.1" {
 		t.Fatalf("got %s ok=%v, want 192.0.2.1", addr, ok)
 	}
@@ -141,7 +141,7 @@ func TestCleanTitle(t *testing.T) {
 
 func TestLastIPv4(t *testing.T) {
 	tests := map[string]string{
-		"192.0.2.0/24": "192.0.2.255",
+		"192.0.2.0/24":    "192.0.2.255",
 		"10.0.0.0/30":     "10.0.0.3",
 		"192.168.1.10/32": "192.168.1.10",
 		"172.16.5.0/23":   "172.16.5.255",

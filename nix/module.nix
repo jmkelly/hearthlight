@@ -54,7 +54,7 @@ in
 
     openFirewall = lib.mkOption {
       type = lib.types.bool;
-      default = true;
+      default = false;
       description = "Open the Hearthlight port in the NixOS firewall.";
     };
 
@@ -79,7 +79,7 @@ in
     cidrs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      example = [ "192.0.2.0/24" ];
+      example = [ "192.168.1.0/24" ];
       description = "Optional IPv4 CIDRs to scan instead of auto-detecting LAN interfaces.";
     };
 

@@ -27,6 +27,8 @@
           ];
           meta = {
             description = "A live map of the devices and services on your home network";
+            homepage = "https://github.com/jmkelly/hearthlight";
+            license = pkgs.lib.licenses.mit;
             mainProgram = "hearthlight";
           };
         };
