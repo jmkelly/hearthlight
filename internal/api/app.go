@@ -2,18 +2,33 @@
 package api
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
 	"log/slog"
+	"net"
 	"net/http"
+	"net/netip"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/jmkelly/hearthlight/internal/model"
 )
+
+// tokenCookie is the session cookie set after a successful ?token= login.
+const tokenCookie = "hearthlight_token"
+
+// Config holds the HTTP boundary policy for the app.
+type Config struct {
+	Logger       *slog.Logger
+	Token        string
+	AllowedHosts []string
+}
 
 // App holds the latest snapshot and fans it out to connected browsers.
 type App struct {
@@ -24,6 +39,8 @@ type App struct {
 	clients      map[chan sseEvent]struct{}
 	scanRequests chan<- struct{}
 	logger       *slog.Logger
+	token        string
+	allowedHosts []string
 }
 
 // sseEvent is one named Server-Sent Event.
@@ -32,7 +49,8 @@ type sseEvent struct {
 	data []byte
 }
 
-func New(scanRequests chan<- struct{}, logger *slog.Logger) *App {
+func New(scanRequests chan<- struct{}, cfg Config) *App {
+	logger := cfg.Logger
 	if logger == nil {
 		logger = slog.Default()
 	}
@@ -40,6 +58,8 @@ func New(scanRequests chan<- struct{}, logger *slog.Logger) *App {
 		clients:      make(map[chan sseEvent]struct{}),
 		scanRequests: scanRequests,
 		logger:       logger,
+		token:        cfg.Token,
+		allowedHosts: cfg.AllowedHosts,
 	}
 	initial := model.Snapshot{
 		GeneratedAt: time.Now(),
@@ -148,7 +168,143 @@ func (a *App) Handler(static fs.FS) http.Handler {
 		fileServer.ServeHTTP(w, r)
 	}))
 
-	return securityHeaders(logRequests(a.logger, mux))
+	return logRequests(a.logger, securityHeaders(a.requireAllowedHost(a.requireToken(mux))))
+}
+
+// requireAllowedHost rejects a Host header that is not loopback, an IP literal
+// or an explicitly configured hostname. This closes the DNS-rebinding path
+// that lets another origin read the API response.
+func (a *App) requireAllowedHost(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !hostAllowed(r.Host, a.allowedHosts) {
+			http.Error(w, "forbidden host", http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// requireToken gates every route except /healthz behind the optional shared
+// token. A valid ?token= on a page request sets a session cookie so the UI and
+// its EventSource stream authenticate without putting the token in each URL.
+func (a *App) requireToken(next http.Handler) http.Handler {
+	if a.token == "" {
+		return next
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		if !tokenEqual(requestToken(r), a.token) {
+			if strings.HasPrefix(r.URL.Path, "/api/") {
+				w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				w.WriteHeader(http.StatusUnauthorized)
+				_, _ = io.WriteString(w, `{"error":"unauthorized"}`)
+				return
+			}
+			http.Error(w, "unauthorized: append ?token=<token> to the URL to sign in", http.StatusUnauthorized)
+			return
+		}
+		if r.URL.Query().Get("token") != "" && !strings.HasPrefix(r.URL.Path, "/api/") {
+			http.SetCookie(w, &http.Cookie{
+				Name:     tokenCookie,
+				Value:    a.token,
+				Path:     "/",
+				HttpOnly: true,
+				Secure:   r.TLS != nil,
+				SameSite: http.SameSiteStrictMode,
+			})
+			u := *r.URL
+			query := u.Query()
+			query.Del("token")
+			u.RawQuery = query.Encode()
+			http.Redirect(w, r, u.String(), http.StatusSeeOther)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func requestToken(r *http.Request) string {
+	if scheme, token, ok := strings.Cut(r.Header.Get("Authorization"), " "); ok && strings.EqualFold(scheme, "Bearer") {
+		return strings.TrimSpace(token)
+	}
+	if token := r.Header.Get("X-Hearthlight-Token"); token != "" {
+		return token
+	}
+	if cookie, err := r.Cookie(tokenCookie); err == nil {
+		return cookie.Value
+	}
+	return r.URL.Query().Get("token")
+}
+
+// tokenEqual compares hashes so the comparison time does not depend on the
+// token length or the position of the first wrong byte.
+func tokenEqual(got, want string) bool {
+	gotHash := sha256.Sum256([]byte(got))
+	wantHash := sha256.Sum256([]byte(want))
+	return subtle.ConstantTimeCompare(gotHash[:], wantHash[:]) == 1
+}
+
+func hostAllowed(raw string, extra []string) bool {
+	host, ok := normalizeHost(raw)
+	if !ok {
+		return false
+	}
+	if host == "localhost" {
+		return true
+	}
+	if _, err := netip.ParseAddr(host); err == nil {
+		return true
+	}
+	for _, allowed := range extra {
+		if normalized, ok := normalizeHost(allowed); ok && normalized == host {
+			return true
+		}
+	}
+	return false
+}
+
+func normalizeHost(raw string) (string, bool) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", false
+	}
+	host := raw
+	if h, _, err := net.SplitHostPort(raw); err == nil {
+		host = h
+	} else if strings.HasPrefix(raw, "[") && strings.HasSuffix(raw, "]") {
+		host = raw[1 : len(raw)-1]
+	} else if strings.Count(raw, ":") > 1 {
+		if _, err := netip.ParseAddr(raw); err != nil {
+			return "", false
+		}
+	}
+	host = strings.TrimSuffix(strings.ToLower(host), ".")
+	if host == "" {
+		return "", false
+	}
+	return host, true
+}
+
+// sameOrigin rejects browser requests whose Origin or Sec-Fetch-Site says they
+// came from another site. Non-browser clients send neither header.
+func sameOrigin(r *http.Request) bool {
+	switch site := r.Header.Get("Sec-Fetch-Site"); site {
+	case "", "same-origin", "none":
+	default:
+		return false
+	}
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return true
+	}
+	u, err := url.Parse(origin)
+	if err != nil || u.Host == "" {
+		return false
+	}
+	return strings.EqualFold(u.Host, r.Host)
 }
 
 func (a *App) handleState(w http.ResponseWriter, _ *http.Request) {
@@ -160,8 +316,13 @@ func (a *App) handleState(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write(payload)
 }
 
-func (a *App) handleScan(w http.ResponseWriter, _ *http.Request) {
+func (a *App) handleScan(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if !sameOrigin(r) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = io.WriteString(w, `{"status":"forbidden"}`)
+		return
+	}
 	if a.scanRequests == nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		_, _ = io.WriteString(w, `{"status":"unavailable"}`)

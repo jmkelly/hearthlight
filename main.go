@@ -6,7 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"os/signal"
 	"strings"
@@ -28,7 +30,7 @@ var version = "dev"
 const trafficInterval = 2 * time.Second
 
 func main() {
-	listen := flag.String("listen", envOr("HEARTHLIGHT_LISTEN", ":8090"), "HTTP listen address")
+	listen := flag.String("listen", envOr("HEARTHLIGHT_LISTEN", "127.0.0.1:8090"), "HTTP listen address")
 	dataPath := flag.String("data", envOr("HEARTHLIGHT_DATA", "hearthlight-state.json"), "state file path (empty for in-memory)")
 	interval := flag.Duration("interval", 60*time.Second, "scan interval")
 	cidrFlag := flag.String("cidr", "", "comma-separated IPv4 CIDRs to scan (default: local LAN interfaces)")
@@ -38,6 +40,8 @@ func main() {
 	demoMode := flag.Bool("demo", false, "serve a simulated network without scanning")
 	tailnetEnabled := flag.Bool("tailscale", true, "discover Tailscale peers via `tailscale status --json`")
 	trafficEnabled := flag.Bool("traffic", true, "sample live traffic between this host and mapped devices")
+	token := flag.String("token", envOr("HEARTHLIGHT_TOKEN", ""), "shared token required for the API (empty disables)")
+	hostsFlag := flag.String("hosts", envOr("HEARTHLIGHT_HOSTS", ""), "extra hostnames allowed in the Host header, comma-separated")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
 
@@ -59,9 +63,24 @@ func main() {
 		fatal("invalid --ports: %v", err)
 	}
 
+	allowedHosts := splitCSV(*hostsFlag)
+	if listenHost, _, err := net.SplitHostPort(*listen); err == nil && listenHost != "" {
+		allowedHosts = append(allowedHosts, listenHost)
+	}
+	tokenValue := strings.TrimSpace(*token)
+
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	if tokenValue != "" {
+		logger.Info("API token required; open the URL with ?token=<token> once to sign in")
+	} else if !listenIsLoopback(*listen) {
+		logger.Warn("listening beyond loopback without an API token; anyone who can reach the port can read the network inventory")
+	}
 	scanRequests := make(chan struct{}, 1)
-	app := api.New(scanRequests, logger)
+	app := api.New(scanRequests, api.Config{
+		Logger:       logger,
+		Token:        tokenValue,
+		AllowedHosts: allowedHosts,
+	})
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -268,6 +287,20 @@ func runEvery(ctx context.Context, every time.Duration, fn func(now time.Time)) 
 			fn(now)
 		}
 	}
+}
+
+// listenIsLoopback reports whether the listen address only accepts local
+// connections. An empty host means all interfaces.
+func listenIsLoopback(addr string) bool {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return false
+	}
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	ip, err := netip.ParseAddr(host)
+	return err == nil && ip.IsLoopback()
 }
 
 func envOr(key, fallback string) string {

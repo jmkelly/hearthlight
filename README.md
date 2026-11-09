@@ -66,7 +66,7 @@ Build a binary:
 
 ```bash
 make build
-./bin/hearthlight -listen :8090
+./bin/hearthlight -listen 127.0.0.1:8090
 ```
 
 ## Prebuilt binaries
@@ -121,8 +121,10 @@ services.hearthlight = {
 };
 ```
 
-The module binds to all interfaces but leaves the firewall closed by default.
-Set `openFirewall = true` if you want other machines on the LAN to reach it.
+The module binds to loopback and leaves the firewall closed by default. To
+expose it on the LAN, set `listenAddress = "0.0.0.0"`, add any DNS names you
+use to `allowedHosts`, and set `openFirewall = true`. Put authentication in
+front of it with a reverse proxy or run the binary directly with `-token`.
 From another machine, open:
 
 ```text
@@ -158,7 +160,8 @@ The service stores its inventory at `/var/lib/hearthlight/state.json` with mode
 | --- | --- | --- |
 | `enable` | `false` | Start the Hearthlight service. |
 | `package` | flake package | Hearthlight package to run. |
-| `listenAddress` | `0.0.0.0` | HTTP bind address. |
+| `listenAddress` | `127.0.0.1` | HTTP bind address. |
+| `allowedHosts` | `[]` | Extra hostnames accepted in the HTTP `Host` header. |
 | `port` | `8090` | HTTP port. |
 | `openFirewall` | `false` | Open the HTTP port in the NixOS firewall. |
 | `interval` | `60` | Seconds between scans. |
@@ -179,7 +182,7 @@ nix build .#hearthlight
 
 | Flag | Default | Meaning |
 | --- | --- | --- |
-| `-listen` | `:8090` | HTTP listen address. |
+| `-listen` | `127.0.0.1:8090` | HTTP listen address. |
 | `-data` | `hearthlight-state.json` | State file. Empty means in-memory. |
 | `-interval` | `60s` | Time between scans. Minimum 5s. |
 | `-cidr` | auto | Comma-separated IPv4 CIDRs to scan. |
@@ -189,10 +192,13 @@ nix build .#hearthlight
 | `-demo` | `false` | Serve sample data without scanning. |
 | `-tailscale` | `true` | Discover Tailscale peers via `tailscale status --json`. |
 | `-traffic` | `true` | Sample live traffic between this host and mapped devices every 2s. |
+| `-hosts` | | Extra hostnames accepted in the HTTP `Host` header, comma-separated. |
+| `-token` | | Shared token required for the API. Empty disables it. |
 | `-version` | | Print the version and exit. |
 
-Environment variables `HEARTHLIGHT_LISTEN` and `HEARTHLIGHT_DATA` set the listen
-address and state path when the corresponding flag is not provided.
+Environment variables `HEARTHLIGHT_LISTEN`, `HEARTHLIGHT_DATA`,
+`HEARTHLIGHT_HOSTS` and `HEARTHLIGHT_TOKEN` set the listen address, state path,
+allowed hostnames and API token when the corresponding flag is not provided.
 `HEARTHLIGHT_TAILSCALE` overrides the path or name of the `tailscale` binary.
 
 ## How discovery works
@@ -292,13 +298,28 @@ unprivileged host cannot observe traffic between two other devices.
 
 ## Security
 
-Hearthlight has no authentication. Its API exposes hostnames, IP addresses, MAC
-addresses and open ports. Run it only on a trusted LAN or tailnet.
+Hearthlight defaults to a local-only shape.
 
-The NixOS module binds to all interfaces and leaves the firewall closed by
-default. Set `openFirewall = true` only when you want LAN access. Do not publish
-it directly to the internet; use an SSH tunnel or a tailnet-only firewall rule
-instead.
+- The HTTP server binds to `127.0.0.1:8090`. Change `-listen` or
+  `services.hearthlight.listenAddress` only when you mean to expose it.
+- Every request must carry an allowed `Host` header: loopback names, IP
+  literals, or a hostname passed to `-hosts`. A DNS-rebinding page whose
+  hostname points at Hearthlight is rejected.
+- `POST /api/scan` requires a same-origin `Origin` or a `Sec-Fetch-Site` of
+  `same-origin` or `none`, so another web page cannot queue scans.
+- Set `-token` (or `HEARTHLIGHT_TOKEN`) to require a shared token on every route
+  except `/healthz`. Open `http://<host>:8090/?token=<token>` once and the
+  server stores an HttpOnly, SameSite=Strict session cookie. API clients can
+  send `Authorization: Bearer <token>` instead. The token is compared in
+  constant time.
+- The API still has no user accounts. Its inventory exposes hostnames, IP
+  addresses, MAC addresses and open ports. Put a reverse proxy with
+  authentication and TLS in front when the network is not trusted. Do not
+  publish it directly to the internet; use an SSH tunnel or a tailnet-only
+  firewall rule instead.
+
+The NixOS module leaves the firewall closed by default. Set `openFirewall =
+true` only when you want LAN access.
 
 Active service probing can trigger intrusion detection or logging on managed
 networks. Use it only on networks you own or administer. The same applies to
