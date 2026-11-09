@@ -119,11 +119,7 @@ func main() {
 	}
 
 	handler := app.Handler(web.Files)
-	server := &http.Server{
-		Addr:              *listen,
-		Handler:           handler,
-		ReadHeaderTimeout: 5 * time.Second,
-	}
+	server := newServer(*listen, handler)
 	serverErr := make(chan error, 1)
 	go func() {
 		logger.Info("http listener ready", "addr", *listen, "demo", *demoMode)
@@ -147,6 +143,19 @@ func main() {
 	_ = server.Shutdown(shutdownCtx)
 	if failed {
 		os.Exit(1)
+	}
+}
+
+// newServer bounds request reads and idle keep-alives. WriteTimeout stays zero
+// because it would cut long-lived SSE streams.
+func newServer(addr string, handler http.Handler) *http.Server {
+	return &http.Server{
+		Addr:              addr,
+		Handler:           handler,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    64 << 10,
 	}
 }
 
