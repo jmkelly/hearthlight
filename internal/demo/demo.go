@@ -3,6 +3,7 @@
 package demo
 
 import (
+	"math"
 	"sort"
 	"strconv"
 	"time"
@@ -285,4 +286,47 @@ func Generate(now time.Time) model.Snapshot {
 		Stats:           stats,
 		Devices:         devices,
 	}
+}
+
+type demoFlow struct {
+	id     string
+	via    string
+	conns  int
+	rx, tx float64 // peak bytes per second; zero means unmeasured
+	period float64 // seconds per swell
+}
+
+// demoFlows are traffic from the workstation (the demo's self host): a NAS
+// backup and SSH sessions over the LAN, and measured tailnet transfers.
+var demoFlows = []demoFlow{
+	{id: "mac:24:a4:3c:11:22:33", via: "lan", conns: 1},
+	{id: "mac:00:11:32:77:88:99", via: "lan", conns: 3},
+	{id: "mac:00:11:32:77:88:99", via: "tailnet", conns: 1, rx: 420_000, tx: 2_600_000, period: 23},
+	{id: "mac:b0:83:fe:44:55:66", via: "tailnet", conns: 2, rx: 38_000, tx: 9_000, period: 11},
+	{id: "mac:dc:a6:32:aa:bb:cc", via: "lan", conns: 1},
+	{id: "mac:00:0e:58:11:22:33", via: "lan", conns: 2},
+	{id: "ts:nCloudNode01", via: "tailnet", conns: 1, rx: 1_800_000, tx: 120_000, period: 17},
+	{id: "ts:nMacBookAir01", via: "tailnet", rx: 6_000, tx: 2_500, period: 7},
+}
+
+// Traffic returns a deterministic live traffic sample whose measured rates
+// swell and fade over time, so the demo shows edges coming and going.
+func Traffic(now time.Time, interval time.Duration) model.Traffic {
+	t := float64(now.UnixMilli()) / 1000
+	flows := make([]model.Flow, 0, len(demoFlows))
+	for i, df := range demoFlows {
+		f := model.Flow{DeviceID: df.id, Via: df.via, Conns: df.conns}
+		if df.rx > 0 || df.tx > 0 {
+			// 0..1 swell with a quiet trough, offset per flow.
+			level := math.Max(0, math.Sin(t*2*math.Pi/df.period+float64(i)))
+			f.Measured = true
+			f.RxBps = math.Round(df.rx * level)
+			f.TxBps = math.Round(df.tx * level)
+		}
+		if f.Conns == 0 && f.RxBps == 0 && f.TxBps == 0 {
+			continue
+		}
+		flows = append(flows, f)
+	}
+	return model.Traffic{GeneratedAt: now, IntervalMS: interval.Milliseconds(), Flows: flows}
 }

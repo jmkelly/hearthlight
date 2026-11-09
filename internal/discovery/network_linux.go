@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/netip"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -55,16 +54,4 @@ func defaultGateway() netip.Addr {
 		}
 	}
 	return netip.Addr{}
-}
-
-func parseProcHexAddr(raw string) (netip.Addr, bool) {
-	if len(raw) != 8 {
-		return netip.Addr{}, false
-	}
-	v, err := strconv.ParseUint(raw, 16, 32)
-	if err != nil {
-		return netip.Addr{}, false
-	}
-	b := [4]byte{byte(v), byte(v >> 8), byte(v >> 16), byte(v >> 24)}
-	return netip.AddrFrom4(b), true
 }

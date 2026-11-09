@@ -47,6 +47,8 @@ type tailscaleNode struct {
 	Online       bool      `json:"Online"`
 	Tags         []string  `json:"Tags"`
 	LastSeen     time.Time `json:"LastSeen"`
+	RxBytes      int64     `json:"RxBytes"`
+	TxBytes      int64     `json:"TxBytes"`
 }
 
 // ScanTailnet reads the local Tailscale status and probes every online peer
@@ -62,9 +64,19 @@ func (s *Scanner) ScanTailnet(ctx context.Context) (model.TailnetObservation, er
 }
 
 func (s *Scanner) readTailnetStatus(ctx context.Context) (model.TailnetObservation, error) {
-	binary, err := tailscaleBinary()
+	data, err := runTailscaleStatus(ctx)
 	if err != nil {
 		return model.TailnetObservation{}, err
+	}
+	return parseTailnetStatus(data)
+}
+
+// runTailscaleStatus runs `tailscale status --json` with a hard timeout and
+// returns its raw output.
+func runTailscaleStatus(ctx context.Context) ([]byte, error) {
+	binary, err := tailscaleBinary()
+	if err != nil {
+		return nil, err
 	}
 	statusCtx, cancel := context.WithTimeout(ctx, tailscaleStatusTimeout)
 	defer cancel()
@@ -80,22 +92,69 @@ func (s *Scanner) readTailnetStatus(ctx context.Context) (model.TailnetObservati
 	if err := cmd.Run(); err != nil {
 		switch {
 		case errors.Is(statusCtx.Err(), context.DeadlineExceeded):
-			return model.TailnetObservation{}, fmt.Errorf("tailscale status timed out after %s", tailscaleStatusTimeout)
+			return nil, fmt.Errorf("tailscale status timed out after %s", tailscaleStatusTimeout)
 		case errors.Is(ctx.Err(), context.Canceled):
-			return model.TailnetObservation{}, ctx.Err()
+			return nil, ctx.Err()
 		default:
 			msg := strings.TrimSpace(stderr.String())
 			if msg == "" {
 				msg = err.Error()
 			}
-			return model.TailnetObservation{}, fmt.Errorf("tailscale status: %s", truncateText(msg, 240))
+			return nil, fmt.Errorf("tailscale status: %s", truncateText(msg, 240))
 		}
 	}
-	obs, err := parseTailnetStatus(stdout.Bytes())
+	return stdout.Bytes(), nil
+}
+
+// TailnetCounter is the cumulative WireGuard byte count between this host and
+// one peer, as reported by tailscaled. Counters reset when a session restarts.
+type TailnetCounter struct {
+	RxBytes int64
+	TxBytes int64
+}
+
+// ReadTailnetCounters returns per-peer byte counters keyed by the same node ID
+// that ScanTailnet uses. The local node is not included.
+func ReadTailnetCounters(ctx context.Context) (map[string]TailnetCounter, error) {
+	data, err := runTailscaleStatus(ctx)
 	if err != nil {
-		return model.TailnetObservation{}, err
+		return nil, err
 	}
-	return obs, nil
+	return parseTailnetCounters(data)
+}
+
+func parseTailnetCounters(data []byte) (map[string]TailnetCounter, error) {
+	var status tailscaleStatus
+	if err := json.Unmarshal(data, &status); err != nil {
+		return nil, fmt.Errorf("decode tailscale status: %w", err)
+	}
+	if status.BackendState != "" && !strings.EqualFold(status.BackendState, "Running") {
+		return nil, fmt.Errorf("tailscaled backend is %q", status.BackendState)
+	}
+	out := make(map[string]TailnetCounter, len(status.Peer))
+	for key, node := range status.Peer {
+		if node == nil {
+			continue
+		}
+		id := tailnetNodeID(node, key)
+		if id == "" {
+			continue
+		}
+		out[id] = TailnetCounter{RxBytes: node.RxBytes, TxBytes: node.TxBytes}
+	}
+	return out, nil
+}
+
+// tailnetNodeID prefers the stable Tailscale node ID, then the public key,
+// then the status map key.
+func tailnetNodeID(node *tailscaleNode, fallback string) string {
+	if id := strings.TrimSpace(node.ID); id != "" {
+		return id
+	}
+	if id := strings.TrimSpace(node.PublicKey); id != "" {
+		return id
+	}
+	return strings.TrimSpace(fallback)
 }
 
 // parseTailnetStatus converts `tailscale status --json` output into the wire
@@ -127,13 +186,7 @@ func parseTailnetStatus(data []byte) (model.TailnetObservation, error) {
 		if node == nil {
 			return
 		}
-		id := strings.TrimSpace(node.ID)
-		if id == "" {
-			id = strings.TrimSpace(node.PublicKey)
-		}
-		if id == "" {
-			id = strings.TrimSpace(fallbackID)
-		}
+		id := tailnetNodeID(node, fallbackID)
 		if id == "" {
 			return
 		}

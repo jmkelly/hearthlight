@@ -93,6 +93,29 @@ type Stats struct {
 	ServicesTotal  int `json:"servicesTotal"`
 }
 
+// Flow is live traffic between this host and one device over one network.
+// Flows are sampled every few seconds and never persisted.
+type Flow struct {
+	DeviceID string `json:"deviceId"`
+	// Via is "lan" or "tailnet". A dual-membership device can have both.
+	Via string `json:"via"`
+	// Conns counts established TCP connections between this host and the device.
+	Conns int `json:"conns"`
+	// RxBps and TxBps are bytes per second received from and sent to the
+	// device. They are only measured for tailnet peers; Measured says whether
+	// they are real or simply unknown.
+	RxBps    float64 `json:"rxBps"`
+	TxBps    float64 `json:"txBps"`
+	Measured bool    `json:"measured"`
+}
+
+// Traffic is one live sample of every active flow from this host.
+type Traffic struct {
+	GeneratedAt time.Time `json:"generatedAt"`
+	IntervalMS  int64     `json:"intervalMs"`
+	Flows       []Flow    `json:"flows"`
+}
+
 // Snapshot is the complete state sent to the browser.
 type Snapshot struct {
 	GeneratedAt     time.Time `json:"generatedAt"`

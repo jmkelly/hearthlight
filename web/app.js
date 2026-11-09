@@ -28,6 +28,11 @@
     other: "#93a4b8",
   };
 
+  const TRAFFIC = {
+    lan: { label: "LAN", color: "#ffd166", bend: -1 },
+    tailnet: { label: "Tailnet", color: "#5ee7ff", bend: 1 },
+  };
+
   const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
   const lerp = (a, b, t) => a + (b - a) * t;
   const smoothstep = (edge0, edge1, value) => {
@@ -159,6 +164,9 @@
     reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     lastErrorShown: "",
     toastTimer: 0,
+    // Live traffic edges keyed by "deviceId|via". Entries fade out rather
+    // than vanish when a flow stops.
+    traffic: new Map(),
   };
 
   try {
@@ -1047,6 +1055,12 @@
         ${tailnetOnly}
       </div>
       ${reach}
+      <div class="legend-row">
+        <span class="legend-label">traffic</span>
+        <span class="legend-item"><i class="legend-flow" style="--c:${TRAFFIC.lan.color}"></i>LAN</span>
+        <span class="legend-item"><i class="legend-flow" style="--c:${TRAFFIC.tailnet.color}"></i>tailnet</span>
+        <span class="legend-item"><i class="legend-flow dashed" style="--c:#c9d7e6"></i>connections only</span>
+      </div>
     `;
   }
 
@@ -1127,12 +1141,14 @@
       </div>
       <h2>${escapeHTML(device.hostname || device.ip)}</h2>
       <p class="ip">${escapeHTML(device.ip)}${device.self ? " · this host" : ""}</p>
+      <dl class="meta panel-traffic" hidden></dl>
       <dl class="meta">
         ${meta.join("")}
       </dl>
       <h3>Services <span>${onlineCount}/${services.length} up</span></h3>
       ${rows || '<div class="empty-services">No TCP services found on this device.</div>'}
     `;
+    renderPanelTraffic();
   }
 
   function selectNode(node) {
@@ -1761,6 +1777,7 @@
       const rect = deviceLabelRect(node, zoom);
       if (rect) view.deviceLabelRects.push(rect);
     }
+    drawTraffic(time, zoom);
     for (const link of view.links) {
       const service = view.nodes.get(link.serviceId);
       const device = view.nodes.get(link.deviceId);
@@ -1789,6 +1806,195 @@
     for (const node of view.nodes.values()) {
       if (node.type === "device") drawDevice(node, time, zoom);
     }
+  }
+
+  const trafficKey = (flow) => `${flow.deviceId}|${flow.via}`;
+
+  function formatRate(bytesPerSecond) {
+    const value = Math.max(0, bytesPerSecond || 0);
+    if (value < 1024) return `${Math.round(value)} B/s`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(value < 10240 ? 1 : 0)} KB/s`;
+    return `${(value / 1024 / 1024).toFixed(1)} MB/s`;
+  }
+
+  function applyTraffic(sample) {
+    if (!sample || !Array.isArray(sample.flows)) return;
+    const present = new Set();
+    for (const flow of sample.flows) {
+      if (!TRAFFIC[flow.via]) continue;
+      const key = trafficKey(flow);
+      present.add(key);
+      let entry = view.traffic.get(key);
+      if (!entry) {
+        entry = {
+          key,
+          deviceId: flow.deviceId,
+          via: flow.via,
+          rxShown: 0,
+          txShown: 0,
+          alpha: 0,
+          phase: (hashString(key) % 1000) / 1000,
+        };
+        view.traffic.set(key, entry);
+      }
+      entry.conns = flow.conns || 0;
+      entry.measured = Boolean(flow.measured);
+      entry.rx = flow.rxBps || 0;
+      entry.tx = flow.txBps || 0;
+      entry.active = true;
+    }
+    for (const [key, entry] of view.traffic) {
+      if (!present.has(key)) {
+        entry.active = false;
+        entry.rx = 0;
+        entry.tx = 0;
+      }
+    }
+    renderPanelTraffic();
+  }
+
+  function updateTraffic(dt) {
+    const fade = Math.min(1, dt * 3);
+    const ease = Math.min(1, dt * 2.5);
+    for (const [key, entry] of view.traffic) {
+      entry.alpha += ((entry.active ? 1 : 0) - entry.alpha) * fade;
+      entry.rxShown += (entry.rx - entry.rxShown) * ease;
+      entry.txShown += (entry.tx - entry.txShown) * ease;
+      if (!entry.active && entry.alpha < 0.01) view.traffic.delete(key);
+    }
+  }
+
+  function selfNode() {
+    for (const node of view.nodes.values()) {
+      if (node.type === "device" && node.data.self) return node;
+    }
+    return null;
+  }
+
+  // Log-scaled weight: ~1 at 1 KB/s, ~3 at 1 MB/s.
+  const rateWeight = (bytesPerSecond) => Math.log10(1 + bytesPerSecond / 1024);
+
+  function bezierPoint(p0, c, p1, t) {
+    const u = 1 - t;
+    return {
+      x: u * u * p0.x + 2 * u * t * c.x + t * t * p1.x,
+      y: u * u * p0.y + 2 * u * t * c.y + t * t * p1.y,
+    };
+  }
+
+  function drawTraffic(time, zoom) {
+    if (!view.traffic.size) return;
+    const self = selfNode();
+    if (!self || !deviceVisible(self.data)) return;
+    const from = worldToScreen(self.x, self.y);
+    const scale = clamp(zoom, 0.6, 1.4);
+    const seconds = time / 1000;
+
+    ctx.save();
+    ctx.lineCap = "round";
+    for (const entry of view.traffic.values()) {
+      const node = view.nodes.get(entry.deviceId);
+      if (!node || node === self || !node.data.online || !deviceVisible(node.data)) continue;
+      if (entry.via === "tailnet" && !view.showTailnet) continue;
+      const style = TRAFFIC[entry.via];
+      const to = worldToScreen(node.x, node.y);
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance < 1) continue;
+
+      // Bow LAN and tailnet edges to opposite sides so a dual host shows both.
+      const bend = distance * 0.16 * style.bend;
+      const control = {
+        x: (from.x + to.x) / 2 - (dy / distance) * bend,
+        y: (from.y + to.y) / 2 + (dx / distance) * bend,
+      };
+      const related = view.hoverId === node.id || view.selectedDeviceId === node.id ||
+        view.hoverId === self.id || view.selectedDeviceId === self.id;
+      const emphasis = related ? 1 : 0.72;
+      const total = entry.rxShown + entry.txShown;
+      const width = entry.measured
+        ? (1.1 + rateWeight(total) * 1.3) * scale
+        : (0.9 + Math.min(entry.conns, 6) * 0.22) * scale;
+
+      const path = () => {
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.quadraticCurveTo(control.x, control.y, to.x, to.y);
+      };
+
+      // Soft glow under the edge.
+      path();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = rgba(style.color, 0.08 * entry.alpha * emphasis);
+      ctx.lineWidth = width * 4;
+      ctx.stroke();
+
+      path();
+      if (!entry.measured) {
+        // Connections without byte counts: a marching dash shows activity
+        // without claiming a direction or a rate.
+        ctx.setLineDash([4 * scale, 7 * scale]);
+        ctx.lineDashOffset = view.reducedMotion ? 0 : -seconds * 14;
+      }
+      ctx.strokeStyle = rgba(style.color, 0.55 * entry.alpha * emphasis);
+      ctx.lineWidth = width;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (!entry.measured || view.reducedMotion) continue;
+      // Particles: received bytes travel device -> this host, sent bytes
+      // travel this host -> device. More and faster particles mean more bytes.
+      for (const [rate, inbound] of [[entry.rxShown, true], [entry.txShown, false]]) {
+        if (rate < 64) continue;
+        const weight = rateWeight(rate);
+        const count = clamp(Math.round(1 + weight * 1.6), 1, 8);
+        const speed = 0.22 + weight * 0.12;
+        const radius = (1.5 + weight * 0.55) * scale;
+        for (let i = 0; i < count; i += 1) {
+          const t = (seconds * speed + i / count + entry.phase + (inbound ? 0.5 / count : 0)) % 1;
+          const point = bezierPoint(from, control, to, inbound ? 1 - t : t);
+          const edgeFade = Math.min(1, t * 6, (1 - t) * 6);
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, radius * 2.4, 0, TAU);
+          ctx.fillStyle = rgba(style.color, 0.14 * entry.alpha * edgeFade);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, radius, 0, TAU);
+          ctx.fillStyle = rgba(inbound ? style.color : "#ffffff", 0.9 * entry.alpha * edgeFade);
+          ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  function renderPanelTraffic() {
+    const target = panel.querySelector(".panel-traffic");
+    if (!target || !view.selectedDeviceId) return;
+    const node = view.nodes.get(view.selectedDeviceId);
+    if (!node) return;
+    const plural = (n) => `${n} connection${n === 1 ? "" : "s"}`;
+    let rows = [];
+    if (node.data.self) {
+      const active = [...view.traffic.values()].filter((entry) => entry.active);
+      if (active.length) {
+        const peers = new Set(active.map((entry) => entry.deviceId)).size;
+        rows.push(`<div><dt>Live traffic</dt><dd>${peers} device${peers === 1 ? "" : "s"} active</dd></div>`);
+      }
+    } else {
+      rows = [...view.traffic.values()]
+        .filter((entry) => entry.deviceId === node.id && entry.active)
+        .sort((a, b) => a.via.localeCompare(b.via))
+        .map((entry) => {
+          const parts = [];
+          if (entry.measured) parts.push(`↓ ${formatRate(entry.rx)} · ↑ ${formatRate(entry.tx)}`);
+          if (entry.conns) parts.push(plural(entry.conns));
+          return `<div><dt>${escapeHTML(TRAFFIC[entry.via].label)} traffic</dt><dd>${escapeHTML(parts.join(" · ") || "idle")}</dd></div>`;
+        });
+    }
+    target.hidden = rows.length === 0;
+    target.innerHTML = rows.join("");
   }
 
   function handleNodeClick(node) {
@@ -2061,6 +2267,13 @@
         console.error("bad snapshot", error);
       }
     });
+    eventSource.addEventListener("traffic", (event) => {
+      try {
+        applyTraffic(JSON.parse(event.data));
+      } catch (error) {
+        console.error("bad traffic sample", error);
+      }
+    });
   }
 
   async function loadState() {
@@ -2085,6 +2298,7 @@
       const target = view.hoverId === node.id ? 1 : 0;
       node.hover += (target - node.hover) * Math.min(1, dt * 12);
     }
+    updateTraffic(dt);
     draw(now);
     window.requestAnimationFrame(frame);
   }
