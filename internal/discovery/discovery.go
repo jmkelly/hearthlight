@@ -95,11 +95,10 @@ func New(cfg Config) (*Scanner, error) {
 	s.http = &http.Client{
 		Transport: transport,
 		Timeout:   2 * time.Second,
-		CheckRedirect: func(_ *http.Request, via []*http.Request) error {
-			if len(via) >= 2 {
-				return http.ErrUseLastResponse
-			}
-			return nil
+		// A redirect can point at any host, so following one would let the
+		// scanned device steer the probe into unrelated services.
+		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+			return http.ErrUseLastResponse
 		},
 	}
 	return s, nil
