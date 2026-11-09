@@ -1005,13 +1005,15 @@
     const network = view.snapshot.networks && view.snapshot.networks.length
       ? view.snapshot.networks[0]
       : "local network";
+    const ssid = view.snapshot.ssid ? truncate(view.snapshot.ssid, 24) : "";
     const info = view.snapshot.tailnet;
     const suffix = info && (info.magicDnsSuffix || info.name) ? (info.magicDnsSuffix || info.name) : "tailnet";
     const peers = info && info.peersTotal ? info.peersTotal : tailnetCount;
     const placed = [];
     if (lan) {
       const top = topPoint(lan);
-      placed.push(drawRegionPill(top.x, top.y, "HOME LAN", `${network} · ${lanCount} HOSTS`, false, placed));
+      const detail = [network, ssid, `${lanCount} HOSTS`].filter(Boolean).join(" · ");
+      placed.push(drawRegionPill(top.x, top.y, "HOME LAN", detail, false, placed));
     }
     if (tailnet) {
       const top = topPoint(tailnet);
@@ -1367,14 +1369,15 @@
     const networks = snapshot.networks && snapshot.networks.length
       ? snapshot.networks.join(" · ")
       : "discovering local networks";
+    const ssid = snapshot.ssid ? `Wi-Fi ${snapshot.ssid}` : "";
     const tailnet = snapshot.tailnet && (snapshot.tailnet.magicDnsSuffix || snapshot.tailnet.name)
       ? (snapshot.tailnet.magicDnsSuffix || snapshot.tailnet.name)
       : "";
     const scanned = validTime(snapshot.lastScan) ? `last scan ${relativeTime(snapshot.lastScan)}` : "waiting for first scan";
     const prefix = snapshot.scanning ? "scanning · " : "";
     const error = snapshot.lastError ? " · scan error" : "";
-    subtitle.textContent = `${prefix}${[networks, tailnet, scanned].filter(Boolean).join(" · ")}${error}`;
-    subtitle.title = snapshot.lastError || [networks, tailnet].filter(Boolean).join(" · ");
+    subtitle.textContent = `${prefix}${[networks, ssid, tailnet, scanned].filter(Boolean).join(" · ")}${error}`;
+    subtitle.title = snapshot.lastError || [networks, ssid, tailnet].filter(Boolean).join(" · ");
   }
 
   function renderLegend() {

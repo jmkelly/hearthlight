@@ -116,7 +116,8 @@ type Traffic struct {
 	Flows       []Flow    `json:"flows"`
 }
 
-// Snapshot is the complete state sent to the browser.
+// Snapshot is the complete state sent to the browser. SSID is live host state
+// and, unlike the scanned Networks, is never persisted.
 type Snapshot struct {
 	GeneratedAt     time.Time `json:"generatedAt"`
 	LastScan        time.Time `json:"lastScan"`
@@ -124,6 +125,7 @@ type Snapshot struct {
 	ScanIntervalSec int       `json:"scanIntervalSeconds"`
 	ScanDurationMS  int64     `json:"scanDurationMs"`
 	Networks        []string  `json:"networks"`
+	SSID            string    `json:"ssid,omitempty"`
 	LastError       string    `json:"lastError,omitempty"`
 	Tailnet         *Tailnet  `json:"tailnet,omitempty"`
 	Stats           Stats     `json:"stats"`

@@ -19,6 +19,7 @@ at overview zoom. Service bubbles and labels appear as you zoom in.
 
 - One static Go binary with the browser app embedded.
 - Unprivileged LAN discovery using ARP plus a TCP RST liveness sweep.
+- The current Wi-Fi network name (SSID), when the host is wireless.
 - Tailnet discovery from the local Tailscale daemon, merged with LAN devices by
   hostname and self identity.
 - TCP service probing with HTTP title, SSH banner and TLS certificate
@@ -230,6 +231,13 @@ One scan does the following:
 A missing `tailscale` binary, a stopped `tailscaled`, a timeout or malformed
 JSON is logged and skipped. That reading is ignored, the LAN scan still
 succeeds, and the previous tailnet state is kept.
+
+Each scan also reads the current Wi-Fi SSID, with `iwgetid` or `nmcli` on
+Linux, `networksetup` or `ipconfig` on macOS, and `netsh` on Windows. A wired
+host shows no SSID. When the tool is missing or the OS withholds the name
+(macOS may redact it without location access), the reading is skipped and the
+scan continues. The SSID appears in the header and on the LAN territory label.
+It is live host state and is never written to the state file.
 
 The browser gets a full snapshot over `/api/state` and receives live snapshots
 over `/api/events`.

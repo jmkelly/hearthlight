@@ -154,6 +154,7 @@ func loadState(path string, logger *slog.Logger) *store.Store {
 }
 
 func runScannerLoop(ctx context.Context, app *api.App, st *store.Store, scanner *discovery.Scanner, interval time.Duration, tailnetEnabled bool, trigger <-chan struct{}, logger *slog.Logger) {
+	ssid := ""
 	scan := func() {
 		app.SetScanning(true)
 		start := time.Now()
@@ -168,6 +169,7 @@ func runScannerLoop(ctx context.Context, app *api.App, st *store.Store, scanner 
 			lastError = err.Error()
 			logger.Error("scan failed", "error", err, "duration", elapsed.Round(time.Millisecond))
 		} else {
+			ssid = result.SSID
 			if applyErr := st.Apply(result.Devices, time.Now(), result.Networks); applyErr != nil {
 				logger.Error("save state", "error", applyErr)
 			}
@@ -175,13 +177,15 @@ func runScannerLoop(ctx context.Context, app *api.App, st *store.Store, scanner 
 		}
 
 		publish := func(scanning bool) {
-			app.SetSnapshot(st.Snapshot(store.SnapshotOptions{
+			snapshot := st.Snapshot(store.SnapshotOptions{
 				Now:          time.Now(),
 				Interval:     interval,
 				Scanning:     scanning,
 				ScanDuration: elapsed,
 				LastError:    lastError,
-			}))
+			})
+			snapshot.SSID = ssid
+			app.SetSnapshot(snapshot)
 		}
 		// Publish the LAN result before touching Tailscale so a wedged daemon
 		// can never delay the local map update.
