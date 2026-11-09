@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -85,8 +84,16 @@ func isVirtualInterface(name string) bool {
 		return true
 	}
 	for _, prefix := range []string{
+		// Linux containers and overlays.
 		"docker", "br-", "veth", "virbr", "podman", "cni", "flannel",
-		"tailscale", "zt", "wg", "tun", "tap", "kube", "lxc", "lxd",
+		"kube", "lxc", "lxd",
+		// VPN and tunnel interfaces, including macOS utun and Windows TAP.
+		"tailscale", "zt", "wg", "tun", "tap", "utun", "ipsec", "ppp",
+		"wireguard", "openvpn", "zerotier", "vethernet", "hyper-v",
+		// VM and capture adapters.
+		"vmware", "virtualbox", "vboxnet", "npcap", "wsl",
+		// macOS wireless and bridge pseudo-interfaces.
+		"bridge", "awdl", "llw", "anpi", "gif", "stf", "p2p",
 	} {
 		if strings.HasPrefix(name, prefix) {
 			return true
@@ -184,80 +191,39 @@ func wakeNeighbors(ctx context.Context, addrs []netip.Addr, timeout time.Duratio
 	wg.Wait()
 }
 
-// readARPTable parses /proc/net/arp. Only entries with a real hardware address
-// are returned.
-func readARPTable() (map[netip.Addr]string, error) {
-	data, err := os.ReadFile("/proc/net/arp")
-	if err != nil {
-		return nil, fmt.Errorf("read ARP table: %w", err)
-	}
-	out := make(map[netip.Addr]string)
-	lines := strings.Split(string(data), "\n")
-	for i, line := range lines {
-		if i == 0 || strings.TrimSpace(line) == "" {
-			continue
-		}
-		fields := strings.Fields(line)
-		if len(fields) < 4 {
-			continue
-		}
-		addr, err := netip.ParseAddr(fields[0])
-		if err != nil || !addr.Is4() {
-			continue
-		}
-		mac := normalizeMAC(fields[3])
-		if mac == "" {
-			continue
-		}
-		out[addr] = mac
-	}
-	return out, nil
-}
-
-func defaultGateway() netip.Addr {
-	data, err := os.ReadFile("/proc/net/route")
-	if err != nil {
-		return netip.Addr{}
-	}
-	for _, line := range strings.Split(string(data), "\n") {
-		fields := strings.Fields(line)
-		if len(fields) < 3 || fields[1] != "00000000" {
-			continue
-		}
-		if addr, ok := parseProcHexAddr(fields[2]); ok {
-			return addr
-		}
-	}
-	return netip.Addr{}
-}
-
-func parseProcHexAddr(raw string) (netip.Addr, bool) {
-	if len(raw) != 8 {
-		return netip.Addr{}, false
-	}
-	v, err := strconv.ParseUint(raw, 16, 32)
-	if err != nil {
-		return netip.Addr{}, false
-	}
-	b := [4]byte{byte(v), byte(v >> 8), byte(v >> 16), byte(v >> 24)}
-	return netip.AddrFrom4(b), true
-}
-
+// normalizeMAC accepts the formats used by Linux, macOS and Windows ARP
+// tables. macOS omits leading zeroes from octets, and Windows uses dashes.
 func normalizeMAC(raw string) string {
-	mac := strings.ToLower(strings.TrimSpace(raw))
-	if len(mac) != 17 || mac == "00:00:00:00:00:00" {
+	raw = strings.ToLower(strings.TrimSpace(raw))
+	sep := ":"
+	if strings.Contains(raw, "-") {
+		sep = "-"
+	}
+	parts := strings.Split(raw, sep)
+	if len(parts) != 6 {
 		return ""
 	}
-	for i, r := range mac {
-		if i%3 == 2 {
-			if r != ':' {
-				return ""
-			}
-			continue
-		}
-		if !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'f')) {
+	out := make([]string, 6)
+	for i, part := range parts {
+		if len(part) == 0 || len(part) > 2 {
 			return ""
 		}
+		if len(part) == 1 {
+			part = "0" + part
+		}
+		if _, err := strconv.ParseUint(part, 16, 8); err != nil {
+			return ""
+		}
+		out[i] = part
+	}
+	mac := strings.Join(out, ":")
+	if mac == "00:00:00:00:00:00" || mac == "ff:ff:ff:ff:ff:ff" {
+		return ""
+	}
+	first, _ := strconv.ParseUint(out[0], 16, 8)
+	if first&1 == 1 {
+		// IPv4 multicast and broadcast entries are not devices.
+		return ""
 	}
 	return mac
 }

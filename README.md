@@ -34,9 +34,10 @@ at overview zoom. Service bubbles and labels appear as you zoom in.
 
 ## Quick start
 
-Requirements: Go 1.23 or newer. Real network scanning requires Linux because
-the scanner reads `/proc/net/arp`; the macOS and Windows builds run in demo
-mode.
+Requirements: Go 1.23 or newer. Real network scanning works on Linux, macOS
+and Windows. Hearthlight reads the native ARP table and probes TCP services
+without root privileges. On macOS, allow your terminal or the Hearthlight
+binary local network access when prompted.
 
 ```bash
 git clone https://github.com/jmkelly/hearthlight.git
@@ -69,8 +70,8 @@ make build
 ## Prebuilt binaries
 
 Versioned Linux, macOS and Windows archives are published on the
-[releases page](https://github.com/jmkelly/hearthlight/releases). Linux builds
-support real scanning; macOS and Windows builds run in demo mode with `-demo`.
+[releases page](https://github.com/jmkelly/hearthlight/releases). All builds
+support real scanning; add `-demo` to serve the sample network instead.
 
 ## Run it on a NixOS host
 
@@ -201,7 +202,8 @@ One scan does the following:
 2. Sends one UDP packet to each address to wake the kernel's ARP cache.
 3. Connects to a closed TCP port on every address. A reset means the host is
    alive, even when it exposes no services.
-4. Reads `/proc/net/arp` for MAC addresses and additional candidates.
+4. Reads the native ARP table for MAC addresses and additional candidates:
+   `/proc/net/arp` on Linux, `arp -an` on macOS and `arp -a` on Windows.
 5. Probes a curated TCP port list on each candidate.
 6. Fingerprints open web ports with an HTTP title, SSH with its banner, and TLS
    ports with the certificate name.
@@ -235,6 +237,9 @@ over `/api/events`.
 - TCP only. UDP services such as mDNS, SSDP, DHCP and WireGuard are not
   discovered.
 - A device that answers neither ARP nor TCP can be missed.
+- macOS may withhold local network access until you allow it under System
+  Settings → Privacy & Security → Local Network. A third-party firewall can
+  also block the probes on Windows or macOS.
 - Sleeping Wi-Fi devices can move to history while asleep. They return on the
   next scan that sees them.
 - Tailnet discovery shells out to the local `tailscale` CLI. It needs a running,

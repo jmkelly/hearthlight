@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -39,9 +38,6 @@ func main() {
 	if *showVersion {
 		fmt.Printf("hearthlight %s\n", version)
 		return
-	}
-	if !*demoMode && runtime.GOOS != "linux" {
-		fatal("network scanning is only supported on Linux; use -demo to preview the UI on %s", runtime.GOOS)
 	}
 	if *interval < 5*time.Second {
 		fatal("interval must be at least 5s")

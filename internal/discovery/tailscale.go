@@ -263,6 +263,9 @@ func tailscaleBinary() (string, error) {
 		"/usr/local/bin/tailscale",
 		"/usr/bin/tailscale",
 		"/opt/homebrew/bin/tailscale",
+		"/Applications/Tailscale.app/Contents/MacOS/Tailscale",
+		`C:\Program Files\Tailscale\tailscale.exe`,
+		`C:\Program Files (x86)\Tailscale\tailscale.exe`,
 	} {
 		if info, err := os.Stat(path); err == nil && !info.IsDir() {
 			return path, nil
