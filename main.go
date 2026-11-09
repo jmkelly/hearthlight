@@ -74,15 +74,7 @@ func main() {
 			})
 		}
 	} else {
-		st, err := store.Load(*dataPath)
-		if err != nil {
-			logger.Warn("state file is unreadable; moving it aside", "error", err, "path", *dataPath)
-			backup := fmt.Sprintf("%s.corrupt-%d", *dataPath, time.Now().Unix())
-			if renameErr := os.Rename(*dataPath, backup); renameErr == nil {
-				logger.Warn("moved unreadable state aside", "path", backup)
-			}
-			st, _ = store.Load("")
-		}
+		st := loadState(*dataPath, logger)
 		app.SetSnapshot(st.Snapshot(store.SnapshotOptions{Now: time.Now(), Interval: *interval}))
 
 		scanner, err := discovery.New(discovery.Config{
@@ -137,6 +129,28 @@ func main() {
 	if failed {
 		os.Exit(1)
 	}
+}
+
+// loadState opens the inventory, moving an unreadable file aside so the next
+// scan starts clean and keeps saving to the configured path.
+func loadState(path string, logger *slog.Logger) *store.Store {
+	st, err := store.Load(path)
+	if err == nil {
+		return st
+	}
+	logger.Warn("state file is unreadable; moving it aside", "error", err, "path", path)
+	backup := fmt.Sprintf("%s.corrupt-%d", path, time.Now().Unix())
+	if renameErr := os.Rename(path, backup); renameErr == nil {
+		logger.Warn("moved unreadable state aside", "path", backup)
+	} else {
+		logger.Error("move unreadable state aside", "error", renameErr)
+	}
+	st, err = store.Load(path)
+	if err != nil {
+		logger.Error("starting with in-memory state; later scans will not be saved", "error", err, "path", path)
+		st, _ = store.Load("")
+	}
+	return st
 }
 
 func runScannerLoop(ctx context.Context, app *api.App, st *store.Store, scanner *discovery.Scanner, interval time.Duration, tailnetEnabled bool, trigger <-chan struct{}, logger *slog.Logger) {

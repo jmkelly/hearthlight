@@ -145,6 +145,11 @@ func (s *Store) Apply(observed []model.Device, now time.Time, networks []string)
 		}
 
 		newID := deviceID(obs.IP, mac)
+		if mac == "" && rec.MAC != "" {
+			// An ARP miss must not rename a MAC-keyed device to an IP-keyed one.
+			// Keep the stable identity until the MAC is observed again.
+			newID = deviceID(obs.IP, rec.MAC)
+		}
 		oldID := rec.ID
 		if oldID != newID {
 			if oldID != "" {
@@ -456,7 +461,10 @@ func (s *Store) findLocked(mac, ip string) (string, *deviceRecord) {
 	}
 	if ip != "" {
 		for key, rec := range s.devices {
-			if rec.IP == ip {
+			// A new device may reuse an address another MAC held before. Only
+			// reuse the record when the address is not claimed by a different
+			// known MAC.
+			if rec.IP == ip && (mac == "" || rec.MAC == "" || rec.MAC == mac) {
 				return key, rec
 			}
 		}

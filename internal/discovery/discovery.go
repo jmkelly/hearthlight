@@ -378,9 +378,18 @@ func (s *Scanner) tcpAlive(ctx context.Context, ip string) bool {
 	return connectionRefused(err)
 }
 
+// wsaECONNREFUSED is the Windows errno for a refused TCP connect. Go's
+// syscall.ECONNREFUSED is an invented value on Windows, so it never matches a
+// real refusal reported by the network stack.
+const wsaECONNREFUSED = syscall.Errno(10061)
+
 func connectionRefused(err error) bool {
-	return errors.Is(err, syscall.ECONNREFUSED) ||
-		strings.Contains(strings.ToLower(err.Error()), "connection refused")
+	if errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, wsaECONNREFUSED) {
+		return true
+	}
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "connection refused") ||
+		strings.Contains(message, "actively refused")
 }
 
 func (s *Scanner) reverseLookup(ctx context.Context, ip string) string {
