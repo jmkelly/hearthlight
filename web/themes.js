@@ -1,0 +1,65 @@
+window.HearthlightThemes = {
+  "schemaVersion": 1,
+  "families": [
+    {
+      "id": "hearthlight",
+      "name": "Hearthlight",
+      "variants": [
+        {
+          "id": "hearthlight-dark",
+          "name": "Hearthlight Dark",
+          "mode": "dark",
+          "palette": {
+            "bg": "#050a12",
+            "ink": "#e9f2fa",
+            "muted": "#7f8fa6",
+            "accent": "#5ee7ff",
+            "line": "rgba(151, 196, 225, 0.12)",
+            "glass": "rgba(9, 17, 29, 0.74)",
+            "canvasTop": "#0a1526",
+            "canvasMiddle": "#060b14",
+            "canvasBottom": "#03060c",
+            "grid": "rgba(120, 185, 230, 0.055)",
+            "ambientGlow": "rgba(70, 150, 190, 0.1)",
+            "online": "#5ee7a5",
+            "warning": "#ffd166",
+            "danger": "#ff7b72",
+            "history": "#8494a8"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#ffd166" },
+            "server": { "label": "Server", "color": "#5ee7ff" },
+            "computer": { "label": "Computer", "color": "#8fb3ff" },
+            "phone": { "label": "Phone", "color": "#ff9ec7" },
+            "nas": { "label": "NAS", "color": "#5ee0a5" },
+            "media": { "label": "Media", "color": "#b18cff" },
+            "iot": { "label": "IoT", "color": "#f08fc8" },
+            "printer": { "label": "Printer", "color": "#ffb86b" },
+            "device": { "label": "Device", "color": "#94a3b8" }
+          },
+          "categories": {
+            "web": "#5ee7ff",
+            "media": "#b18cff",
+            "data": "#ffb454",
+            "remote": "#5ee0a5",
+            "infra": "#6aa9ff",
+            "iot": "#f08fc8",
+            "other": "#93a4b8"
+          },
+          "effects": {
+            "vignette": 0.52,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22
+          }
+        }
+      ]
+    }
+  ]
+}
+;

@@ -164,6 +164,7 @@ func (a *App) Handler(static fs.FS) http.Handler {
 		_, _ = io.WriteString(w, "ok\n")
 	})
 	mux.HandleFunc("GET /api/state", a.handleState)
+	mux.HandleFunc("GET /api/themes", a.handleThemes(static))
 	mux.HandleFunc("GET /api/events", a.handleEvents)
 	mux.HandleFunc("POST /api/scan", a.handleScan)
 
@@ -323,6 +324,27 @@ func (a *App) handleState(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	_, _ = w.Write(payload)
+}
+
+func (a *App) handleThemes(static fs.FS) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-store")
+		if static == nil {
+			a.logger.Error("read theme catalog", "error", "static filesystem is nil")
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = io.WriteString(w, `{"error":"theme catalog unavailable"}`)
+			return
+		}
+		payload, err := fs.ReadFile(static, "themes.json")
+		if err != nil {
+			a.logger.Error("read theme catalog", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = io.WriteString(w, `{"error":"theme catalog unavailable"}`)
+			return
+		}
+		_, _ = w.Write(payload)
+	}
 }
 
 func (a *App) handleScan(w http.ResponseWriter, r *http.Request) {
