@@ -21,15 +21,15 @@ let
     "-concurrency"
     (toString cfg.concurrency)
   ]
-  ++ lib.optional (cfg.cidrs != [ ]) [
+  ++ lib.optionals (cfg.cidrs != [ ]) [
     "-cidr"
     (lib.concatStringsSep "," cfg.cidrs)
   ]
-  ++ lib.optional (cfg.extraPorts != [ ]) [
+  ++ lib.optionals (cfg.extraPorts != [ ]) [
     "-ports"
     (lib.concatMapStringsSep "," toString cfg.extraPorts)
   ]
-  ++ lib.optional (cfg.allowedHosts != [ ]) [
+  ++ lib.optionals (cfg.allowedHosts != [ ]) [
     "-hosts"
     (lib.concatStringsSep "," cfg.allowedHosts)
   ]
