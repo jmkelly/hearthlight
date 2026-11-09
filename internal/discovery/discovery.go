@@ -44,6 +44,9 @@ type Scanner struct {
 type Result struct {
 	Devices  []model.Device
 	Networks []string
+	// SSID is the current Wi-Fi network name. It is live host state, not part
+	// of the inventory, so callers must not persist it.
+	SSID string
 }
 
 func New(cfg Config) (*Scanner, error) {
@@ -132,6 +135,7 @@ func (s *Scanner) Scan(ctx context.Context) (Result, error) {
 	hosts = uniqueAddrs(hosts)
 
 	networks := prefixStrings(prefixes)
+	ssid := readWirelessSSID(ctx)
 	s.logger.Info("scan starting", "networks", networks, "hosts", len(hosts))
 	wakeNeighbors(ctx, hosts, s.timeout)
 
@@ -180,12 +184,12 @@ func (s *Scanner) Scan(ctx context.Context) (Result, error) {
 		candidates = hosts
 	}
 	if len(candidates) == 0 {
-		return Result{Networks: networks}, nil
+		return Result{Networks: networks, SSID: ssid}, nil
 	}
 
 	devices := s.probeAll(ctx, candidates, macs, self, gateway, alive)
 	s.logger.Info("network observation finished", "devices", len(devices))
-	return Result{Devices: devices, Networks: networks}, nil
+	return Result{Devices: devices, Networks: networks, SSID: ssid}, nil
 }
 
 func (s *Scanner) sweepAlive(ctx context.Context, hosts []netip.Addr) map[netip.Addr]bool {

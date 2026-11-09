@@ -282,6 +282,7 @@ func Generate(now time.Time) model.Snapshot {
 		ScanIntervalSec: 60,
 		ScanDurationMS:  684,
 		Networks:        []string{"192.0.2.0/24"},
+		SSID:            "Hearthlight Demo",
 		Tailnet:         &tailnet,
 		Stats:           stats,
 		Devices:         devices,
