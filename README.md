@@ -23,8 +23,8 @@ at overview zoom. Service bubbles and labels appear as you zoom in.
   hostname and self identity.
 - TCP service probing with HTTP title, SSH banner and TLS certificate
   fingerprints, on both networks.
-- A dual-membership map: warm LAN territory, cool tailnet territory, and a lens
-  where hosts belong to both.
+- A dual-membership map: warm LAN and cool tailnet territories drawn as soft,
+  lasso-like clouds, and a lens where hosts belong to both.
 - Device names from reverse DNS, vendors from a curated MAC OUI table, and
   kind classification for routers, servers, computers, phones, NAS boxes,
   media players, printers and IoT devices.

@@ -319,39 +319,392 @@
   }
 
   // --- Aurora territories -------------------------------------------------
+  //
+  // Territories are isocontours over a smooth distance field, not convex hulls.
+  // Every host owns a wide elliptical lobe (wide because the map lives on a
+  // landscape screen). A minimum spanning tree joins nearby hosts with softly
+  // bowed capsules, which gives the membrane its lasso-like necks instead of
+  // ballooning across the empty middle of the cluster. Marching squares traces
+  // the zero contour; two Chaikin passes round off the grid corners.
+  //
+  // The approach follows the isocontour idea from Bubble Sets and the classic
+  // metaball + marching-squares technique:
+  //   Collins et al., "Bubble Sets" (2009)
+  //   http://sheelaghcarpendale.ca/innovis/uploads/Publications/Publications/Collins_2009_BubbleSets.pdf
+  //   https://jamie-wong.com/2014/08/19/metaballs-and-marching-squares/
 
-  function convexHull(points) {
-    if (points.length <= 3) return points.slice();
-    const sorted = points.slice().sort((a, b) => a.x - b.x || a.y - b.y);
-    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
-    const lower = [];
-    for (const point of sorted) {
-      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], point) <= 0) lower.pop();
-      lower.push(point);
+  const TERRITORY_BLEND = 44;
+  const TERRITORY_BEND = 64;
+  const TERRITORY_PAD_X = 104;
+  const TERRITORY_PAD_Y = 80;
+  const TERRITORY_NECK_X = 80;
+  const TERRITORY_NECK_Y = 64;
+
+  const MARCHING_PAIRS = [
+    [], [["left", "top"]], [["top", "right"]], [["left", "right"]],
+    [["right", "bottom"]], [["left", "top"], ["right", "bottom"]], [["top", "bottom"]], [["left", "bottom"]],
+    [["bottom", "left"]], [["top", "bottom"]], [["top", "right"], ["bottom", "left"]], [["right", "bottom"]],
+    [["right", "left"]], [["top", "right"]], [["left", "top"]], [],
+  ];
+
+  function minimumSpanningEdges(nodes) {
+    if (nodes.length < 2) return [];
+    const edges = [];
+    const inTree = new Uint8Array(nodes.length);
+    const best = new Float64Array(nodes.length).fill(Infinity);
+    const parent = new Int32Array(nodes.length).fill(-1);
+    let current = 0;
+    inTree[current] = 1;
+    for (let added = 0; added < nodes.length - 1; added += 1) {
+      const from = nodes[current];
+      for (let i = 0; i < nodes.length; i += 1) {
+        if (inTree[i]) continue;
+        const distance = Math.hypot(nodes[i].x - from.x, nodes[i].y - from.y);
+        if (distance < best[i]) {
+          best[i] = distance;
+          parent[i] = current;
+        }
+      }
+      let next = -1;
+      let nextDistance = Infinity;
+      for (let i = 0; i < nodes.length; i += 1) {
+        if (!inTree[i] && best[i] < nextDistance) {
+          next = i;
+          nextDistance = best[i];
+        }
+      }
+      if (next < 0) break;
+      inTree[next] = 1;
+      edges.push({ a: nodes[parent[next]], b: nodes[next] });
+      current = next;
     }
-    const upper = [];
-    for (let i = sorted.length - 1; i >= 0; i -= 1) {
-      const point = sorted[i];
-      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], point) <= 0) upper.pop();
-      upper.push(point);
-    }
-    lower.pop();
-    upper.pop();
-    return lower.concat(upper);
+    return edges;
   }
 
-  // territoryHull pads every member host by its bubble plus service ring, then
-  // takes the convex hull so the boundary always tracks pan and zoom.
-  function territoryHull(nodes, pad) {
-    const points = [];
+  // territoryShapes builds the field primitives: one lobe per host and a bowed
+  // capsule per tree edge. The bow is stable per pair, so the membrane does not
+  // twitch when a snapshot refreshes.
+  function territoryShapes(nodes) {
+    const shapes = [];
     for (const node of nodes) {
-      const radius = node.baseR + pad;
-      for (let i = 0; i < 14; i += 1) {
-        const angle = (i / 14) * TAU;
-        points.push({ x: node.x + Math.cos(angle) * radius, y: node.y + Math.sin(angle) * radius });
+      shapes.push({
+        x: node.x,
+        y: node.y,
+        rx: node.baseR + TERRITORY_PAD_X,
+        ry: node.baseR + TERRITORY_PAD_Y,
+        core: node.baseR + TERRITORY_PAD_Y,
+      });
+    }
+    for (const edge of minimumSpanningEdges(nodes)) {
+      const a = edge.a;
+      const b = edge.b;
+      const length = Math.hypot(b.x - a.x, b.y - a.y);
+      if (length < 1) continue;
+      const bend = clamp(length * 0.11, 10, TERRITORY_BEND) *
+        (hashString(`${a.id}:${b.id}`) % 2 ? 1 : -1);
+      const nx = -(b.y - a.y) / length;
+      const ny = (b.x - a.x) / length;
+      const control = {
+        x: (a.x + b.x) / 2 + nx * bend,
+        y: (a.y + b.y) / 2 + ny * bend,
+      };
+      const steps = Math.max(3, Math.round(length / 90));
+      let previous = { x: a.x, y: a.y };
+      for (let i = 1; i <= steps; i += 1) {
+        const t = i / steps;
+        const mt = 1 - t;
+        const point = {
+          x: mt * mt * a.x + 2 * mt * t * control.x + t * t * b.x,
+          y: mt * mt * a.y + 2 * mt * t * control.y + t * t * b.y,
+        };
+        shapes.push({
+          x1: previous.x,
+          y1: previous.y,
+          x2: point.x,
+          y2: point.y,
+          rx: TERRITORY_NECK_X,
+          ry: TERRITORY_NECK_Y,
+          core: TERRITORY_NECK_Y,
+        });
+        previous = point;
       }
     }
-    return convexHull(points);
+    return shapes;
+  }
+
+  function fieldDistance(shape, x, y) {
+    if (shape.x1 === undefined) {
+      const dx = (x - shape.x) / shape.rx;
+      const dy = (y - shape.y) / shape.ry;
+      return (Math.hypot(dx, dy) - 1) * shape.core;
+    }
+    const vx = shape.x2 - shape.x1;
+    const vy = shape.y2 - shape.y1;
+    const lengthSq = vx * vx + vy * vy || 1;
+    const t = clamp(((x - shape.x1) * vx + (y - shape.y1) * vy) / lengthSq, 0, 1);
+    const dx = (x - (shape.x1 + vx * t)) / shape.rx;
+    const dy = (y - (shape.y1 + vy * t)) / shape.ry;
+    return (Math.hypot(dx, dy) - 1) * shape.core;
+  }
+
+  function smoothMin(a, b) {
+    const h = Math.max(TERRITORY_BLEND - Math.abs(a - b), 0) / TERRITORY_BLEND;
+    return Math.min(a, b) - h * h * TERRITORY_BLEND * 0.25;
+  }
+
+  function sampleTerritoryField(shapes, bounds, cell) {
+    const cols = Math.max(2, Math.ceil((bounds.maxX - bounds.minX) / cell) + 1);
+    const rows = Math.max(2, Math.ceil((bounds.maxY - bounds.minY) / cell) + 1);
+    const values = new Float64Array(cols * rows);
+    const boxes = shapes.map((shape) => {
+      if (shape.x1 === undefined) {
+        return [
+          shape.x - shape.rx, shape.y - shape.ry,
+          shape.x + shape.rx, shape.y + shape.ry,
+        ];
+      }
+      return [
+        Math.min(shape.x1, shape.x2) - shape.rx,
+        Math.min(shape.y1, shape.y2) - shape.ry,
+        Math.max(shape.x1, shape.x2) + shape.rx,
+        Math.max(shape.y1, shape.y2) + shape.ry,
+      ];
+    });
+    for (let row = 0; row < rows; row += 1) {
+      const y = bounds.minY + row * cell;
+      for (let col = 0; col < cols; col += 1) {
+        const x = bounds.minX + col * cell;
+        let value = Infinity;
+        for (let i = 0; i < shapes.length; i += 1) {
+          const box = boxes[i];
+          // Outside every lobe's padded bounds the field is positive and cannot
+          // move the zero contour, so skip the expensive distance test.
+          if (x < box[0] - TERRITORY_BLEND || x > box[2] + TERRITORY_BLEND ||
+            y < box[1] - TERRITORY_BLEND || y > box[3] + TERRITORY_BLEND) {
+            continue;
+          }
+          const distance = fieldDistance(shapes[i], x, y);
+          if (value === Infinity) {
+            value = distance;
+          } else if (distance < value + TERRITORY_BLEND) {
+            value = smoothMin(value, distance);
+          }
+        }
+        values[row * cols + col] = value === Infinity ? TERRITORY_BLEND + 1 : value;
+      }
+    }
+    return { values, cols, rows };
+  }
+
+  function stitchContours(segments, edgePoints) {
+    const adjacency = new Map();
+    segments.forEach((segment, index) => {
+      for (const key of segment) {
+        const list = adjacency.get(key);
+        if (list) list.push(index);
+        else adjacency.set(key, [index]);
+      }
+    });
+    const used = new Uint8Array(segments.length);
+    const loops = [];
+    for (let start = 0; start < segments.length; start += 1) {
+      if (used[start]) continue;
+      const keys = [];
+      let segmentIndex = start;
+      let key = segments[start][0];
+      const first = key;
+      let guard = 0;
+      while (segmentIndex !== -1 && guard <= segments.length) {
+        used[segmentIndex] = 1;
+        const segment = segments[segmentIndex];
+        keys.push(key);
+        key = segment[0] === key ? segment[1] : segment[0];
+        if (key === first) break;
+        const candidates = adjacency.get(key) || [];
+        segmentIndex = -1;
+        for (const candidate of candidates) {
+          if (!used[candidate]) {
+            segmentIndex = candidate;
+            break;
+          }
+        }
+        guard += 1;
+      }
+      if (key === first && keys.length >= 4) {
+        loops.push(keys.map((pointKey) => edgePoints.get(pointKey)));
+      }
+    }
+    return loops;
+  }
+
+  function traceContours(field, bounds, cell) {
+    const { values, cols, rows } = field;
+    const edgePoints = new Map();
+    const segments = [];
+
+    const edgeKey = (name, col, row) => {
+      if (name === "top") return `H:${col}:${row}`;
+      if (name === "bottom") return `H:${col}:${row + 1}`;
+      if (name === "left") return `V:${col}:${row}`;
+      return `V:${col + 1}:${row}`;
+    };
+
+    const edgePoint = (name, col, row) => {
+      const key = edgeKey(name, col, row);
+      if (!edgePoints.has(key)) {
+        let v1;
+        let v2;
+        let gx;
+        let gy;
+        let horizontal;
+        if (name === "top") {
+          v1 = values[row * cols + col];
+          v2 = values[row * cols + col + 1];
+          gx = col;
+          gy = row;
+          horizontal = true;
+        } else if (name === "bottom") {
+          v1 = values[(row + 1) * cols + col];
+          v2 = values[(row + 1) * cols + col + 1];
+          gx = col;
+          gy = row + 1;
+          horizontal = true;
+        } else if (name === "left") {
+          v1 = values[row * cols + col];
+          v2 = values[(row + 1) * cols + col];
+          gx = col;
+          gy = row;
+          horizontal = false;
+        } else {
+          v1 = values[row * cols + col + 1];
+          v2 = values[(row + 1) * cols + col + 1];
+          gx = col + 1;
+          gy = row;
+          horizontal = false;
+        }
+        const denominator = v1 - v2;
+        const t = Math.abs(denominator) < 1e-9 ? 0.5 : clamp(v1 / denominator, 0, 1);
+        edgePoints.set(key, {
+          x: bounds.minX + (gx + (horizontal ? t : 0)) * cell,
+          y: bounds.minY + (gy + (horizontal ? 0 : t)) * cell,
+        });
+      }
+      return key;
+    };
+
+    for (let row = 0; row < rows - 1; row += 1) {
+      for (let col = 0; col < cols - 1; col += 1) {
+        const a = values[row * cols + col];
+        const b = values[row * cols + col + 1];
+        const c = values[(row + 1) * cols + col + 1];
+        const d = values[(row + 1) * cols + col];
+        const mask = (a < 0 ? 1 : 0) | (b < 0 ? 2 : 0) | (c < 0 ? 4 : 0) | (d < 0 ? 8 : 0);
+        for (const [from, to] of MARCHING_PAIRS[mask]) {
+          segments.push([edgePoint(from, col, row), edgePoint(to, col, row)]);
+        }
+      }
+    }
+    return stitchContours(segments, edgePoints);
+  }
+
+  function loopArea(points) {
+    let area = 0;
+    for (let i = 0; i < points.length; i += 1) {
+      const a = points[i];
+      const b = points[(i + 1) % points.length];
+      area += a.x * b.y - b.x * a.y;
+    }
+    return area / 2;
+  }
+
+  function pointInLoop(point, loop) {
+    let inside = false;
+    for (let i = 0, j = loop.length - 1; i < loop.length; j = i, i += 1) {
+      const a = loop[i];
+      const b = loop[j];
+      if ((a.y > point.y) !== (b.y > point.y) &&
+        point.x < ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y) + a.x) {
+        inside = !inside;
+      }
+    }
+    return inside;
+  }
+
+  // outerLoops drops holes. A territory is a solid membership field, so an
+  // empty pocket inside the ring of hosts should still read as territory.
+  function outerLoops(loops) {
+    const sorted = loops.slice().sort((a, b) => Math.abs(loopArea(b)) - Math.abs(loopArea(a)));
+    const kept = [];
+    for (const loop of sorted) {
+      if (!kept.some((outer) => pointInLoop(loop[0], outer))) kept.push(loop);
+    }
+    return kept;
+  }
+
+  // chaikinLoop cuts every corner at 1/4 and 3/4, which turns the marching
+  // squares polyline into gentle, cloud-like curves without overshoot.
+  function chaikinLoop(points, passes) {
+    let current = points;
+    for (let pass = 0; pass < passes; pass += 1) {
+      const next = [];
+      for (let i = 0; i < current.length; i += 1) {
+        const a = current[i];
+        const b = current[(i + 1) % current.length];
+        next.push({ x: a.x * 0.75 + b.x * 0.25, y: a.y * 0.75 + b.y * 0.25 });
+        next.push({ x: a.x * 0.25 + b.x * 0.75, y: a.y * 0.25 + b.y * 0.75 });
+      }
+      current = next;
+    }
+    return current;
+  }
+
+  function territoryBounds(shapes) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const shape of shapes) {
+      if (shape.x1 === undefined) {
+        minX = Math.min(minX, shape.x - shape.rx);
+        minY = Math.min(minY, shape.y - shape.ry);
+        maxX = Math.max(maxX, shape.x + shape.rx);
+        maxY = Math.max(maxY, shape.y + shape.ry);
+      } else {
+        minX = Math.min(minX, Math.min(shape.x1, shape.x2) - shape.rx);
+        minY = Math.min(minY, Math.min(shape.y1, shape.y2) - shape.ry);
+        maxX = Math.max(maxX, Math.max(shape.x1, shape.x2) + shape.rx);
+        maxY = Math.max(maxY, Math.max(shape.y1, shape.y2) + shape.ry);
+      }
+    }
+    minX -= TERRITORY_BEND;
+    minY -= TERRITORY_BEND;
+    maxX += TERRITORY_BEND;
+    maxY += TERRITORY_BEND;
+    return { minX, minY, maxX, maxY };
+  }
+
+  function buildTerritory(nodes) {
+    if (!nodes.length) return null;
+    const shapes = territoryShapes(nodes);
+    const raw = territoryBounds(shapes);
+    const span = Math.max(raw.maxX - raw.minX, raw.maxY - raw.minY);
+    const cell = clamp(span / 160, 6, 12);
+    const margin = cell * 3 + TERRITORY_BLEND;
+    const bounds = {
+      minX: raw.minX - margin,
+      minY: raw.minY - margin,
+      maxX: raw.maxX + margin,
+      maxY: raw.maxY + margin,
+    };
+    const field = sampleTerritoryField(shapes, bounds, cell);
+    const minArea = cell * cell * 4;
+    const loops = outerLoops(
+      traceContours(field, bounds, cell)
+        .map((points) => chaikinLoop(points, 2))
+        .filter((points) => Math.abs(loopArea(points)) > minArea),
+    );
+    if (!loops.length) return null;
+    return { loops, bounds: pointsBounds(loops.flat()), count: nodes.length };
   }
 
   function updateTerritories() {
@@ -359,8 +712,8 @@
     const local = devices.filter((node) => hasLocal(node.data));
     const tailnet = devices.filter((node) => hasTailnet(node.data));
     view.territories = {
-      lan: local.length ? territoryHull(local, 56) : null,
-      tailnet: tailnet.length ? territoryHull(tailnet, 56) : null,
+      lan: local.length ? buildTerritory(local) : null,
+      tailnet: tailnet.length ? buildTerritory(tailnet) : null,
       lanCount: local.length,
       tailnetCount: tailnet.length,
     };
@@ -368,26 +721,10 @@
     view.territorySig = "";
   }
 
-  function hullScreen(points) {
-    return points.map((point) => worldToScreen(point.x, point.y));
-  }
-
-  // tracedPath rounds a convex hull by joining edge midpoints with quadratic
-  // curves through the vertices. The result is a smooth closed membrane.
-  function tracedPath(target, points) {
-    const n = points.length;
-    if (n < 3) return;
-    const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
-    const start = mid(points[n - 1], points[0]);
-    target.beginPath();
-    target.moveTo(start.x, start.y);
-    for (let i = 0; i < n; i += 1) {
-      const current = points[i];
-      const next = points[(i + 1) % n];
-      const end = mid(current, next);
-      target.quadraticCurveTo(current.x, current.y, end.x, end.y);
-    }
-    target.closePath();
+  function screenTerritory(territory) {
+    const loops = territory.loops.map((points) =>
+      points.map((point) => worldToScreen(point.x, point.y)));
+    return { loops, bounds: pointsBounds(loops.flat()), count: territory.count };
   }
 
   function pointsBounds(points) {
@@ -404,8 +741,21 @@
     return { minX, minY, maxX, maxY };
   }
 
-  function drawTerritoryFill(target, points, tailnet) {
-    const bounds = pointsBounds(points);
+  function traceLoop(target, points) {
+    if (!points || points.length < 3) return;
+    target.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i += 1) {
+      target.lineTo(points[i].x, points[i].y);
+    }
+    target.closePath();
+  }
+
+  function traceLoops(target, loops) {
+    for (const loop of loops) traceLoop(target, loop);
+  }
+
+  function drawTerritoryFill(target, territory, tailnet) {
+    const bounds = territory.bounds;
     const gradient = target.createLinearGradient(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
     if (tailnet) {
       gradient.addColorStop(0, "rgba(94, 231, 255, 0.22)");
@@ -419,20 +769,22 @@
     target.save();
     if (typeof target.filter === "string") target.filter = "blur(26px)";
     target.fillStyle = gradient;
-    tracedPath(target, points);
-    target.fill();
+    target.beginPath();
+    traceLoops(target, territory.loops);
+    target.fill("evenodd");
     target.restore();
 
     target.save();
     target.fillStyle = tailnet ? "rgba(94, 231, 255, 0.028)" : "rgba(255, 209, 102, 0.022)";
-    tracedPath(target, points);
-    target.fill();
+    target.beginPath();
+    traceLoops(target, territory.loops);
+    target.fill("evenodd");
     target.restore();
   }
 
   function drawAuroraRibbon(target, lan, tailnet) {
-    const from = pointsBounds(lan);
-    const to = pointsBounds(tailnet);
+    const from = lan.bounds;
+    const to = tailnet.bounds;
     const start = { x: (from.minX + from.maxX) / 2, y: (from.minY + from.maxY) / 2 - 40 };
     const end = { x: (to.minX + to.maxX) / 2, y: (to.minY + to.maxY) / 2 - 30 };
     const gradient = target.createLinearGradient(start.x, 0, end.x, 0);
@@ -478,10 +830,11 @@
     }
     target.save();
     target.beginPath();
-    tracedPath(target, lan);
-    target.clip();
-    tracedPath(target, tailnet);
-    target.clip();
+    traceLoops(target, lan.loops);
+    target.clip("evenodd");
+    target.beginPath();
+    traceLoops(target, tailnet.loops);
+    target.clip("evenodd");
     target.globalCompositeOperation = "screen";
     if (typeof target.filter === "string") target.filter = "blur(14px)";
     const glow = target.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
@@ -513,8 +866,8 @@
     target.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
     const territories = view.territories;
     if (territories) {
-      const lan = territories.lan ? hullScreen(territories.lan) : null;
-      const tailnet = territories.tailnet ? hullScreen(territories.tailnet) : null;
+      const lan = territories.lan ? screenTerritory(territories.lan) : null;
+      const tailnet = territories.tailnet ? screenTerritory(territories.tailnet) : null;
       target.save();
       target.globalCompositeOperation = "screen";
       if (lan) drawTerritoryFill(target, lan, false);
@@ -530,14 +883,15 @@
     return layer;
   }
 
-  function drawBoundary(points, color, glow) {
+  function drawBoundary(territory, color, glow) {
     ctx.save();
     ctx.setLineDash([1.5, 7]);
     ctx.lineWidth = 1.2;
     ctx.strokeStyle = color;
     ctx.shadowColor = glow;
     ctx.shadowBlur = 9;
-    tracedPath(ctx, points);
+    ctx.beginPath();
+    traceLoops(ctx, territory.loops);
     ctx.stroke();
     ctx.restore();
   }
@@ -545,18 +899,20 @@
   function drawTerritoryBoundaries() {
     if (!view.territories) return;
     if (view.territories.lan) {
-      drawBoundary(hullScreen(view.territories.lan), "rgba(255, 226, 166, 0.66)", "rgba(255, 209, 102, 0.42)");
+      drawBoundary(screenTerritory(view.territories.lan), "rgba(255, 226, 166, 0.66)", "rgba(255, 209, 102, 0.42)");
     }
     if (view.territories.tailnet) {
-      drawBoundary(hullScreen(view.territories.tailnet), "rgba(126, 240, 255, 0.82)", "rgba(94, 231, 255, 0.62)");
+      drawBoundary(screenTerritory(view.territories.tailnet), "rgba(126, 240, 255, 0.82)", "rgba(94, 231, 255, 0.62)");
     }
   }
 
-  function topPoint(points) {
+  function topPoint(territory) {
     let best = null;
-    for (const point of points) {
-      const screen = worldToScreen(point.x, point.y);
-      if (!best || screen.y < best.y) best = screen;
+    for (const loop of territory.loops) {
+      for (const point of loop) {
+        const screen = worldToScreen(point.x, point.y);
+        if (!best || screen.y < best.y) best = screen;
+      }
     }
     return best || { x: size.width / 2, y: 120 };
   }
@@ -814,12 +1170,14 @@
         // dual-membership hosts held near the center so the lens sits between.
         const reach = deviceReach(device.data);
         const lane = reach === "local" ? -600 : reach === "tailnet" ? 620 : 0;
-        const spread = reach === "both" ? 140 : 210;
+        const spread = reach === "both" ? 170 : 270;
         const targetX = lane + (device.seed - 0.5) * spread * 2;
         move.x += (targetX - device.x) * 0.012;
       }
       move.x -= device.x * 0.0012;
-      move.y -= device.y * 0.0012;
+      // A gentle pull to the horizontal midline keeps each membership a
+      // landscape-shaped archipelago instead of a tall column.
+      move.y -= device.y * 0.0024;
     }
 
     const step = clamp(dt * 60, 0, 2);
@@ -851,8 +1209,8 @@
           id: device.id,
           type: "device",
           data: device,
-          x: Math.cos(angle) * radius * 0.45 + bias,
-          y: Math.sin(angle) * radius,
+          x: Math.cos(angle) * radius * 0.8 + bias,
+          y: Math.sin(angle) * radius * 0.5,
           seed: (seed % 1000) / 1000,
           baseR: 30,
           r: 30,
