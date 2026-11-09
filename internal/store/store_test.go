@@ -85,6 +85,85 @@ func TestMACIdentitySurvivesIPChange(t *testing.T) {
 	}
 }
 
+func TestMACIdentitySurvivesARPMiss(t *testing.T) {
+	st, _ := Load("")
+	now := time.Date(2026, 11, 8, 12, 0, 0, 0, time.UTC)
+	mac := "aa:bb:cc:dd:ee:ff"
+	if err := st.Apply([]model.Device{sampleDevice("192.0.2.20", mac)}, now, nil); err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Apply([]model.Device{sampleDevice("192.0.2.20", "")}, now.Add(time.Minute), nil); err != nil {
+		t.Fatal(err)
+	}
+
+	snap := st.Snapshot(SnapshotOptions{Now: now.Add(time.Minute), Interval: time.Minute})
+	if len(snap.Devices) != 1 {
+		t.Fatalf("got %d devices, want 1", len(snap.Devices))
+	}
+	if snap.Devices[0].ID != "mac:"+mac {
+		t.Fatalf("device ID = %q, want the MAC identity to survive an ARP miss", snap.Devices[0].ID)
+	}
+	if snap.Devices[0].MAC != mac {
+		t.Fatalf("MAC = %q, want %q", snap.Devices[0].MAC, mac)
+	}
+
+	if err := st.Apply([]model.Device{sampleDevice("192.0.2.20", mac)}, now.Add(2*time.Minute), nil); err != nil {
+		t.Fatal(err)
+	}
+	snap = st.Snapshot(SnapshotOptions{Now: now.Add(2 * time.Minute), Interval: time.Minute})
+	if len(snap.Devices) != 1 || snap.Devices[0].ID != "mac:"+mac {
+		t.Fatalf("device flapped after the MAC returned: %+v", snap.Devices)
+	}
+}
+
+func TestDHCPReuseKeepsBothDeviceHistories(t *testing.T) {
+	st, _ := Load("")
+	now := time.Date(2026, 11, 8, 12, 0, 0, 0, time.UTC)
+
+	oldDevice := sampleDevice("192.0.2.50", "aa:bb:cc:dd:ee:01")
+	if err := st.Apply([]model.Device{oldDevice}, now, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	newDevice := sampleDevice("192.0.2.50", "aa:bb:cc:dd:ee:02")
+	newDevice.Hostname = "phone"
+	newDevice.Services = []model.Service{{Port: 22, Protocol: "tcp", Name: "SSH", Category: "remote"}}
+	if err := st.Apply([]model.Device{newDevice}, now.Add(time.Minute), nil); err != nil {
+		t.Fatal(err)
+	}
+
+	snap := st.Snapshot(SnapshotOptions{Now: now.Add(time.Minute), Interval: time.Minute})
+	if len(snap.Devices) != 2 {
+		t.Fatalf("got %d devices, want the old and new owner of the address: %+v", len(snap.Devices), snap.Devices)
+	}
+	byMAC := make(map[string]model.Device, len(snap.Devices))
+	for _, d := range snap.Devices {
+		byMAC[d.MAC] = d
+	}
+
+	old, ok := byMAC["aa:bb:cc:dd:ee:01"]
+	if !ok {
+		t.Fatalf("old device disappeared: %+v", snap.Devices)
+	}
+	if old.ID != "mac:aa:bb:cc:dd:ee:01" || !old.FirstSeen.Equal(now) {
+		t.Fatalf("old device identity = %+v, want its original ID and first-seen time", old)
+	}
+	if len(old.Services) != 1 || old.Services[0].Port != 445 {
+		t.Fatalf("old device inherited the new device's services: %+v", old.Services)
+	}
+
+	fresh, ok := byMAC["aa:bb:cc:dd:ee:02"]
+	if !ok {
+		t.Fatalf("new device missing: %+v", snap.Devices)
+	}
+	if fresh.ID != "mac:aa:bb:cc:dd:ee:02" || !fresh.FirstSeen.Equal(now.Add(time.Minute)) {
+		t.Fatalf("new device identity = %+v, want a fresh record", fresh)
+	}
+	if len(fresh.Services) != 1 || fresh.Services[0].Port != 22 {
+		t.Fatalf("new device services = %+v", fresh.Services)
+	}
+}
+
 func TestSnapshotFlipsHistoricalDevicesOffline(t *testing.T) {
 	st, _ := Load("")
 	now := time.Date(2026, 11, 8, 12, 0, 0, 0, time.UTC)

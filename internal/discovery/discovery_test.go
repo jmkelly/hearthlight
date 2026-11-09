@@ -1,7 +1,10 @@
 package discovery
 
 import (
+	"errors"
+	"fmt"
 	"net/netip"
+	"syscall"
 	"testing"
 
 	"github.com/jmkelly/hearthlight/internal/model"
@@ -40,6 +43,26 @@ func TestParsePortList(t *testing.T) {
 				if got[i] != tt.want[i] {
 					t.Fatalf("ParsePortList(%q) = %v, want %v", tt.in, got, tt.want)
 				}
+			}
+		})
+	}
+}
+
+func TestConnectionRefused(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{name: "posix refused", err: fmt.Errorf("dial: %w", syscall.ECONNREFUSED), want: true},
+		{name: "windows errno", err: fmt.Errorf("connectex: %w", syscall.Errno(10061)), want: true},
+		{name: "windows message", err: errors.New("connectex: No connection could be made because the target machine actively refused it."), want: true},
+		{name: "timeout", err: errors.New("dial tcp4: i/o timeout"), want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := connectionRefused(tt.err); got != tt.want {
+				t.Fatalf("connectionRefused(%v) = %v, want %v", tt.err, got, tt.want)
 			}
 		})
 	}
