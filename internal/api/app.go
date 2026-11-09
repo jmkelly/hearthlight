@@ -20,9 +20,16 @@ type App struct {
 	mu           sync.RWMutex
 	snapshot     model.Snapshot
 	payload      []byte
-	clients      map[chan []byte]struct{}
+	traffic      []byte
+	clients      map[chan sseEvent]struct{}
 	scanRequests chan<- struct{}
 	logger       *slog.Logger
+}
+
+// sseEvent is one named Server-Sent Event.
+type sseEvent struct {
+	name string
+	data []byte
 }
 
 func New(scanRequests chan<- struct{}, logger *slog.Logger) *App {
@@ -30,7 +37,7 @@ func New(scanRequests chan<- struct{}, logger *slog.Logger) *App {
 		logger = slog.Default()
 	}
 	a := &App{
-		clients:      make(map[chan []byte]struct{}),
+		clients:      make(map[chan sseEvent]struct{}),
 		scanRequests: scanRequests,
 		logger:       logger,
 	}
@@ -60,12 +67,42 @@ func (a *App) setSnapshot(snapshot model.Snapshot) {
 	a.mu.Lock()
 	a.snapshot = snapshot
 	a.payload = payload
+	a.broadcastLocked(sseEvent{name: "state", data: payload})
+	a.mu.Unlock()
+}
+
+// broadcastLocked queues an event for every client. A client too slow to keep
+// up misses the event; the next state or traffic event supersedes it.
+func (a *App) broadcastLocked(event sseEvent) {
 	for client := range a.clients {
 		select {
-		case client <- payload:
+		case client <- event:
 		default:
 		}
 	}
+}
+
+// Snapshot returns the latest published snapshot.
+func (a *App) Snapshot() model.Snapshot {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	return a.snapshot
+}
+
+// SetTraffic publishes a live traffic sample to every SSE client. Traffic is
+// sent as its own small event so the full snapshot is not resent every tick.
+func (a *App) SetTraffic(traffic model.Traffic) {
+	if traffic.Flows == nil {
+		traffic.Flows = []model.Flow{}
+	}
+	payload, err := json.Marshal(traffic)
+	if err != nil {
+		a.logger.Error("encode traffic", "error", err)
+		return
+	}
+	a.mu.Lock()
+	a.traffic = payload
+	a.broadcastLocked(sseEvent{name: "traffic", data: payload})
 	a.mu.Unlock()
 }
 
@@ -87,12 +124,7 @@ func (a *App) SetScanning(scanning bool) {
 	}
 	a.snapshot = snapshot
 	a.payload = payload
-	for client := range a.clients {
-		select {
-		case client <- payload:
-		default:
-		}
-	}
+	a.broadcastLocked(sseEvent{name: "state", data: payload})
 	a.mu.Unlock()
 }
 
@@ -162,10 +194,11 @@ func (a *App) handleEvents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("X-Accel-Buffering", "no")
 
-	client := make(chan []byte, 8)
+	client := make(chan sseEvent, 8)
 	a.mu.Lock()
 	a.clients[client] = struct{}{}
 	initial := a.payload
+	initialTraffic := a.traffic
 	a.mu.Unlock()
 	defer func() {
 		a.mu.Lock()
@@ -176,6 +209,11 @@ func (a *App) handleEvents(w http.ResponseWriter, r *http.Request) {
 	if _, err := fmt.Fprintf(w, "event: state\ndata: %s\n\n", initial); err != nil {
 		return
 	}
+	if initialTraffic != nil {
+		if _, err := fmt.Fprintf(w, "event: traffic\ndata: %s\n\n", initialTraffic); err != nil {
+			return
+		}
+	}
 	flusher.Flush()
 
 	keepalive := time.NewTicker(20 * time.Second)
@@ -184,8 +222,8 @@ func (a *App) handleEvents(w http.ResponseWriter, r *http.Request) {
 		select {
 		case <-r.Context().Done():
 			return
-		case payload := <-client:
-			if _, err := fmt.Fprintf(w, "event: state\ndata: %s\n\n", payload); err != nil {
+		case event := <-client:
+			if _, err := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event.name, event.data); err != nil {
 				return
 			}
 			flusher.Flush()

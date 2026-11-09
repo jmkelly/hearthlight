@@ -30,6 +30,7 @@ at overview zoom. Service bubbles and labels appear as you zoom in.
   media players, printers and IoT devices.
 - Persistent history in a small JSON state file.
 - Live updates over Server-Sent Events.
+- Live traffic edges between this host and the devices it talks to.
 - A Nix flake and a NixOS module.
 
 ## Quick start
@@ -186,6 +187,7 @@ nix build .#hearthlight
 | `-concurrency` | `16` | Parallel host probes. |
 | `-demo` | `false` | Serve sample data without scanning. |
 | `-tailscale` | `true` | Discover Tailscale peers via `tailscale status --json`. |
+| `-traffic` | `true` | Sample live traffic between this host and mapped devices every 2s. |
 | `-version` | | Print the version and exit. |
 
 Environment variables `HEARTHLIGHT_LISTEN` and `HEARTHLIGHT_DATA` set the listen
@@ -231,6 +233,26 @@ succeeds, and the previous tailnet state is kept.
 
 The browser gets a full snapshot over `/api/state` and receives live snapshots
 over `/api/events`.
+
+## Live traffic
+
+Every 2 seconds Hearthlight samples traffic between this host and the devices
+on the map, and pushes it to the browser as a `traffic` event on
+`/api/events`. Nothing is persisted.
+
+- **Tailnet edges** carry real byte rates from the per-peer WireGuard counters
+  in `tailscale status --json`. Particles flow toward this host for received
+  bytes and away from it for sent bytes; more and faster particles mean more
+  bytes.
+- **LAN edges** come from the OS TCP connection table: `/proc/net/tcp` on
+  Linux, `netstat -an -p tcp` on macOS and `GetExtendedTcpTable` on Windows.
+  They show established connection counts, drawn as a marching dash, because
+  per-connection byte counts need admin rights on Windows.
+- While a scan runs, the previous connection table is reused so probe
+  connections do not show up as traffic.
+
+Hearthlight sees only its own host's traffic. On a switched network an
+unprivileged host cannot observe traffic between two other devices.
 
 ## Limits
 

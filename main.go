@@ -16,11 +16,16 @@ import (
 	"github.com/jmkelly/hearthlight/internal/api"
 	"github.com/jmkelly/hearthlight/internal/demo"
 	"github.com/jmkelly/hearthlight/internal/discovery"
+	"github.com/jmkelly/hearthlight/internal/model"
 	"github.com/jmkelly/hearthlight/internal/store"
+	"github.com/jmkelly/hearthlight/internal/traffic"
 	"github.com/jmkelly/hearthlight/web"
 )
 
 var version = "dev"
+
+// trafficInterval is how often live traffic is sampled and pushed to browsers.
+const trafficInterval = 2 * time.Second
 
 func main() {
 	listen := flag.String("listen", envOr("HEARTHLIGHT_LISTEN", ":8090"), "HTTP listen address")
@@ -32,6 +37,7 @@ func main() {
 	concurrency := flag.Int("concurrency", 16, "parallel host probes")
 	demoMode := flag.Bool("demo", false, "serve a simulated network without scanning")
 	tailnetEnabled := flag.Bool("tailscale", true, "discover Tailscale peers via `tailscale status --json`")
+	trafficEnabled := flag.Bool("traffic", true, "sample live traffic between this host and mapped devices")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
 
@@ -62,6 +68,11 @@ func main() {
 	if *demoMode {
 		logger.Info("starting in demo mode", "version", version)
 		go runDemoLoop(ctx, app, scanRequests, logger)
+		if *trafficEnabled {
+			go runEvery(ctx, trafficInterval, func(now time.Time) {
+				app.SetTraffic(demo.Traffic(now, trafficInterval))
+			})
+		}
 	} else {
 		st, err := store.Load(*dataPath)
 		if err != nil {
@@ -86,6 +97,14 @@ func main() {
 		}
 		logger.Info("starting hearthlight", "version", version, "interval", *interval, "tailscale", *tailnetEnabled)
 		go runScannerLoop(ctx, app, st, scanner, *interval, *tailnetEnabled, scanRequests, logger)
+		if *trafficEnabled {
+			sampler := traffic.New(*tailnetEnabled, logger)
+			go runEvery(ctx, trafficInterval, func(now time.Time) {
+				snapshot := app.Snapshot()
+				flows := sampler.Sample(ctx, snapshot.Devices, now, snapshot.Scanning)
+				app.SetTraffic(model.Traffic{GeneratedAt: now, IntervalMS: trafficInterval.Milliseconds(), Flows: flows})
+			})
+		}
 	}
 
 	handler := app.Handler(web.Files)
@@ -213,6 +232,22 @@ func runDemoLoop(ctx context.Context, app *api.App, trigger <-chan struct{}, log
 			app.SetSnapshot(demo.Generate(time.Now()))
 		case <-trigger:
 			scan()
+		}
+	}
+}
+
+// runEvery calls fn immediately and then on every tick until ctx ends. A slow
+// call delays the next tick rather than overlapping it.
+func runEvery(ctx context.Context, every time.Duration, fn func(now time.Time)) {
+	fn(time.Now())
+	ticker := time.NewTicker(every)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case now := <-ticker.C:
+			fn(now)
 		}
 	}
 }
