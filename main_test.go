@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"log/slog"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,6 +12,17 @@ import (
 	"github.com/jmkelly/hearthlight/internal/model"
 	"github.com/jmkelly/hearthlight/internal/store"
 )
+
+func TestNewServerBoundsReadsAndLeavesSSEWritesOpen(t *testing.T) {
+	server := newServer(":0", http.NewServeMux())
+	if server.ReadHeaderTimeout <= 0 || server.ReadTimeout <= 0 || server.IdleTimeout <= 0 || server.MaxHeaderBytes <= 0 {
+		t.Fatalf("unbounded server limits: header=%v read=%v idle=%v maxHeader=%d",
+			server.ReadHeaderTimeout, server.ReadTimeout, server.IdleTimeout, server.MaxHeaderBytes)
+	}
+	if server.WriteTimeout != 0 {
+		t.Fatalf("WriteTimeout = %v, want 0 so long-lived SSE streams stay open", server.WriteTimeout)
+	}
+}
 
 func TestLoadStateReopensPathAfterCorruptFile(t *testing.T) {
 	dir := t.TempDir()

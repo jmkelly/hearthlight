@@ -49,6 +49,15 @@ type sseEvent struct {
 	data []byte
 }
 
+const (
+	// maxSSEClients bounds concurrent event streams so one host cannot exhaust
+	// the daemon's file descriptors and goroutines.
+	maxSSEClients = 100
+	// sseWriteTimeout bounds each stream write so a client that stops reading is
+	// dropped instead of blocking the handler forever.
+	sseWriteTimeout = 10 * time.Second
+)
+
 func New(scanRequests chan<- struct{}, cfg Config) *App {
 	logger := cfg.Logger
 	if logger == nil {
@@ -350,13 +359,15 @@ func (a *App) handleEvents(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "streaming unsupported", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-	w.Header().Set("X-Accel-Buffering", "no")
 
-	client := make(chan sseEvent, 8)
 	a.mu.Lock()
+	if len(a.clients) >= maxSSEClients {
+		a.mu.Unlock()
+		a.logger.Warn("sse client limit reached", "limit", maxSSEClients, "remote", r.RemoteAddr)
+		http.Error(w, "too many event stream clients", http.StatusServiceUnavailable)
+		return
+	}
+	client := make(chan sseEvent, 8)
 	a.clients[client] = struct{}{}
 	initial := a.payload
 	initialTraffic := a.traffic
@@ -367,15 +378,33 @@ func (a *App) handleEvents(w http.ResponseWriter, r *http.Request) {
 		a.mu.Unlock()
 	}()
 
-	if _, err := fmt.Fprintf(w, "event: state\ndata: %s\n\n", initial); err != nil {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("X-Accel-Buffering", "no")
+
+	// Every write gets its own deadline so a client that stops draining its
+	// socket fails the write instead of holding the handler forever.
+	controller := http.NewResponseController(w)
+	write := func(format string, args ...any) error {
+		if err := controller.SetWriteDeadline(time.Now().Add(sseWriteTimeout)); err != nil {
+			a.logger.Debug("sse write deadline unsupported", "error", err)
+		}
+		if _, err := fmt.Fprintf(w, format, args...); err != nil {
+			return err
+		}
+		flusher.Flush()
+		return nil
+	}
+
+	if err := write("event: state\ndata: %s\n\n", initial); err != nil {
 		return
 	}
 	if initialTraffic != nil {
-		if _, err := fmt.Fprintf(w, "event: traffic\ndata: %s\n\n", initialTraffic); err != nil {
+		if err := write("event: traffic\ndata: %s\n\n", initialTraffic); err != nil {
 			return
 		}
 	}
-	flusher.Flush()
 
 	keepalive := time.NewTicker(20 * time.Second)
 	defer keepalive.Stop()
@@ -384,15 +413,13 @@ func (a *App) handleEvents(w http.ResponseWriter, r *http.Request) {
 		case <-r.Context().Done():
 			return
 		case event := <-client:
-			if _, err := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event.name, event.data); err != nil {
+			if err := write("event: %s\ndata: %s\n\n", event.name, event.data); err != nil {
 				return
 			}
-			flusher.Flush()
 		case <-keepalive.C:
-			if _, err := io.WriteString(w, ": keepalive\n\n"); err != nil {
+			if err := write(": keepalive\n\n"); err != nil {
 				return
 			}
-			flusher.Flush()
 		}
 	}
 }
@@ -421,6 +448,12 @@ func (w *statusWriter) Flush() {
 	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
 		flusher.Flush()
 	}
+}
+
+// Unwrap lets http.ResponseController reach the connection's write deadline
+// through the logging middleware.
+func (w *statusWriter) Unwrap() http.ResponseWriter {
+	return w.ResponseWriter
 }
 
 func logRequests(logger *slog.Logger, next http.Handler) http.Handler {

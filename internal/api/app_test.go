@@ -1,12 +1,19 @@
 package api
 
 import (
+	"bytes"
+	"context"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"sync"
 	"testing"
 	"testing/fstest"
+	"time"
+
+	"github.com/jmkelly/hearthlight/internal/model"
 )
 
 func newTestHandler(t *testing.T, cfg Config) (http.Handler, chan struct{}) {
@@ -142,4 +149,201 @@ func TestScanRequiresSameOrigin(t *testing.T) {
 			}
 		})
 	}
+}
+
+// syncBuffer is an io.Writer safe for concurrent SSE handlers.
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.String()
+}
+
+// streamRecorder is a ResponseWriter that records deadlines and can simulate a
+// client whose socket no longer accepts writes.
+type streamRecorder struct {
+	mu        sync.Mutex
+	header    http.Header
+	status    int
+	body      bytes.Buffer
+	deadlines []time.Time
+	writeErr  error
+}
+
+func (w *streamRecorder) Header() http.Header {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.header == nil {
+		w.header = make(http.Header)
+	}
+	return w.header
+}
+
+func (w *streamRecorder) Write(p []byte) (int, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.writeErr != nil {
+		return 0, w.writeErr
+	}
+	if w.status == 0 {
+		w.status = http.StatusOK
+	}
+	return w.body.Write(p)
+}
+
+func (w *streamRecorder) WriteHeader(code int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.status == 0 {
+		w.status = code
+	}
+}
+
+func (w *streamRecorder) Flush() {}
+
+func (w *streamRecorder) SetWriteDeadline(deadline time.Time) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.deadlines = append(w.deadlines, deadline)
+	return nil
+}
+
+func (w *streamRecorder) recordedDeadlines() []time.Time {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return append([]time.Time(nil), w.deadlines...)
+}
+
+func waitForClients(t *testing.T, app *App, want int) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		app.mu.RLock()
+		got := len(app.clients)
+		app.mu.RUnlock()
+		if got == want {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("connected SSE clients = %d, want %d", got, want)
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+
+func newTestApp(logs io.Writer) *App {
+	return New(nil, Config{Logger: slog.New(slog.NewTextHandler(logs, nil))})
+}
+
+func newEventRequest(ctx context.Context) *http.Request {
+	return httptest.NewRequest(http.MethodGet, "http://127.0.0.1/api/events", nil).WithContext(ctx)
+}
+
+func TestEventStreamRefusesClientsAtLimit(t *testing.T) {
+	logs := &syncBuffer{}
+	app := newTestApp(logs)
+	handler := app.Handler(nil)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var wg sync.WaitGroup
+	for i := 0; i < maxSSEClients; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			handler.ServeHTTP(&streamRecorder{}, newEventRequest(ctx))
+		}()
+	}
+	waitForClients(t, app, maxSSEClients)
+
+	rejected := &streamRecorder{}
+	done := make(chan struct{})
+	go func() {
+		handler.ServeHTTP(rejected, newEventRequest(ctx))
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("event stream at the client limit did not return")
+	}
+	if rejected.status != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want %d", rejected.status, http.StatusServiceUnavailable)
+	}
+	if !strings.Contains(logs.String(), "sse client limit") {
+		t.Fatalf("limit rejection was not logged: %q", logs.String())
+	}
+
+	cancel()
+	wg.Wait()
+	waitForClients(t, app, 0)
+}
+
+func TestEventStreamSetsWriteDeadlineForEveryWrite(t *testing.T) {
+	app := newTestApp(io.Discard)
+	handler := app.Handler(nil)
+	w := &streamRecorder{}
+	start := time.Now()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		handler.ServeHTTP(w, newEventRequest(ctx))
+		close(done)
+	}()
+	waitForClients(t, app, 1)
+
+	app.SetSnapshot(model.Snapshot{})
+	waitForDeadlines(t, w, 2)
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("event stream did not stop after cancellation")
+	}
+
+	now := time.Now()
+	for _, deadline := range w.recordedDeadlines() {
+		if deadline.IsZero() {
+			t.Fatal("SSE write had no deadline")
+		}
+		if !deadline.After(start) {
+			t.Fatalf("SSE write deadline %v is not in the future", deadline)
+		}
+		if deadline.After(now.Add(sseWriteTimeout)) {
+			t.Fatalf("SSE write deadline %v is beyond %v", deadline, sseWriteTimeout)
+		}
+	}
+	waitForClients(t, app, 0)
+}
+
+func waitForDeadlines(t *testing.T, w *streamRecorder, want int) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for len(w.recordedDeadlines()) < want {
+		if time.Now().After(deadline) {
+			t.Fatalf("SSE deadlines recorded = %d, want at least %d", len(w.recordedDeadlines()), want)
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+
+func TestEventStreamDropsClientWhenWriteFails(t *testing.T) {
+	app := newTestApp(io.Discard)
+	handler := app.Handler(nil)
+	w := &streamRecorder{writeErr: io.ErrClosedPipe}
+
+	handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "http://127.0.0.1/api/events", nil))
+	waitForClients(t, app, 0)
 }
