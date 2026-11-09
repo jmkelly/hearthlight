@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -10,10 +11,10 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"testing/fstest"
 	"time"
 
 	"github.com/jmkelly/hearthlight/internal/model"
+	"github.com/jmkelly/hearthlight/web"
 )
 
 func newTestHandler(t *testing.T, cfg Config) (http.Handler, chan struct{}) {
@@ -22,9 +23,7 @@ func newTestHandler(t *testing.T, cfg Config) (http.Handler, chan struct{}) {
 		cfg.Logger = slog.New(slog.NewTextHandler(io.Discard, nil))
 	}
 	scans := make(chan struct{}, 1)
-	return New(scans, cfg).Handler(fstest.MapFS{
-		"index.html": &fstest.MapFile{Data: []byte("ok")},
-	}), scans
+	return New(scans, cfg).Handler(web.Files), scans
 }
 
 func doRequest(handler http.Handler, method, target string, headers map[string]string, cookies []*http.Cookie) *httptest.ResponseRecorder {
@@ -82,6 +81,8 @@ func TestHandlerTokenPolicy(t *testing.T) {
 		{"api bearer token", "/api/state", map[string]string{"Authorization": "Bearer s3cret"}, http.StatusOK},
 		{"api custom header", "/api/state", map[string]string{"X-Hearthlight-Token": "s3cret"}, http.StatusOK},
 		{"api query token", "/api/state?token=s3cret", nil, http.StatusOK},
+		{"themes without token", "/api/themes", nil, http.StatusUnauthorized},
+		{"themes bearer token", "/api/themes", map[string]string{"Authorization": "Bearer s3cret"}, http.StatusOK},
 		{"health without token", "/healthz", nil, http.StatusOK},
 		{"page without token", "/", nil, http.StatusUnauthorized},
 	}
@@ -116,6 +117,44 @@ func TestHandlerTokenLoginSetsCookie(t *testing.T) {
 	rec = doRequest(handler, http.MethodGet, "/api/state", nil, cookies)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("state with login cookie status = %d, want %d", rec.Code, http.StatusOK)
+	}
+}
+
+func TestThemesEndpoint(t *testing.T) {
+	handler, _ := newTestHandler(t, Config{})
+	rec := doRequest(handler, http.MethodGet, "/api/themes", nil, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if got := rec.Header().Get("Content-Type"); got != "application/json; charset=utf-8" {
+		t.Fatalf("Content-Type = %q, want application/json; charset=utf-8", got)
+	}
+	want, err := web.Files.ReadFile("themes.json")
+	if err != nil {
+		t.Fatalf("read embedded themes.json: %v", err)
+	}
+	if !bytes.Equal(rec.Body.Bytes(), want) {
+		t.Fatal("response body does not match the embedded theme catalog")
+	}
+	var catalog struct {
+		SchemaVersion int               `json:"schemaVersion"`
+		Families      []json.RawMessage `json:"families"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &catalog); err != nil {
+		t.Fatalf("response is not valid JSON: %v", err)
+	}
+	if catalog.SchemaVersion != 1 || len(catalog.Families) != 1 {
+		t.Fatalf("catalog = %+v, want schemaVersion 1 and one family", catalog)
+	}
+}
+
+func TestThemeAssetsAndIndexAreServed(t *testing.T) {
+	handler, _ := newTestHandler(t, Config{})
+	for _, target := range []string{"/", "/themes.json", "/themes.js"} {
+		rec := doRequest(handler, http.MethodGet, target, nil, nil)
+		if rec.Code != http.StatusOK {
+			t.Errorf("%s status = %d, want %d", target, rec.Code, http.StatusOK)
+		}
 	}
 }
 
