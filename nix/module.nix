@@ -29,6 +29,10 @@ let
     "-ports"
     (lib.concatMapStringsSep "," toString cfg.extraPorts)
   ]
+  ++ lib.optional (cfg.allowedHosts != [ ]) [
+    "-hosts"
+    (lib.concatStringsSep "," cfg.allowedHosts)
+  ]
   ++ [
     "-tailscale=${lib.boolToString cfg.tailnet}"
   ];
@@ -45,8 +49,15 @@ in
 
     listenAddress = lib.mkOption {
       type = lib.types.str;
-      default = "0.0.0.0";
-      description = "Address the HTTP server binds to.";
+      default = "127.0.0.1";
+      description = "Address the HTTP server binds to. Loopback by default; set 0.0.0.0 to expose it on the LAN.";
+    };
+
+    allowedHosts = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      example = [ "hearthlight.lan" ];
+      description = "Extra hostnames accepted in the HTTP Host header in addition to loopback names and IP literals.";
     };
 
     port = lib.mkOption {
