@@ -18,6 +18,9 @@
 
   /* Chrome surfaces */
   --theme-vignette: rgba(0, 0, 0, 0.52);
+  --theme-label-halo: rgba(3, 6, 12, 0.86);
+  --theme-bubble: rgba(6, 11, 20, 0.94);
+  --theme-panel: rgba(12, 21, 35, 0.95);
   --theme-glass-top: rgba(16, 27, 43, 0.78);
   --theme-glass-bottom: rgba(7, 13, 23, 0.72);
   --theme-glass-border: rgba(151, 196, 225, 0.13);

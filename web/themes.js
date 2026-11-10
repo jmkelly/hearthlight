@@ -24,7 +24,11 @@ window.HearthlightThemes = {
             "online": "#5ee7a5",
             "warning": "#ffd166",
             "danger": "#ff7b72",
-            "history": "#8494a8"
+            "history": "#8494a8",
+            "vignette": "rgba(0, 0, 0, 0.52)",
+            "labelHalo": "rgba(3, 6, 12, 0.86)",
+            "bubble": "rgba(6, 11, 20, 0.94)",
+            "panel": "rgba(12, 21, 35, 0.95)"
           },
           "kinds": {
             "router": { "label": "Router", "color": "#ffd166" },
@@ -55,7 +59,74 @@ window.HearthlightThemes = {
             "ribbonBlur": 16,
             "lensBlur": 14,
             "glassBlur": 16,
-            "panelBlur": 22
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        },
+        {
+          "id": "hearthlight-light",
+          "name": "Hearthlight Light",
+          "mode": "light",
+          "palette": {
+            "bg": "#f2f5f9",
+            "ink": "#0f1c2b",
+            "muted": "#4f6275",
+            "accent": "#076b84",
+            "line": "rgba(21, 54, 84, 0.16)",
+            "glass": "rgba(250, 253, 255, 0.82)",
+            "canvasTop": "#f8fbff",
+            "canvasMiddle": "#eef3f9",
+            "canvasBottom": "#e2eaf3",
+            "grid": "rgba(32, 71, 110, 0.07)",
+            "ambientGlow": "rgba(90, 170, 210, 0.16)",
+            "online": "#0a7448",
+            "warning": "#8f5c00",
+            "danger": "#b02a22",
+            "history": "#5d6c7f",
+            "vignette": "rgba(203, 217, 232, 0.55)",
+            "labelHalo": "#fbfdff",
+            "bubble": "rgba(255, 255, 255, 0.92)",
+            "panel": "rgba(250, 252, 255, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#8a5a00" },
+            "server": { "label": "Server", "color": "#076b84" },
+            "computer": { "label": "Computer", "color": "#2d5cae" },
+            "phone": { "label": "Phone", "color": "#a8346c" },
+            "nas": { "label": "NAS", "color": "#0a7448" },
+            "media": { "label": "Media", "color": "#6840ad" },
+            "iot": { "label": "IoT", "color": "#a13b85" },
+            "printer": { "label": "Printer", "color": "#a15400" },
+            "device": { "label": "Device", "color": "#5a6878" }
+          },
+          "categories": {
+            "web": "#076b84",
+            "media": "#6840ad",
+            "data": "#8f5c00",
+            "remote": "#0a7448",
+            "infra": "#2d5cae",
+            "iot": "#a13b85",
+            "other": "#5a6878"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
           }
         }
       ]
