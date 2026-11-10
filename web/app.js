@@ -30,6 +30,8 @@
     tailnet: { label: "Tailnet", token: "accent", bend: 1 },
   };
 
+  const THEME_MODES = new Set(["dark", "light", "auto"]);
+
   // Glyph shapes live in an -4..4 box with a 1-unit stroke, so one table
   // feeds both the panel SVG and the canvas bubble.
   const SERVICE_GLYPHS = {
@@ -283,6 +285,12 @@
   const settingsHistoryBtn = document.getElementById("settingsHistoryBtn");
   const settingsTailnetBtn = document.getElementById("settingsTailnetBtn");
   const settingsResetBtn = document.getElementById("settingsResetBtn");
+  const themeModeDark = document.getElementById("themeModeDark");
+  const themeModeLight = document.getElementById("themeModeLight");
+  const themeModeAuto = document.getElementById("themeModeAuto");
+  const themeReset = document.getElementById("themeReset");
+  const themeDefaultBadge = document.getElementById("themeDefaultBadge");
+  const themeFallbackNote = document.getElementById("themeFallbackNote");
   const conn = document.getElementById("conn");
   const legend = document.getElementById("legend");
   const empty = document.getElementById("empty");
@@ -1736,6 +1744,56 @@
     syncToggleState(settingsTailnetBtn, view.showTailnet);
   }
 
+  function themeModeLabel(mode) {
+    if (mode === "auto") return "Auto";
+    if (mode === "light") return "Light";
+    return "Dark";
+  }
+
+  function isDefaultTheme(theme) {
+    const control = window.HearthlightTheme;
+    const fallback = control && control.DEFAULT_THEME
+      ? control.DEFAULT_THEME
+      : { family: "hearthlight", mode: "dark" };
+    return Boolean(theme) && theme.family === fallback.family && theme.requestedMode === fallback.mode;
+  }
+
+  function syncThemeControls(theme) {
+    const resolved = theme && typeof theme.resolvedMode === "string" ? theme : view.theme;
+    const requestedMode = (resolved && resolved.requestedMode) || "dark";
+    const requested = requestedMode === "system" ? "auto" : requestedMode;
+    for (const [mode, button] of [
+      ["dark", themeModeDark],
+      ["light", themeModeLight],
+      ["auto", themeModeAuto],
+    ]) {
+      if (button) button.setAttribute("aria-pressed", String(mode === requested));
+    }
+    if (themeDefaultBadge) themeDefaultBadge.hidden = !isDefaultTheme(resolved);
+    if (themeFallbackNote) {
+      const fallback = Boolean(resolved && resolved.fallback);
+      themeFallbackNote.hidden = !fallback;
+      if (fallback) {
+        themeFallbackNote.textContent = `${themeModeLabel(resolved.resolvedMode)} isn't available in this theme family; showing the available palette.`;
+      }
+    }
+  }
+
+  function setThemeMode(mode) {
+    const control = window.HearthlightTheme;
+    if (!control || !THEME_MODES.has(mode)) return;
+    const preference = { ...control.initialPreference(), mode };
+    applyTheme(control.persist(preference));
+    showToast(`${themeModeLabel(mode)} theme`);
+  }
+
+  function resetTheme() {
+    const control = window.HearthlightTheme;
+    if (!control) return;
+    applyTheme(control.persist(control.DEFAULT_THEME));
+    showToast("Theme reset");
+  }
+
   function syncChrome() {
     const snapshot = view.snapshot;
     if (!snapshot) return;
@@ -1863,6 +1921,7 @@
       ? preference
       : control.resolve(preference);
     view.theme = control.apply(resolved);
+    syncThemeControls(view.theme);
     view.territorySig = "";
     view.territoryLayer = null;
     renderLegend();
@@ -2254,6 +2313,7 @@
   function openSettings() {
     if (!settingsDialog || settingsDialog.open) return;
     syncSettingsControls();
+    syncThemeControls();
     hideTooltip();
     settingsDialog.showModal();
     settingsBtn.setAttribute("aria-expanded", "true");
@@ -3505,6 +3565,18 @@
     setTailnetVisible(!view.showTailnet, false);
   });
   settingsResetBtn.addEventListener("click", resetLayout);
+  if (themeModeDark) {
+    themeModeDark.addEventListener("click", () => setThemeMode("dark"));
+  }
+  if (themeModeLight) {
+    themeModeLight.addEventListener("click", () => setThemeMode("light"));
+  }
+  if (themeModeAuto) {
+    themeModeAuto.addEventListener("click", () => setThemeMode("auto"));
+  }
+  if (themeReset) {
+    themeReset.addEventListener("click", resetTheme);
+  }
   settingsDialog.addEventListener("cancel", (event) => {
     event.preventDefault();
     closeSettings();
