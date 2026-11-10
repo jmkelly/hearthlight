@@ -5,29 +5,41 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"log/slog"
+	"math"
+	"mime"
 	"net"
 	"net/http"
 	"net/netip"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/jmkelly/hearthlight/internal/model"
+	"github.com/jmkelly/hearthlight/internal/store"
 )
 
 // tokenCookie is the session cookie set after a successful ?token= login.
 const tokenCookie = "hearthlight_token"
+
+// LayoutStore persists manual device positions.
+type LayoutStore interface {
+	SetDevicePosition(id string, x, y float64) error
+	ClearDevicePositions() error
+}
 
 // Config holds the HTTP boundary policy for the app.
 type Config struct {
 	Logger       *slog.Logger
 	Token        string
 	AllowedHosts []string
+	Layout       LayoutStore
 }
 
 // App holds the latest snapshot and fans it out to connected browsers.
@@ -41,6 +53,7 @@ type App struct {
 	logger       *slog.Logger
 	token        string
 	allowedHosts []string
+	layout       LayoutStore
 }
 
 // sseEvent is one named Server-Sent Event.
@@ -56,6 +69,11 @@ const (
 	// sseWriteTimeout bounds each stream write so a client that stops reading is
 	// dropped instead of blocking the handler forever.
 	sseWriteTimeout = 10 * time.Second
+	// maxPosition bounds a manual map coordinate. A bad client must not store
+	// values that overflow the canvas or the state file.
+	maxPosition = 1e6
+	// maxPositionBody bounds the request body the layout endpoints read.
+	maxPositionBody = 64 << 10
 )
 
 func New(scanRequests chan<- struct{}, cfg Config) *App {
@@ -69,6 +87,7 @@ func New(scanRequests chan<- struct{}, cfg Config) *App {
 		logger:       logger,
 		token:        cfg.Token,
 		allowedHosts: cfg.AllowedHosts,
+		layout:       cfg.Layout,
 	}
 	initial := model.Snapshot{
 		GeneratedAt: time.Now(),
@@ -167,6 +186,8 @@ func (a *App) Handler(static fs.FS) http.Handler {
 	mux.HandleFunc("GET /api/themes", a.handleThemes(static))
 	mux.HandleFunc("GET /api/events", a.handleEvents)
 	mux.HandleFunc("POST /api/scan", a.handleScan)
+	mux.HandleFunc("POST /api/devices/{id}/position", a.handleDevicePosition)
+	mux.HandleFunc("POST /api/layout/reset", a.handleResetLayout)
 
 	fileServer := http.FileServer(http.FS(static))
 	mux.Handle("GET /", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -373,6 +394,147 @@ func (a *App) handleScan(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusAccepted)
 	_, _ = io.WriteString(w, `{"status":"queued"}`)
+}
+
+func (a *App) handleDevicePosition(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-store")
+	if !sameOrigin(r) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = io.WriteString(w, `{"status":"forbidden"}`)
+		return
+	}
+	if a.layout == nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = io.WriteString(w, `{"status":"unavailable"}`)
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, maxPositionBody)
+	x, y, ok := decodePosition(r)
+	if !ok || !validPosition(x, y) {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = io.WriteString(w, `{"error":"x and y must be finite numbers within +/-1000000"}`)
+		return
+	}
+
+	id := r.PathValue("id")
+	if err := a.layout.SetDevicePosition(id, x, y); err != nil {
+		if errors.Is(err, store.ErrUnknownDevice) {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = io.WriteString(w, `{"error":"unknown device"}`)
+			return
+		}
+		a.logger.Error("set device position", "id", id, "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = io.WriteString(w, `{"error":"save position"}`)
+		return
+	}
+	a.updatePositions(func(devices []model.Device) {
+		for i := range devices {
+			if devices[i].ID == id {
+				devices[i].X = x
+				devices[i].Y = y
+				devices[i].Pinned = true
+			}
+		}
+	})
+	_, _ = io.WriteString(w, `{"status":"pinned"}`)
+}
+
+func (a *App) handleResetLayout(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-store")
+	if !sameOrigin(r) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = io.WriteString(w, `{"status":"forbidden"}`)
+		return
+	}
+	if a.layout == nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = io.WriteString(w, `{"status":"unavailable"}`)
+		return
+	}
+	if err := a.layout.ClearDevicePositions(); err != nil {
+		a.logger.Error("clear device positions", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = io.WriteString(w, `{"error":"reset layout"}`)
+		return
+	}
+	a.updatePositions(func(devices []model.Device) {
+		for i := range devices {
+			devices[i].X = 0
+			devices[i].Y = 0
+			devices[i].Pinned = false
+		}
+	})
+	_, _ = io.WriteString(w, `{"status":"reset"}`)
+}
+
+// decodePosition accepts a JSON object with numeric x and y, or a form with
+// the same fields. A body without a JSON content type is probed both ways so
+// simple clients are not punished for omitting the header.
+func decodePosition(r *http.Request) (float64, float64, bool) {
+	mediaType, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if mediaType == "application/json" || strings.HasSuffix(mediaType, "+json") {
+		return decodeJSONPosition(r.Body)
+	}
+	if err := r.ParseForm(); err == nil {
+		rawX, rawY := r.Form.Get("x"), r.Form.Get("y")
+		if rawX != "" && rawY != "" {
+			x, errX := strconv.ParseFloat(rawX, 64)
+			y, errY := strconv.ParseFloat(rawY, 64)
+			if errX != nil || errY != nil {
+				return 0, 0, false
+			}
+			return x, y, true
+		}
+	}
+	return decodeJSONPosition(r.Body)
+}
+
+func decodeJSONPosition(body io.Reader) (float64, float64, bool) {
+	var payload struct {
+		X *float64 `json:"x"`
+		Y *float64 `json:"y"`
+	}
+	decoder := json.NewDecoder(body)
+	if err := decoder.Decode(&payload); err != nil {
+		return 0, 0, false
+	}
+	if payload.X == nil || payload.Y == nil {
+		return 0, 0, false
+	}
+	// Reject trailing tokens so a malformed body cannot be half-read.
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return 0, 0, false
+	}
+	return *payload.X, *payload.Y, true
+}
+
+func validPosition(x, y float64) bool {
+	return finiteInBounds(x) && finiteInBounds(y)
+}
+
+func finiteInBounds(value float64) bool {
+	return !math.IsNaN(value) && !math.IsInf(value, 0) && math.Abs(value) <= maxPosition
+}
+
+// updatePositions applies a layout change to the published snapshot and wakes
+// every SSE client so the map redraws without waiting for the next scan.
+func (a *App) updatePositions(change func([]model.Device)) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	snapshot := a.snapshot
+	snapshot.Devices = append([]model.Device(nil), snapshot.Devices...)
+	change(snapshot.Devices)
+	payload, err := json.Marshal(snapshot)
+	if err != nil {
+		a.logger.Error("encode snapshot", "error", err)
+		return
+	}
+	a.snapshot = snapshot
+	a.payload = payload
+	a.broadcastLocked(sseEvent{name: "state", data: payload})
 }
 
 func (a *App) handleEvents(w http.ResponseWriter, r *http.Request) {
