@@ -777,6 +777,14 @@ button:focus-visible {
   box-shadow: 0 0 0 2px var(--theme-accent-edge);
 }
 
+.legend-pin {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--theme-warning);
+  border-radius: 50%;
+}
+
 @keyframes legendPulse {
   0% {
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--c) 40%, transparent);
