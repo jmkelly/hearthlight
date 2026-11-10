@@ -284,7 +284,9 @@
   const empty = document.getElementById("empty");
   const deviceList = document.getElementById("deviceList");
   const deviceListItems = document.getElementById("deviceListItems");
+  const deviceListClose = document.getElementById("deviceListClose");
   const deviceSummary = document.getElementById("deviceSummary");
+  const devicesBtn = document.getElementById("devicesBtn");
 
   const size = {
     width: window.innerWidth,
@@ -306,6 +308,8 @@
     showOffline: true,
     showTailnet: true,
     dockDetails: false,
+    deviceSheetOpen: false,
+    panelReturnFocus: null,
     tailnetPresent: false,
     territories: null,
     territoryVersion: 0,
@@ -1552,10 +1556,16 @@
       ? document.activeElement.closest(".device-entry")
       : null;
     const focusedId = focused ? focused.dataset.deviceId : "";
+    const focusedClose = Boolean(deviceList && document.activeElement === deviceListClose);
     const devices = [...snapshot.devices].sort((a, b) => {
       if (Boolean(a.online) !== Boolean(b.online)) return a.online ? -1 : 1;
       return displayName(a).localeCompare(displayName(b), undefined, { sensitivity: "base" });
     });
+    if (!devices.length) {
+      deviceListItems.innerHTML = '<li class="device-list-empty">No devices found yet.</li>';
+      if (focusedClose) deviceListClose.focus();
+      return;
+    }
     deviceListItems.innerHTML = devices
       .map((device) => {
         const kind = KIND[device.kind] || KIND.device;
@@ -1572,7 +1582,9 @@
         `;
       })
       .join("");
-    if (focusedId) {
+    if (focusedClose) {
+      deviceListClose.focus();
+    } else if (focusedId) {
       for (const entry of deviceListItems.querySelectorAll(".device-entry")) {
         if (entry.dataset.deviceId === focusedId) {
           entry.focus();
@@ -1580,6 +1592,66 @@
         }
       }
     }
+  }
+
+  function deviceEntries() {
+    return deviceListItems ? [...deviceListItems.querySelectorAll(".device-entry")] : [];
+  }
+
+  function syncDeviceSheet() {
+    if (deviceList) deviceList.classList.toggle("open", view.deviceSheetOpen);
+    if (devicesBtn) devicesBtn.setAttribute("aria-expanded", String(view.deviceSheetOpen));
+  }
+
+  function openDeviceSheet() {
+    if (!deviceList) return;
+    view.deviceSheetOpen = true;
+    syncDeviceSheet();
+    const entries = deviceEntries();
+    const selected = view.selectedDeviceId
+      ? entries.find((entry) => entry.dataset.deviceId === view.selectedDeviceId)
+      : null;
+    const target = selected || entries[0] || deviceListClose || deviceList;
+    if (target) target.focus();
+  }
+
+  function closeDeviceSheet(restoreFocus = true) {
+    if (!deviceList) return;
+    view.deviceSheetOpen = false;
+    syncDeviceSheet();
+    if (restoreFocus && devicesBtn) devicesBtn.focus();
+  }
+
+  function toggleDeviceSheet() {
+    if (view.deviceSheetOpen) closeDeviceSheet();
+    else openDeviceSheet();
+  }
+
+  function moveDeviceSheetFocus(event) {
+    const entries = deviceEntries();
+    if (!entries.length) return;
+    const active = document.activeElement.closest(".device-entry");
+    const index = entries.indexOf(active);
+    if (index < 0) return;
+    let next = index;
+    switch (event.key) {
+      case "ArrowDown":
+        next = (index + 1) % entries.length;
+        break;
+      case "ArrowUp":
+        next = (index - 1 + entries.length) % entries.length;
+        break;
+      case "Home":
+        next = 0;
+        break;
+      case "End":
+        next = entries.length - 1;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    entries[next].focus();
   }
 
   // The live region is throttled and only written when its sentence changes,
@@ -1850,13 +1922,17 @@
 
   function closePanel() {
     const hadFocus = panel.contains(document.activeElement);
+    const returnFocus = view.panelReturnFocus;
+    view.panelReturnFocus = null;
     view.selectedDeviceId = null;
     view.selectedServiceId = null;
     panel.inert = true;
     panel.classList.remove("open");
     panel.setAttribute("aria-hidden", "true");
     updateMapInset();
-    if (hadFocus && panel.contains(document.activeElement)) document.activeElement.blur();
+    if (!hadFocus) return;
+    if (returnFocus) returnFocus.focus();
+    else if (panel.contains(document.activeElement)) document.activeElement.blur();
   }
 
   function selectedDevice() {
@@ -1986,9 +2062,10 @@
     }
   }
 
-  function selectNode(node) {
+  function selectNode(node, returnFocus = null) {
     if (!node) return;
     hideTooltip();
+    view.panelReturnFocus = returnFocus;
     if (node.type === "device") {
       view.selectedServiceId = null;
       openPanel(node.id);
@@ -2084,11 +2161,27 @@
 
   // Native modal dialogs trap focus, but an explicit loop keeps Tab inside the
   // dialog in every browser and makes the boundary behaviour testable.
-  const SETTINGS_FOCUSABLE = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  const FOCUSABLE_SELECTOR = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
   function trapSettingsFocus(event) {
     if (event.key !== "Tab") return;
-    const focusable = [...settingsDialog.querySelectorAll(SETTINGS_FOCUSABLE)]
+    const focusable = [...settingsDialog.querySelectorAll(FOCUSABLE_SELECTOR)]
+      .filter((element) => element.getClientRects().length > 0);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function trapDeviceSheetFocus(event) {
+    if (event.key !== "Tab") return;
+    const focusable = [...deviceList.querySelectorAll(FOCUSABLE_SELECTOR)]
       .filter((element) => element.getClientRects().length > 0);
     if (!focusable.length) return;
     const first = focusable[0];
@@ -3300,13 +3393,43 @@
     setHistoryVisible(!view.showOffline);
   });
 
+  if (devicesBtn) {
+    devicesBtn.addEventListener("click", toggleDeviceSheet);
+  }
+
   if (deviceList) {
+    deviceList.addEventListener("focusin", () => {
+      if (view.deviceSheetOpen) return;
+      view.deviceSheetOpen = true;
+      syncDeviceSheet();
+    });
+    deviceList.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        closeDeviceSheet();
+        return;
+      }
+      if (event.key === "Tab") {
+        trapDeviceSheetFocus(event);
+        return;
+      }
+      moveDeviceSheetFocus(event);
+    });
     deviceList.addEventListener("click", (event) => {
       const entry = event.target.closest(".device-entry");
       if (!entry) return;
       const node = view.nodes.get(entry.dataset.deviceId);
-      if (node) selectNode(node);
+      if (!node) return;
+      closeDeviceSheet(false);
+      selectNode(node, devicesBtn);
+      const close = panel.querySelector(".panel-close");
+      if (close) close.focus();
     });
+  }
+
+  if (deviceListClose) {
+    deviceListClose.addEventListener("click", () => closeDeviceSheet());
   }
 
   if (tailnetBtn) {
@@ -3366,8 +3489,13 @@
 
   window.addEventListener("keydown", (event) => {
     if (event.target.matches("input, textarea, select, [contenteditable]")) return;
+    if (deviceList && deviceList.contains(event.target)) return;
     if (settingsDialog.open) return;
     if (event.key === "Escape") {
+      if (view.deviceSheetOpen) {
+        closeDeviceSheet();
+        return;
+      }
       closePanel();
       hideTooltip();
       return;
@@ -3382,6 +3510,10 @@
     }
     if (event.key === "0" || event.key.toLowerCase() === "f") {
       fitView(true);
+      return;
+    }
+    if (event.key.toLowerCase() === "l" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      toggleDeviceSheet();
       return;
     }
     if (event.key.toLowerCase() === "s" && !event.metaKey && !event.ctrlKey && !event.altKey) {
