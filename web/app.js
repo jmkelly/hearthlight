@@ -5,6 +5,7 @@
   const SERVICE_R = 8.5;
   const SERVICE_GLYPH_ZOOM = 1.1;
   const DOCK_MIN_WIDTH = 1100;
+  const DEVICE_SUMMARY_THROTTLE_MS = 5000;
   const FONT = '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
   const MONO = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
 
@@ -273,6 +274,9 @@
   const conn = document.getElementById("conn");
   const legend = document.getElementById("legend");
   const empty = document.getElementById("empty");
+  const deviceList = document.getElementById("deviceList");
+  const deviceListItems = document.getElementById("deviceListItems");
+  const deviceSummary = document.getElementById("deviceSummary");
 
   const size = {
     width: window.innerWidth,
@@ -315,6 +319,13 @@
     // Live traffic edges keyed by "deviceId|via". Entries fade out rather
     // than vanish when a flow stops.
     traffic: new Map(),
+  };
+
+  const deviceSummaryState = {
+    announced: "",
+    pending: "",
+    timer: 0,
+    announcedAt: 0,
   };
 
   try {
@@ -1465,6 +1476,8 @@
       for (let i = 0; i < 40; i += 1) physicsStep(1 / 60);
     }
 
+    renderDeviceList(snapshot);
+    announceDeviceSummary(snapshot);
     updateTerritories();
     hideTooltip();
     syncChrome();
@@ -1491,6 +1504,77 @@
       servicesOnline,
       servicesTotal,
     };
+  }
+
+  function renderDeviceList(snapshot) {
+    if (!deviceListItems) return;
+    const focused = deviceList && deviceList.contains(document.activeElement)
+      ? document.activeElement.closest(".device-entry")
+      : null;
+    const focusedId = focused ? focused.dataset.deviceId : "";
+    const devices = [...snapshot.devices].sort((a, b) => {
+      if (Boolean(a.online) !== Boolean(b.online)) return a.online ? -1 : 1;
+      return displayName(a).localeCompare(displayName(b), undefined, { sensitivity: "base" });
+    });
+    deviceListItems.innerHTML = devices
+      .map((device) => {
+        const kind = KIND[device.kind] || KIND.device;
+        const serviceCount = (device.services || []).length;
+        const services = `${serviceCount} service${serviceCount === 1 ? "" : "s"}`;
+        const ip = String(device.ip || "").trim() || "no address";
+        return `
+          <li>
+            <button type="button" class="device-entry" data-device-id="${escapeHTML(device.id)}">
+              <span class="device-entry-name">${escapeHTML(displayName(device))}</span>
+              <span class="device-entry-meta">${device.online ? "online" : "history"} · ${escapeHTML(ip)} · ${escapeHTML(kind.label)} · ${services}</span>
+            </button>
+          </li>
+        `;
+      })
+      .join("");
+    if (focusedId) {
+      for (const entry of deviceListItems.querySelectorAll(".device-entry")) {
+        if (entry.dataset.deviceId === focusedId) {
+          entry.focus();
+          break;
+        }
+      }
+    }
+  }
+
+  // The live region is throttled and only written when its sentence changes,
+  // so repeated snapshots do not re-announce the same counts.
+  function announceDeviceSummary(snapshot) {
+    if (!deviceSummary) return;
+    const stats = snapshot.stats || computeStats(snapshot.devices);
+    const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
+    const offline = Math.max(0, stats.devicesTotal - stats.devicesOnline);
+    const scan = snapshot.lastError
+      ? "scan failed"
+      : snapshot.scanning
+        ? "scan running"
+        : validTime(snapshot.lastScan)
+          ? "scan complete"
+          : "waiting for first scan";
+    const text = `${plural(stats.devicesTotal, "device")}, ${stats.devicesOnline} online, ${offline} in history. ${plural(stats.servicesTotal, "service")}, ${stats.servicesOnline} up. ${scan}.`;
+    if (text === deviceSummaryState.announced) {
+      deviceSummaryState.pending = "";
+      return;
+    }
+    deviceSummaryState.pending = text;
+    if (deviceSummaryState.timer) return;
+    const wait = Math.max(0, DEVICE_SUMMARY_THROTTLE_MS - (Date.now() - deviceSummaryState.announcedAt));
+    deviceSummaryState.timer = window.setTimeout(flushDeviceSummary, wait);
+  }
+
+  function flushDeviceSummary() {
+    deviceSummaryState.timer = 0;
+    const text = deviceSummaryState.pending;
+    if (!text || text === deviceSummaryState.announced) return;
+    deviceSummaryState.announced = text;
+    deviceSummaryState.pending = "";
+    deviceSummaryState.announcedAt = Date.now();
+    deviceSummary.textContent = text;
   }
 
   function syncChrome() {
@@ -2948,6 +3032,15 @@
     showToast(view.showOffline ? "History shown" : "History hidden");
     hideTooltip();
   });
+
+  if (deviceList) {
+    deviceList.addEventListener("click", (event) => {
+      const entry = event.target.closest(".device-entry");
+      if (!entry) return;
+      const node = view.nodes.get(entry.dataset.deviceId);
+      if (node) selectNode(node);
+    });
+  }
 
   if (tailnetBtn) {
     tailnetBtn.addEventListener("click", () => {
