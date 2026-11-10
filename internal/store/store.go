@@ -51,6 +51,9 @@ type deviceRecord struct {
 	Self      bool      `json:"self,omitempty"`
 	FirstSeen time.Time `json:"firstSeen"`
 	LastSeen  time.Time `json:"lastSeen"`
+	X         float64   `json:"x,omitempty"`
+	Y         float64   `json:"y,omitempty"`
+	Pinned    bool      `json:"pinned,omitempty"`
 	Local     bool      `json:"local,omitempty"`
 	Tailnet   bool      `json:"tailnet,omitempty"`
 
@@ -613,6 +616,35 @@ func cleanTags(in []string) []string {
 	return out
 }
 
+// SetDevicePosition pins a device to a manual map position and persists it.
+// An unknown id returns an error and leaves the store unchanged.
+func (s *Store) SetDevicePosition(id string, x, y float64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	rec := s.devices[id]
+	if rec == nil {
+		return fmt.Errorf("set device position: unknown device %q", id)
+	}
+	rec.X = x
+	rec.Y = y
+	rec.Pinned = true
+	return s.saveLocked()
+}
+
+// ClearDevicePositions removes every manual position and persists the reset.
+func (s *Store) ClearDevicePositions() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, rec := range s.devices {
+		rec.X = 0
+		rec.Y = 0
+		rec.Pinned = false
+	}
+	return s.saveLocked()
+}
+
 // SnapshotOptions controls the derived online/offline view of the store.
 type SnapshotOptions struct {
 	Now          time.Time
@@ -653,6 +685,9 @@ func (s *Store) Snapshot(opts SnapshotOptions) model.Snapshot {
 			Self:          rec.Self,
 			FirstSeen:     rec.FirstSeen,
 			LastSeen:      rec.LastSeen,
+			X:             rec.X,
+			Y:             rec.Y,
+			Pinned:        rec.Pinned,
 			Local:         rec.Local,
 			Tailnet:       rec.Tailnet,
 			TailnetID:     rec.TailnetID,
