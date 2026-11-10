@@ -3,6 +3,7 @@
 
   const TAU = Math.PI * 2;
   const SERVICE_R = 8.5;
+  const SERVICE_GLYPH_ZOOM = 1.1;
   const FONT = '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
   const MONO = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
 
@@ -33,6 +34,80 @@
     tailnet: { label: "Tailnet", color: "#5ee7ff", bend: 1 },
   };
 
+  // Glyph shapes live in an -4..4 box with a 1-unit stroke, so one table
+  // feeds both the panel SVG and the canvas bubble.
+  const SERVICE_GLYPHS = {
+    globe: [
+      ["ring", 0, 0, 3],
+      ["ellipse", 0, 0, 1.5, 3],
+      ["path", "M -3 0 H 3"],
+    ],
+    lock: [
+      ["path", "M -1.6 -0.1 V -1.5 A 1.6 1.6 0 0 1 1.6 -1.5 V -0.1"],
+      ["rect", -2.4, -0.1, 4.8, 3.2, 0.5],
+      ["dot", 0, 1.1, 0.42],
+    ],
+    terminal: [
+      ["rect", -3, -2.3, 6, 4.6, 0.6],
+      ["path", "M -1.7 -0.9 L -0.3 0 L -1.7 0.9"],
+      ["path", "M 0.6 1 H 2"],
+    ],
+    folder: [
+      ["path", "M -3.2 -2.3 H -1 L -0.1 -1.4 H 3.2 V 2.3 H -3.2 Z"],
+    ],
+    mail: [
+      ["rect", -3.2, -2.1, 6.4, 4.2, 0.5],
+      ["path", "M -3.1 -1.8 L 0 0.5 L 3.1 -1.8"],
+    ],
+    radio: [
+      ["dot", 0, 0.5, 0.5],
+      ["path", "M -1.1 1.8 Q -2.3 0.3 -1.1 -0.9"],
+      ["path", "M -2 2.6 Q -3.6 0.3 -2 -1.7"],
+      ["path", "M 1.1 1.8 Q 2.3 0.3 1.1 -0.9"],
+      ["path", "M 2 2.6 Q 3.6 0.3 2 -1.7"],
+    ],
+    home: [
+      ["path", "M -3.3 0.6 L 0 -2.8 L 3.3 0.6"],
+      ["path", "M -2.5 -0.1 V 3.3 H 2.5 V -0.1"],
+    ],
+    play: [
+      ["ring", 0, 0, 3],
+      ["fill", "M -1 -1.7 L 2 0 L -1 1.7 Z"],
+    ],
+    printer: [
+      ["rect", -1.6, -3, 3.2, 1.9, 0.2],
+      ["rect", -3.2, -1.2, 6.4, 3, 0.6],
+      ["rect", -1.8, 1.3, 3.6, 1.8, 0.2],
+    ],
+    dot: [
+      ["dot", 0, 0, 1.5],
+    ],
+  };
+
+  // Service names win over products, so an HTTPS row stays a lock even when
+  // the product also serves HTTP. Unknown services fall back to the category.
+  const SERVICE_GLYPH_RULES = [
+    [/\bhome[\s-]*assistant\b/i, "home"],
+    [/\b(mqtt|mosquitto|zigbee2mqtt)\b/i, "radio"],
+    [/\b(smtp|imap|pop3|exchange|mail)\b/i, "mail"],
+    [/\b(smb|nfs|afp|ftp|sftp|webdav|netbios)\b/i, "folder"],
+    [/\b(ssh|telnet|rdp|vnc|shell|terminal)\b/i, "terminal"],
+    [/\b(ipp|lpd|lpr|raw|print(?:er)?|laserjet|deskjet|officejet)\b/i, "printer"],
+    [/\b(plex|jellyfin|emby|kodi|cast|airplay|dlna|rtsp)\b/i, "play"],
+    [/\b(https|tls|ssl)\b/i, "lock"],
+    [/\b(http|dns|web|websocket|proxy|nginx|caddy|apache|traefik)\b/i, "globe"],
+  ];
+
+  const CATEGORY_GLYPHS = {
+    web: "globe",
+    media: "play",
+    data: "folder",
+    remote: "terminal",
+    infra: "globe",
+    iot: "radio",
+    other: "dot",
+  };
+
   const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
   const lerp = (a, b, t) => a + (b - a) * t;
   const smoothstep = (edge0, edge1, value) => {
@@ -61,6 +136,41 @@
         default: return "&#39;";
       }
     });
+
+  const serviceGlyph = (service) => {
+    const name = String(service.name || "");
+    const product = String(service.product || "");
+    for (const [pattern, glyph] of SERVICE_GLYPH_RULES) {
+      if (pattern.test(name)) return glyph;
+    }
+    for (const [pattern, glyph] of SERVICE_GLYPH_RULES) {
+      if (pattern.test(product)) return glyph;
+    }
+    return CATEGORY_GLYPHS[service.category] || "dot";
+  };
+
+  const glyphSVG = (glyph) => {
+    const shapes = SERVICE_GLYPHS[glyph] || SERVICE_GLYPHS.dot;
+    const body = shapes
+      .map(([kind, ...values]) => {
+        switch (kind) {
+          case "ring":
+            return `<circle cx="${values[0]}" cy="${values[1]}" r="${values[2]}"/>`;
+          case "ellipse":
+            return `<ellipse cx="${values[0]}" cy="${values[1]}" rx="${values[2]}" ry="${values[3]}"/>`;
+          case "dot":
+            return `<circle cx="${values[0]}" cy="${values[1]}" r="${values[2]}" fill="currentColor" stroke="none"/>`;
+          case "rect":
+            return `<rect x="${values[0]}" y="${values[1]}" width="${values[2]}" height="${values[3]}" rx="${values[4]}"/>`;
+          case "fill":
+            return `<path d="${values[0]}" fill="currentColor" stroke="none"/>`;
+          default:
+            return `<path d="${values[0]}"/>`;
+        }
+      })
+      .join("");
+    return `<svg viewBox="-4 -4 8 8" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`;
+  };
 
   const rgbCache = new Map();
   const rgba = (hex, alpha) => {
@@ -1277,6 +1387,7 @@
           serviceNode.data = service;
           serviceNode.parentId = device.id;
         }
+        serviceNode.glyph = serviceGlyph(service);
         index += 1;
       }
     }
@@ -1495,7 +1606,7 @@
         const state = serviceState(service);
         return `
           <li class="service-row ${service.online ? "on" : "off"} ${selected ? "selected" : ""}" data-service-id="${escapeHTML(service.id)}">
-            <span class="svc-dot" style="--c:${color}"></span>
+            <span class="svc-glyph" style="--c:${color}" aria-hidden="true">${glyphSVG(serviceGlyph(service))}</span>
             <span class="svc-main">
               <strong>${escapeHTML(name)}</strong>
               <span class="svc-sub">${escapeHTML(sub)}<span class="svc-state ${state.tone}" title="${escapeHTML(state.title)}" aria-label="${escapeHTML(state.title)}">${escapeHTML(state.label)}</span></span>
@@ -1532,7 +1643,8 @@
       <button class="panel-close" type="button" aria-label="Close details">×</button>
       <div class="panel-kicker">
         <span class="status-dot ${device.online ? "on" : "off"}"></span>
-        ${device.online ? "online" : "history"} · ${escapeHTML(kind.label)}${view.tailnetPresent ? ` · ${escapeHTML(reachLabel(reach))}` : ""}
+        <canvas class="panel-kind" aria-hidden="true"></canvas>
+        ${device.online ? "online" : "history"} · <span class="panel-kind-label" style="--c:${kind.color}">${escapeHTML(kind.label)}</span>${view.tailnetPresent ? ` · ${escapeHTML(reachLabel(reach))}` : ""}
       </div>
       <h2>${escapeHTML(device.hostname || device.ip)}</h2>
       <p class="ip">${escapeHTML(device.ip)}${device.self ? " · this host" : ""}</p>
@@ -1543,7 +1655,22 @@
       <h3>Services <span>${onlineCount}/${services.length} up</span></h3>
       ${rows || '<div class="empty-services">No TCP services found on this device.</div>'}
     `;
+    paintPanelKind(device);
     renderPanelTraffic();
+  }
+
+  function paintPanelKind(device) {
+    const node = panel.querySelector(".panel-kind");
+    if (!node) return;
+    const kind = KIND[device.kind] || KIND.device;
+    const box = 18;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    node.width = Math.round(box * dpr);
+    node.height = Math.round(box * dpr);
+    const icon = node.getContext("2d");
+    icon.setTransform(dpr, 0, 0, dpr, 0, 0);
+    icon.clearRect(0, 0, box, box);
+    drawDeviceIcon(device.kind, box / 2, box / 2, box * 0.94, kind.color, icon);
   }
 
   // Keep relative times current without rebuilding the panel and losing scroll.
@@ -1718,18 +1845,18 @@
     ctx.fillRect(0, 0, size.width, size.height);
   }
 
-  function roundRectPath(x, y, width, height, radius) {
+  function roundRectPath(x, y, width, height, radius, target = ctx) {
     const r = Math.min(radius, Math.abs(width) / 2, Math.abs(height) / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + width, y, x + width, y + height, r);
-    ctx.arcTo(x + width, y + height, x, y + height, r);
-    ctx.arcTo(x, y + height, x, y, r);
-    ctx.arcTo(x, y, x + width, y, r);
-    ctx.closePath();
+    target.beginPath();
+    target.moveTo(x + r, y);
+    target.arcTo(x + width, y, x + width, y + height, r);
+    target.arcTo(x + width, y + height, x, y + height, r);
+    target.arcTo(x, y + height, x, y, r);
+    target.arcTo(x, y, x + width, y, r);
+    target.closePath();
   }
 
-  function drawDeviceIcon(kind, x, y, iconSize, color) {
+  function drawDeviceIcon(kind, x, y, iconSize, color, ctx) {
     const u = iconSize / 2;
     ctx.save();
     ctx.translate(x, y);
@@ -1753,7 +1880,7 @@
         break;
       case "server":
         for (let row = -1; row <= 1; row += 1) {
-          roundRectPath(-u * 0.75, row * u * 0.52 - u * 0.19, u * 1.5, u * 0.36, u * 0.08);
+          roundRectPath(-u * 0.75, row * u * 0.52 - u * 0.19, u * 1.5, u * 0.36, u * 0.08, ctx);
           ctx.stroke();
         }
         ctx.beginPath();
@@ -1761,7 +1888,7 @@
         ctx.fill();
         break;
       case "computer":
-        roundRectPath(-u * 0.9, -u * 0.72, u * 1.8, u * 1.16, u * 0.12);
+        roundRectPath(-u * 0.9, -u * 0.72, u * 1.8, u * 1.16, u * 0.12, ctx);
         ctx.stroke();
         ctx.beginPath();
         ctx.moveTo(-u * 0.38, u * 0.62);
@@ -1771,7 +1898,7 @@
         ctx.stroke();
         break;
       case "phone":
-        roundRectPath(-u * 0.36, -u * 0.8, u * 0.72, u * 1.6, u * 0.16);
+        roundRectPath(-u * 0.36, -u * 0.8, u * 0.72, u * 1.6, u * 0.16, ctx);
         ctx.stroke();
         ctx.beginPath();
         ctx.arc(0, u * 0.56, u * 0.06, 0, TAU);
@@ -1792,11 +1919,11 @@
         ctx.stroke();
         break;
       case "printer":
-        roundRectPath(-u * 0.44, -u * 0.86, u * 0.88, u * 0.58, u * 0.06);
+        roundRectPath(-u * 0.44, -u * 0.86, u * 0.88, u * 0.58, u * 0.06, ctx);
         ctx.stroke();
-        roundRectPath(-u * 0.85, -u * 0.26, u * 1.7, u * 0.68, u * 0.12);
+        roundRectPath(-u * 0.85, -u * 0.26, u * 1.7, u * 0.68, u * 0.12, ctx);
         ctx.stroke();
-        roundRectPath(-u * 0.44, u * 0.16, u * 0.88, u * 0.58, u * 0.05);
+        roundRectPath(-u * 0.44, u * 0.16, u * 0.88, u * 0.58, u * 0.05, ctx);
         ctx.stroke();
         break;
       case "media":
@@ -1811,7 +1938,7 @@
         ctx.fill();
         break;
       case "iot":
-        roundRectPath(-u * 0.5, -u * 0.5, u, u, u * 0.15);
+        roundRectPath(-u * 0.5, -u * 0.5, u, u, u * 0.15, ctx);
         ctx.stroke();
         for (let i = -1; i <= 1; i += 1) {
           ctx.beginPath();
@@ -1847,6 +1974,59 @@
           ctx.fill();
         }
         break;
+      }
+    }
+    ctx.restore();
+  }
+
+  const glyphPathCache = new Map();
+  const glyphPath = (data) => {
+    let path = glyphPathCache.get(data);
+    if (!path) {
+      path = new Path2D(data);
+      glyphPathCache.set(data, path);
+    }
+    return path;
+  };
+
+  function drawServiceGlyph(glyph, x, y, glyphSize, color) {
+    const shapes = SERVICE_GLYPHS[glyph] || SERVICE_GLYPHS.dot;
+    const scale = glyphSize / 8;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    for (const [kind, ...values] of shapes) {
+      switch (kind) {
+        case "ring":
+          ctx.beginPath();
+          ctx.arc(values[0], values[1], values[2], 0, TAU);
+          ctx.stroke();
+          break;
+        case "ellipse":
+          ctx.beginPath();
+          ctx.ellipse(values[0], values[1], values[2], values[3], 0, 0, TAU);
+          ctx.stroke();
+          break;
+        case "dot":
+          ctx.beginPath();
+          ctx.arc(values[0], values[1], values[2], 0, TAU);
+          ctx.fill();
+          break;
+        case "rect":
+          roundRectPath(values[0], values[1], values[2], values[3], values[4]);
+          ctx.stroke();
+          break;
+        case "fill":
+          ctx.fill(glyphPath(values[0]));
+          break;
+        default:
+          ctx.stroke(glyphPath(values[0]));
+          break;
       }
     }
     ctx.restore();
@@ -1936,7 +2116,7 @@
 
     ctx.save();
     ctx.globalAlpha = historicAlpha;
-    drawDeviceIcon(device.kind, point.x, point.y, radius * 1.52, rgba(color, active ? 0.92 : 0.55));
+    drawDeviceIcon(device.kind, point.x, point.y, radius * 1.52, rgba(color, active ? 0.92 : 0.55), ctx);
     ctx.restore();
 
     if (tailnetShown()) {
@@ -2081,10 +2261,14 @@
       ctx.lineWidth = 1.1;
       ctx.stroke();
 
-      ctx.beginPath();
-      ctx.arc(point.x, point.y, Math.max(1.2, radius * 0.28), 0, TAU);
-      ctx.fillStyle = rgba(color, 0.95);
-      ctx.fill();
+      if (zoom >= SERVICE_GLYPH_ZOOM) {
+        drawServiceGlyph(node.glyph || serviceGlyph(node.data), point.x, point.y, radius * 1.6, rgba(color, 0.95));
+      } else {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, Math.max(1.2, radius * 0.28), 0, TAU);
+        ctx.fillStyle = rgba(color, 0.95);
+        ctx.fill();
+      }
     } else {
       ctx.setLineDash([2.5, 3]);
       ctx.beginPath();
@@ -2093,6 +2277,9 @@
       ctx.lineWidth = 1;
       ctx.stroke();
       ctx.setLineDash([]);
+      if (zoom >= SERVICE_GLYPH_ZOOM) {
+        drawServiceGlyph(node.glyph || serviceGlyph(node.data), point.x, point.y, radius * 1.6, rgba(color, 0.62));
+      }
     }
     if (tailnetShown() && node.data.tailnet && !node.data.local) {
       ctx.beginPath();

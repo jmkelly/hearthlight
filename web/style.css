@@ -630,6 +630,16 @@ button:focus-visible {
   text-transform: uppercase;
 }
 
+.panel-kind {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.panel-kind-label {
+  color: var(--c);
+}
+
 .status-dot {
   width: 7px;
   height: 7px;
@@ -728,7 +738,7 @@ button:focus-visible {
 
 .service-row {
   display: grid;
-  grid-template-columns: 9px minmax(0, 1fr) auto auto;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto;
   gap: 9px;
   align-items: center;
   padding: 9px;
@@ -751,17 +761,26 @@ button:focus-visible {
   opacity: 0.55;
 }
 
-.svc-dot {
-  width: 8px;
-  height: 8px;
+.svc-glyph {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid color-mix(in srgb, var(--c) 48%, transparent);
   border-radius: 50%;
-  background: var(--c);
-  box-shadow: 0 0 9px color-mix(in srgb, var(--c) 50%, transparent);
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+  box-shadow: 0 0 9px color-mix(in srgb, var(--c) 30%, transparent);
+  color: var(--c);
 }
 
-.service-row.off .svc-dot {
-  border: 1px dashed var(--c);
-  background: transparent;
+.svc-glyph svg {
+  display: block;
+  width: 13px;
+  height: 13px;
+}
+
+.service-row.off .svc-glyph {
+  border-style: dashed;
   box-shadow: none;
 }
 

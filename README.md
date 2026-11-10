@@ -2,7 +2,7 @@
 
 Hearthlight is a small Go web app that draws your home network as a live map.
 Each device is a bubble. Each TCP service orbits its device. Zoom out for the
-whole map, zoom in for service names, ports and device details.
+whole map, zoom in for service glyphs, names, ports and device details.
 
 Hearthlight also maps your Tailscale tailnet as a second territory. Peers come
 from `tailscale status --json` and are probed over their tailnet addresses, then
