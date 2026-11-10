@@ -675,6 +675,39 @@ button:focus-visible {
   transform: translateX(14px);
 }
 
+.settings-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px 12px;
+  border: 1px solid var(--theme-line-soft);
+  border-radius: 12px;
+  background: var(--theme-meta-surface);
+  color: var(--theme-meta-value);
+  text-align: left;
+}
+
+.settings-action:hover {
+  border-color: var(--theme-accent-edge);
+  background: var(--theme-accent-faint);
+}
+
+.settings-action[disabled] {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.settings-action-state {
+  color: var(--theme-section-value);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 /* Legend and hint */
 
 .legend {
