@@ -2,8 +2,10 @@ package web
 
 import (
 	"encoding/json"
+	"math"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -26,7 +28,7 @@ type themeVariant struct {
 	Palette    map[string]string    `json:"palette"`
 	Kinds      map[string]themeKind `json:"kinds"`
 	Categories map[string]string    `json:"categories"`
-	Effects    map[string]float64   `json:"effects"`
+	Effects    map[string]any       `json:"effects"`
 }
 
 type themeKind struct {
@@ -39,7 +41,7 @@ const (
 	themesSuffix = ";\n"
 )
 
-var wantPalette = map[string]string{
+var wantDarkPalette = map[string]string{
 	"bg":           "#050a12",
 	"ink":          "#e9f2fa",
 	"muted":        "#7f8fa6",
@@ -55,6 +57,10 @@ var wantPalette = map[string]string{
 	"warning":      "#ffd166",
 	"danger":       "#ff7b72",
 	"history":      "#8494a8",
+	"vignette":     "rgba(0, 0, 0, 0.52)",
+	"labelHalo":    "rgba(3, 6, 12, 0.86)",
+	"bubble":       "rgba(6, 11, 20, 0.94)",
+	"panel":        "rgba(12, 21, 35, 0.95)",
 }
 
 var wantKinds = map[string]themeKind{
@@ -79,16 +85,36 @@ var wantCategories = map[string]string{
 	"other":  "#93a4b8",
 }
 
-var wantEffects = map[string]float64{
-	"vignette":      0.52,
-	"deviceGlow":    0.22,
-	"devicePulse":   0.3,
-	"serviceGlow":   0.16,
-	"territoryBlur": 26,
-	"ribbonBlur":    16,
-	"lensBlur":      14,
-	"glassBlur":     16,
-	"panelBlur":     22,
+var wantDarkEffects = map[string]any{
+	"vignette":       0.52,
+	"deviceGlow":     0.22,
+	"devicePulse":    0.3,
+	"serviceGlow":    0.16,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "screen",
+	"territoryAlpha": 1.0,
+	"glowStrength":   1.0,
+	"labelHalo":      1.0,
+	"shadowStrength": 1.0,
+}
+
+var requiredPaletteTokens = []string{
+	"bg", "ink", "muted", "accent", "line", "glass",
+	"canvasTop", "canvasMiddle", "canvasBottom", "grid", "ambientGlow",
+	"online", "warning", "danger", "history",
+	"vignette", "labelHalo", "bubble", "panel",
+}
+
+var requiredStringEffects = []string{"territoryBlend"}
+
+var requiredNumberEffects = []string{
+	"vignette", "deviceGlow", "devicePulse", "serviceGlow",
+	"territoryBlur", "ribbonBlur", "lensBlur", "glassBlur", "panelBlur",
+	"territoryAlpha", "glowStrength", "labelHalo", "shadowStrength",
 }
 
 func readCatalog(t *testing.T) ([]byte, themeCatalog) {
@@ -117,37 +143,173 @@ func TestThemeCatalog(t *testing.T) {
 	if family.ID != "hearthlight" || family.Name != "Hearthlight" {
 		t.Fatalf("family = %+v, want Hearthlight", family)
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
-	variant := family.Variants[0]
-	if variant.ID != "hearthlight-dark" || variant.Name != "Hearthlight Dark" || variant.Mode != "dark" {
-		t.Fatalf("variant = %+v, want Hearthlight Dark", variant)
+	dark, light := family.Variants[0], family.Variants[1]
+	if dark.ID != "hearthlight-dark" || dark.Name != "Hearthlight Dark" || dark.Mode != "dark" {
+		t.Fatalf("variant = %+v, want Hearthlight Dark", dark)
 	}
-
-	if !reflect.DeepEqual(variant.Palette, wantPalette) {
-		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantPalette)
-	}
-	if !reflect.DeepEqual(variant.Kinds, wantKinds) {
-		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantKinds)
-	}
-	if !reflect.DeepEqual(variant.Categories, wantCategories) {
-		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantCategories)
-	}
-	if !reflect.DeepEqual(variant.Effects, wantEffects) {
-		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantEffects)
+	if light.ID != "hearthlight-light" || light.Name != "Hearthlight Light" || light.Mode != "light" {
+		t.Fatalf("variant = %+v, want Hearthlight Light", light)
 	}
 
-	for token, value := range variant.Palette {
-		if strings.TrimSpace(value) == "" {
-			t.Errorf("palette token %q is empty", token)
+	if !reflect.DeepEqual(dark.Palette, wantDarkPalette) {
+		t.Fatalf("palette = %#v, want %#v", dark.Palette, wantDarkPalette)
+	}
+	if !reflect.DeepEqual(dark.Kinds, wantKinds) {
+		t.Fatalf("kinds = %#v, want %#v", dark.Kinds, wantKinds)
+	}
+	if !reflect.DeepEqual(dark.Categories, wantCategories) {
+		t.Fatalf("categories = %#v, want %#v", dark.Categories, wantCategories)
+	}
+	if !reflect.DeepEqual(dark.Effects, wantDarkEffects) {
+		t.Fatalf("effects = %#v, want %#v", dark.Effects, wantDarkEffects)
+	}
+
+	if len(light.Palette) != len(dark.Palette) {
+		t.Fatalf("light palette has %d tokens, want %d", len(light.Palette), len(dark.Palette))
+	}
+	if len(light.Kinds) != len(dark.Kinds) {
+		t.Fatalf("light kinds = %d, want %d", len(light.Kinds), len(dark.Kinds))
+	}
+	if len(light.Categories) != len(dark.Categories) {
+		t.Fatalf("light categories = %d, want %d", len(light.Categories), len(dark.Categories))
+	}
+	if len(light.Effects) != len(dark.Effects) {
+		t.Fatalf("light effects = %d, want %d", len(light.Effects), len(dark.Effects))
+	}
+
+	for _, variant := range family.Variants {
+		for _, token := range requiredPaletteTokens {
+			value, ok := variant.Palette[token]
+			if !ok {
+				t.Errorf("%s: missing palette token %q", variant.ID, token)
+				continue
+			}
+			if strings.TrimSpace(value) == "" {
+				t.Errorf("%s: palette token %q is empty", variant.ID, token)
+			}
+		}
+		for name := range dark.Palette {
+			if _, ok := variant.Palette[name]; !ok {
+				t.Errorf("%s: missing palette token %q", variant.ID, name)
+			}
+		}
+		for name, kind := range variant.Kinds {
+			if strings.TrimSpace(kind.Label) == "" || strings.TrimSpace(kind.Color) == "" {
+				t.Errorf("%s: kind %q has an empty label or colour", variant.ID, name)
+			}
+		}
+		for name := range dark.Kinds {
+			if _, ok := variant.Kinds[name]; !ok {
+				t.Errorf("%s: missing kind %q", variant.ID, name)
+			}
+		}
+		for name, colour := range variant.Categories {
+			if strings.TrimSpace(colour) == "" {
+				t.Errorf("%s: category %q has an empty colour", variant.ID, name)
+			}
+		}
+		for name := range dark.Categories {
+			if _, ok := variant.Categories[name]; !ok {
+				t.Errorf("%s: missing category %q", variant.ID, name)
+			}
+		}
+		for _, token := range requiredStringEffects {
+			value, ok := variant.Effects[token]
+			if !ok {
+				t.Errorf("%s: missing effect token %q", variant.ID, token)
+				continue
+			}
+			text, ok := value.(string)
+			if !ok || strings.TrimSpace(text) == "" {
+				t.Errorf("%s: effect token %q = %#v, want a non-empty string", variant.ID, token, value)
+			}
+		}
+		for _, token := range requiredNumberEffects {
+			value, ok := variant.Effects[token]
+			if !ok {
+				t.Errorf("%s: missing effect token %q", variant.ID, token)
+				continue
+			}
+			number, ok := value.(float64)
+			if !ok {
+				t.Errorf("%s: effect token %q = %#v, want a number", variant.ID, token, value)
+				continue
+			}
+			if math.IsNaN(number) || math.IsInf(number, 0) || number < 0 {
+				t.Errorf("%s: effect token %q = %v, want a finite non-negative number", variant.ID, token, number)
+			}
+		}
+		for name := range dark.Effects {
+			if _, ok := variant.Effects[name]; !ok {
+				t.Errorf("%s: missing effect token %q", variant.ID, name)
+			}
 		}
 	}
-	for name, kind := range variant.Kinds {
-		if strings.TrimSpace(kind.Label) == "" || strings.TrimSpace(kind.Color) == "" {
-			t.Errorf("kind %q has an empty label or colour", name)
+}
+
+func TestLightPaletteContrast(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := catalog.Families[0]
+	var light themeVariant
+	for _, variant := range family.Variants {
+		if variant.Mode == "light" {
+			light = variant
+			break
 		}
 	}
+	if light.ID == "" {
+		t.Fatal("themes.json has no light variant")
+	}
+
+	ink, ok := hexColour(light.Palette["ink"])
+	if !ok {
+		t.Fatalf("ink = %q, want a hex colour", light.Palette["ink"])
+	}
+	for _, token := range []string{"bg", "labelHalo"} {
+		surface, ok := hexColour(light.Palette[token])
+		if !ok {
+			t.Errorf("%s = %q, want a hex colour", token, light.Palette[token])
+			continue
+		}
+		if ratio := contrastRatio(ink, surface); ratio < 7 {
+			t.Errorf("ink on %s contrast ratio = %.2f:1, want at least 7:1", token, ratio)
+		}
+	}
+}
+
+func hexColour(value string) (rgb [3]float64, ok bool) {
+	if len(value) != 7 || value[0] != '#' {
+		return rgb, false
+	}
+	for i := 0; i < 3; i++ {
+		channel, err := strconv.ParseUint(value[1+i*2:3+i*2], 16, 8)
+		if err != nil {
+			return rgb, false
+		}
+		rgb[i] = float64(channel) / 255
+	}
+	return rgb, true
+}
+
+func relativeLuminance(rgb [3]float64) float64 {
+	linear := func(channel float64) float64 {
+		if channel <= 0.03928 {
+			return channel / 12.92
+		}
+		return math.Pow((channel+0.055)/1.055, 2.4)
+	}
+	return 0.2126*linear(rgb[0]) + 0.7152*linear(rgb[1]) + 0.0722*linear(rgb[2])
+}
+
+func contrastRatio(a, b [3]float64) float64 {
+	high, low := relativeLuminance(a), relativeLuminance(b)
+	if high < low {
+		high, low = low, high
+	}
+	return (high + 0.05) / (low + 0.05)
 }
 
 func TestGeneratedThemesFileIsFresh(t *testing.T) {
