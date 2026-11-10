@@ -97,3 +97,66 @@ func TestThemeBootWiresLiveThemeChanges(t *testing.T) {
 		`"color-scheme"`,
 	)
 }
+
+func TestSettingsDialogMarkup(t *testing.T) {
+	html := readAccessibilityFile(t, "index.html")
+	gear := markupBetween(t, html, `<button id="settingsBtn"`, `</button>`)
+	requireContains(t, gear,
+		`aria-haspopup="dialog"`,
+		`aria-controls="settingsDialog"`,
+		`aria-expanded="false"`,
+		`aria-label="Settings"`,
+	)
+
+	dialog := markupBetween(t, html, `<dialog id="settingsDialog"`, `</dialog>`)
+	requireContains(t, dialog,
+		`aria-labelledby="settingsTitle"`,
+		`<h2 id="settingsTitle">Settings</h2>`,
+		`id="settingsClose"`,
+		`aria-labelledby="settingsMapHeading"`,
+		`<h3 id="settingsMapHeading">Map</h3>`,
+		`id="settingsHistoryBtn"`,
+		`id="settingsTailnetBtn"`,
+		`aria-pressed="true"`,
+	)
+	if strings.Contains(strings.ToLower(dialog), "theme") {
+		t.Error("the settings dialog must not add theme controls")
+	}
+}
+
+func TestSettingsDialogWiresModalBehaviour(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	requireContains(t, js,
+		`settingsDialog.showModal()`,
+		`settingsDialog.close()`,
+		`settingsBtn.focus()`,
+		`settingsDialog.addEventListener("cancel"`,
+		`event.preventDefault()`,
+		`if (event.target === settingsDialog) closeSettings()`,
+		`if (event.key !== "Tab") return;`,
+		`last.focus()`,
+		`first.focus()`,
+		`event.target.matches("input, textarea, select, [contenteditable]")`,
+		`if (settingsDialog.open) return;`,
+		`event.key.toLowerCase() === "s"`,
+		`openSettings();`,
+	)
+}
+
+func TestSettingsMapControlsUseExistingPreferences(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	history := functionBody(t, js, "setHistoryVisible")
+	requireContains(t, history,
+		`historyBtn.setAttribute("aria-pressed"`,
+		`window.localStorage.setItem("hearthlight.history"`,
+		`syncSettingsControls()`,
+	)
+	tailnet := functionBody(t, js, "setTailnetVisible")
+	requireContains(t, tailnet,
+		`tailnetBtn.setAttribute("aria-pressed"`,
+		`window.localStorage.setItem("hearthlight.tailnet"`,
+		`syncSettingsControls()`,
+	)
+	sync := functionBody(t, js, "syncSettingsControls")
+	requireContains(t, sync, "settingsHistoryBtn", "settingsTailnetBtn")
+}

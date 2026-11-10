@@ -50,6 +50,13 @@
         <button id="fitBtn" class="icon-btn" type="button" aria-label="Fit network on screen">fit</button>
         <button id="zoomIn" class="icon-btn" type="button" aria-label="Zoom in">+</button>
       </div>
+      <span class="divider" aria-hidden="true"></span>
+      <button id="settingsBtn" class="icon-btn settings-btn" type="button" aria-label="Settings" aria-haspopup="dialog" aria-controls="settingsDialog" aria-expanded="false" title="Settings (s)">
+        <svg viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="0" cy="0" r="2.6"/>
+          <path d="M 0 -6.4 V -4.6 M 0 4.6 V 6.4 M -6.4 0 H -4.6 M 4.6 0 H 6.4 M -4.5 -4.5 L -3.2 -3.2 M 3.2 3.2 L 4.5 4.5 M -4.5 4.5 L -3.2 3.2 M 3.2 -3.2 L 4.5 -4.5"/>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -71,6 +78,35 @@
   <div class="hint">drag to pan · scroll to zoom · click a bubble</div>
   <div id="tooltip" class="tooltip" role="status"></div>
   <div id="toast" class="toast" role="status"></div>
+
+  <dialog id="settingsDialog" class="settings" aria-labelledby="settingsTitle">
+    <header class="settings-head">
+      <div>
+        <p class="settings-kicker">Hearthlight</p>
+        <h2 id="settingsTitle">Settings</h2>
+      </div>
+      <button id="settingsClose" class="settings-close" type="button" aria-label="Close settings">×</button>
+    </header>
+    <section class="settings-section" aria-labelledby="settingsMapHeading">
+      <h3 id="settingsMapHeading">Map</h3>
+      <button id="settingsHistoryBtn" class="settings-toggle" type="button" aria-pressed="true">
+        <span class="settings-toggle-copy">
+          <span class="settings-toggle-label">History</span>
+          <span class="settings-toggle-hint">Show devices and services from past scans</span>
+        </span>
+        <span class="settings-toggle-state" aria-hidden="true">shown</span>
+        <span class="settings-switch" aria-hidden="true"></span>
+      </button>
+      <button id="settingsTailnetBtn" class="settings-toggle" type="button" aria-pressed="true">
+        <span class="settings-toggle-copy">
+          <span class="settings-toggle-label">Tailnet</span>
+          <span class="settings-toggle-hint">Show Tailnet hosts and overlays</span>
+        </span>
+        <span class="settings-toggle-state" aria-hidden="true">shown</span>
+        <span class="settings-switch" aria-hidden="true"></span>
+      </button>
+    </section>
+  </dialog>
 
   <noscript>
     <div class="noscript">Hearthlight needs JavaScript to draw the network map.</div>
