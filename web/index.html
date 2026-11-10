@@ -127,6 +127,33 @@
         <span class="settings-action-state" aria-hidden="true">reset</span>
       </button>
     </section>
+    <section class="settings-section settings-appearance" aria-labelledby="settingsAppearanceHeading">
+      <h3 id="settingsAppearanceHeading">Appearance</h3>
+      <div class="theme-card">
+        <span class="theme-card-swatches" aria-hidden="true">
+          <span class="theme-swatch theme-swatch-dark"></span>
+          <span class="theme-swatch theme-swatch-light"></span>
+        </span>
+        <span class="theme-card-copy">
+          <span class="theme-card-name">Hearthlight</span>
+          <span class="theme-card-hint">Map theme family</span>
+        </span>
+        <span id="themeDefaultBadge" class="theme-default-badge">Default</span>
+      </div>
+      <div class="theme-modes" role="group" aria-label="Theme mode">
+        <button id="themeModeDark" class="theme-mode" type="button" aria-pressed="true">Dark</button>
+        <button id="themeModeLight" class="theme-mode" type="button" aria-pressed="false">Light</button>
+        <button id="themeModeAuto" class="theme-mode" type="button" aria-pressed="false">Auto</button>
+      </div>
+      <p id="themeFallbackNote" class="theme-fallback-note" role="status" hidden>This theme family has no light variant; showing the available palette.</p>
+      <button id="themeReset" class="settings-action" type="button">
+        <span class="settings-toggle-copy">
+          <span class="settings-toggle-label">Reset to default</span>
+          <span class="settings-toggle-hint">Restore the Hearthlight Dark appearance</span>
+        </span>
+        <span class="settings-action-state" aria-hidden="true">reset</span>
+      </button>
+    </section>
   </dialog>
 
   <noscript>

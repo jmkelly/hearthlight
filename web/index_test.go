@@ -119,8 +119,97 @@ func TestSettingsDialogMarkup(t *testing.T) {
 		`id="settingsTailnetBtn"`,
 		`aria-pressed="true"`,
 	)
-	if strings.Contains(strings.ToLower(dialog), "theme") {
-		t.Error("the settings dialog must not add theme controls")
+}
+
+func TestSettingsAppearanceMarkup(t *testing.T) {
+	html := readAccessibilityFile(t, "index.html")
+	dialog := markupBetween(t, html, `<dialog id="settingsDialog"`, `</dialog>`)
+	appearance := markupBetween(t, dialog, `<section class="settings-section settings-appearance"`, `</section>`)
+	requireContains(t, appearance,
+		`aria-labelledby="settingsAppearanceHeading"`,
+		`<h3 id="settingsAppearanceHeading">Appearance</h3>`,
+		`class="theme-card"`,
+		`class="theme-swatch theme-swatch-dark"`,
+		`class="theme-swatch theme-swatch-light"`,
+		`id="themeDefaultBadge"`,
+		`>Default<`,
+		`role="group"`,
+		`aria-label="Theme mode"`,
+		`id="themeModeDark"`,
+		`id="themeModeLight"`,
+		`id="themeModeAuto"`,
+		`>Dark<`,
+		`>Light<`,
+		`>Auto<`,
+		`id="themeFallbackNote"`,
+		`hidden`,
+		`id="themeReset"`,
+		`>Reset to default<`,
+	)
+	if count := strings.Count(appearance, `aria-pressed=`); count != 3 {
+		t.Errorf("appearance segmented control has %d aria-pressed buttons, want 3", count)
+	}
+}
+
+func TestAppearanceControlsApplyAndPersist(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	requireContains(t, js,
+		`document.getElementById("themeModeDark")`,
+		`document.getElementById("themeModeLight")`,
+		`document.getElementById("themeModeAuto")`,
+		`document.getElementById("themeReset")`,
+		`document.getElementById("themeDefaultBadge")`,
+		`document.getElementById("themeFallbackNote")`,
+		`themeModeDark.addEventListener("click", () => setThemeMode("dark"));`,
+		`themeModeLight.addEventListener("click", () => setThemeMode("light"));`,
+		`themeModeAuto.addEventListener("click", () => setThemeMode("auto"));`,
+		`themeReset.addEventListener("click", resetTheme);`,
+	)
+	set := functionBody(t, js, "setThemeMode")
+	requireContains(t, set,
+		"window.HearthlightTheme",
+		"THEME_MODES.has(mode)",
+		"control.initialPreference()",
+		"control.persist(preference)",
+		"applyTheme(",
+	)
+	reset := functionBody(t, js, "resetTheme")
+	requireContains(t, reset,
+		"window.HearthlightTheme",
+		"control.DEFAULT_THEME",
+		"control.persist(",
+		"applyTheme(",
+	)
+	sync := functionBody(t, js, "syncThemeControls")
+	requireContains(t, sync,
+		"aria-pressed",
+		"requestedMode",
+		"themeDefaultBadge.hidden",
+		"themeFallbackNote.hidden",
+		"fallback",
+		"themeFallbackNote.textContent =",
+	)
+	apply := functionBody(t, js, "applyTheme")
+	requireContains(t, apply, "syncThemeControls(view.theme)")
+	open := functionBody(t, js, "openSettings")
+	requireContains(t, open, "syncThemeControls()")
+}
+
+func TestAppearanceStylingUsesThemeTokens(t *testing.T) {
+	css := readAccessibilityFile(t, "style.css")
+	for _, selector := range []string{
+		".theme-card {",
+		".theme-swatch-dark {",
+		".theme-swatch-light {",
+		".theme-modes {",
+		`.theme-mode[aria-pressed="true"] {`,
+		".theme-default-badge {",
+		".theme-fallback-note {",
+	} {
+		body := cssRule(t, css, selector)
+		if !strings.Contains(body, "var(--theme-") {
+			t.Errorf("%s does not use theme variables", selector)
+		}
 	}
 }
 
