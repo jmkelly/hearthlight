@@ -271,6 +271,11 @@
   const historyBtn = document.getElementById("historyBtn");
   const tailnetBtn = document.getElementById("tailnetBtn");
   const scanBtn = document.getElementById("scanBtn");
+  const settingsBtn = document.getElementById("settingsBtn");
+  const settingsDialog = document.getElementById("settingsDialog");
+  const settingsClose = document.getElementById("settingsClose");
+  const settingsHistoryBtn = document.getElementById("settingsHistoryBtn");
+  const settingsTailnetBtn = document.getElementById("settingsTailnetBtn");
   const conn = document.getElementById("conn");
   const legend = document.getElementById("legend");
   const empty = document.getElementById("empty");
@@ -1577,6 +1582,18 @@
     deviceSummary.textContent = text;
   }
 
+  function syncToggleState(button, on) {
+    if (!button) return;
+    button.setAttribute("aria-pressed", String(on));
+    const state = button.querySelector(".settings-toggle-state");
+    if (state) state.textContent = on ? "shown" : "hidden";
+  }
+
+  function syncSettingsControls() {
+    syncToggleState(settingsHistoryBtn, view.showOffline);
+    syncToggleState(settingsTailnetBtn, view.showTailnet);
+  }
+
   function syncChrome() {
     const snapshot = view.snapshot;
     if (!snapshot) return;
@@ -1601,6 +1618,7 @@
     scanBtn.dataset.scanning = String(Boolean(snapshot.scanning));
     scanBtn.querySelector("span:last-child").textContent = snapshot.scanning ? "Scanning" : "Scan";
     historyBtn.setAttribute("aria-pressed", String(view.showOffline));
+    syncSettingsControls();
 
     if (snapshot.lastError && snapshot.lastError !== view.lastErrorShown) {
       view.lastErrorShown = snapshot.lastError;
@@ -1998,6 +2016,70 @@
     toast.classList.add("show");
     window.clearTimeout(view.toastTimer);
     view.toastTimer = window.setTimeout(() => toast.classList.remove("show"), 3400);
+  }
+
+  function setHistoryVisible(show, announce = true) {
+    view.showOffline = show;
+    historyBtn.setAttribute("aria-pressed", String(show));
+    syncSettingsControls();
+    try {
+      window.localStorage.setItem("hearthlight.history", show ? "1" : "0");
+    } catch (_error) {
+      // Storage is optional.
+    }
+    if (announce) showToast(show ? "History shown" : "History hidden");
+    hideTooltip();
+  }
+
+  function setTailnetVisible(show, announce = true) {
+    view.showTailnet = show;
+    if (tailnetBtn) tailnetBtn.setAttribute("aria-pressed", String(show));
+    syncSettingsControls();
+    try {
+      window.localStorage.setItem("hearthlight.tailnet", show ? "1" : "0");
+    } catch (_error) {
+      // Storage is optional.
+    }
+    view.territorySig = "";
+    if (announce) showToast(show ? "Tailnet shown" : "Tailnet hidden");
+    hideTooltip();
+    syncChrome();
+  }
+
+  // Native modal dialogs trap focus, but an explicit loop keeps Tab inside the
+  // dialog in every browser and makes the boundary behaviour testable.
+  const SETTINGS_FOCUSABLE = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  function trapSettingsFocus(event) {
+    if (event.key !== "Tab") return;
+    const focusable = [...settingsDialog.querySelectorAll(SETTINGS_FOCUSABLE)]
+      .filter((element) => element.getClientRects().length > 0);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function openSettings() {
+    if (!settingsDialog || settingsDialog.open) return;
+    syncSettingsControls();
+    hideTooltip();
+    settingsDialog.showModal();
+    settingsBtn.setAttribute("aria-expanded", "true");
+    settingsClose.focus();
+  }
+
+  function closeSettings() {
+    if (!settingsDialog || !settingsDialog.open) return;
+    settingsDialog.close();
+    settingsBtn.setAttribute("aria-expanded", "false");
+    settingsBtn.focus();
   }
 
   function hitTest(screenX, screenY) {
@@ -3022,15 +3104,7 @@
   });
 
   historyBtn.addEventListener("click", () => {
-    view.showOffline = !view.showOffline;
-    historyBtn.setAttribute("aria-pressed", String(view.showOffline));
-    try {
-      window.localStorage.setItem("hearthlight.history", view.showOffline ? "1" : "0");
-    } catch (_error) {
-      // Storage is optional.
-    }
-    showToast(view.showOffline ? "History shown" : "History hidden");
-    hideTooltip();
+    setHistoryVisible(!view.showOffline);
   });
 
   if (deviceList) {
@@ -3044,19 +3118,26 @@
 
   if (tailnetBtn) {
     tailnetBtn.addEventListener("click", () => {
-      view.showTailnet = !view.showTailnet;
-      tailnetBtn.setAttribute("aria-pressed", String(view.showTailnet));
-      try {
-        window.localStorage.setItem("hearthlight.tailnet", view.showTailnet ? "1" : "0");
-      } catch (_error) {
-        // Storage is optional.
-      }
-      view.territorySig = "";
-      showToast(view.showTailnet ? "Tailnet shown" : "Tailnet hidden");
-      hideTooltip();
-      syncChrome();
+      setTailnetVisible(!view.showTailnet);
     });
   }
+
+  settingsBtn.addEventListener("click", openSettings);
+  settingsClose.addEventListener("click", closeSettings);
+  settingsHistoryBtn.addEventListener("click", () => {
+    setHistoryVisible(!view.showOffline, false);
+  });
+  settingsTailnetBtn.addEventListener("click", () => {
+    setTailnetVisible(!view.showTailnet, false);
+  });
+  settingsDialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeSettings();
+  });
+  settingsDialog.addEventListener("click", (event) => {
+    if (event.target === settingsDialog) closeSettings();
+  });
+  settingsDialog.addEventListener("keydown", trapSettingsFocus);
 
   document.getElementById("zoomIn").addEventListener("click", () => {
     zoomAt((size.width - size.insetRight) / 2, size.height / 2, 1.25);
@@ -3090,7 +3171,8 @@
   });
 
   window.addEventListener("keydown", (event) => {
-    if (event.target.matches("input, textarea, select")) return;
+    if (event.target.matches("input, textarea, select, [contenteditable]")) return;
+    if (settingsDialog.open) return;
     if (event.key === "Escape") {
       closePanel();
       hideTooltip();
@@ -3106,6 +3188,10 @@
     }
     if (event.key === "0" || event.key.toLowerCase() === "f") {
       fitView(true);
+      return;
+    }
+    if (event.key.toLowerCase() === "s" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      openSettings();
     }
   });
 
