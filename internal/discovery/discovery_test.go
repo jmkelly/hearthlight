@@ -48,6 +48,68 @@ func TestParsePortList(t *testing.T) {
 	}
 }
 
+func TestDefaultPortsProbeConsumerServices(t *testing.T) {
+	s, err := New(Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	probed := make(map[int]bool, len(s.ports))
+	for _, port := range s.ports {
+		probed[port] = true
+	}
+	for _, port := range []int{548, 873, 8008, 8883, 62078} {
+		if !probed[port] {
+			t.Errorf("default probe list does not include port %d", port)
+		}
+	}
+}
+
+func TestDescribeConsumerPorts(t *testing.T) {
+	tests := []struct {
+		port     int
+		name     string
+		category string
+	}{
+		{port: 548, name: "AFP", category: "data"},
+		{port: 873, name: "rsync", category: "data"},
+		{port: 8008, name: "Cast", category: "media"},
+		{port: 8883, name: "MQTT/TLS", category: "iot"},
+		{port: 62078, name: "iPhone sync", category: "other"},
+	}
+	for _, tt := range tests {
+		t.Run(fmt.Sprint(tt.port), func(t *testing.T) {
+			name, category := describePort(tt.port)
+			if name != tt.name || category != tt.category {
+				t.Fatalf("describePort(%d) = %q, %q; want %q, %q", tt.port, name, category, tt.name, tt.category)
+			}
+		})
+	}
+}
+
+func TestConsumerPortFingerprinting(t *testing.T) {
+	tests := []struct {
+		port int
+		web  bool
+		tls  bool
+	}{
+		{port: 548},
+		{port: 873},
+		{port: 8008, web: true},
+		{port: 8883, tls: true},
+		{port: 62078},
+	}
+	for _, tt := range tests {
+		t.Run(fmt.Sprint(tt.port), func(t *testing.T) {
+			if got := isWebPort(tt.port); got != tt.web {
+				t.Errorf("isWebPort(%d) = %v, want %v", tt.port, got, tt.web)
+			}
+			if got := isTLSPort(tt.port); got != tt.tls {
+				t.Errorf("isTLSPort(%d) = %v, want %v", tt.port, got, tt.tls)
+			}
+		})
+	}
+}
+
 func TestConnectionRefused(t *testing.T) {
 	tests := []struct {
 		name string
@@ -118,13 +180,16 @@ func TestClassifyDevice(t *testing.T) {
 		{name: "printer by hostname", hostname: "epsonb218b6.lan", want: "printer"},
 		{name: "media", ports: []int{32400}, want: "media"},
 		{name: "cast device", ports: []int{8009, 8443, 9000}, want: "media"},
+		{name: "chromecast port", ports: []int{8008}, want: "media"},
 		{name: "phone", hostname: "iphone.lan", want: "phone"},
+		{name: "iphone sync port", ports: []int{62078}, want: "phone"},
 		{name: "android phone", hostname: "android-e496a047055dea61.lan", want: "phone"},
 		{name: "smart plug", hostname: "hs110.lan", want: "iot"},
 		{name: "lighting module", hostname: "rakmodule_75944d.lan", want: "iot"},
 		{name: "smart bulb", hostname: "yeelink-light-color1_miio57604981.lan", want: "iot"},
 		{name: "esp device", hostname: "esp_4b96b6.lan", want: "iot"},
 		{name: "iot", ports: []int{8123}, want: "iot"},
+		{name: "mqtt tls", ports: []int{8883}, want: "iot"},
 		{name: "server", ports: []int{22, 5432}, want: "server"},
 		{name: "computer", ports: []int{3389}, want: "computer"},
 		{name: "desktop by hostname", hostname: "ubuntu.lan", ports: []int{8080}, want: "computer"},

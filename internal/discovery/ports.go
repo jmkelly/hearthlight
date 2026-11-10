@@ -10,10 +10,10 @@ import (
 // defaultPorts is a compact homelab-oriented TCP port list. UDP services
 // (mDNS, SSDP, WireGuard) are intentionally out of scope for this first pass.
 var defaultPorts = []int{
-	22, 53, 80, 139, 443, 445, 554, 631, 1883, 2049, 2375, 3000, 3306, 3389,
-	5000, 5055, 5432, 5900, 6379, 6767, 7878, 8000, 8006, 8009, 8080, 8081,
-	8090, 8096, 8123, 8384, 8443, 8686, 8888, 8989, 9000, 9090, 9100, 9200,
-	9443, 9696, 32400,
+	22, 53, 80, 139, 443, 445, 548, 554, 631, 873, 1883, 2049, 2375, 3000,
+	3306, 3389, 5000, 5055, 5432, 5900, 6379, 6767, 7878, 8000, 8006, 8008,
+	8009, 8080, 8081, 8090, 8096, 8123, 8384, 8443, 8686, 8883, 8888, 8989,
+	9000, 9090, 9100, 9200, 9443, 9696, 32400, 62078,
 }
 
 type portInfo struct {
@@ -28,8 +28,10 @@ var portCatalog = map[int]portInfo{
 	139:   {"NetBIOS", "data"},
 	443:   {"HTTPS", "web"},
 	445:   {"SMB", "data"},
+	548:   {"AFP", "data"},
 	554:   {"RTSP", "media"},
 	631:   {"IPP", "other"},
+	873:   {"rsync", "data"},
 	1883:  {"MQTT", "iot"},
 	2049:  {"NFS", "data"},
 	2375:  {"Docker", "infra"},
@@ -45,6 +47,7 @@ var portCatalog = map[int]portInfo{
 	7878:  {"Radarr", "web"},
 	8000:  {"HTTP", "web"},
 	8006:  {"Proxmox", "infra"},
+	8008:  {"Cast", "media"},
 	8009:  {"Cast", "media"},
 	8080:  {"HTTP", "web"},
 	8081:  {"HTTP", "web"},
@@ -54,6 +57,7 @@ var portCatalog = map[int]portInfo{
 	8384:  {"Syncthing", "web"},
 	8443:  {"HTTPS", "web"},
 	8686:  {"Lidarr", "web"},
+	8883:  {"MQTT/TLS", "iot"},
 	8888:  {"HTTP", "web"},
 	8989:  {"Sonarr", "web"},
 	9000:  {"HTTP", "web"},
@@ -63,6 +67,7 @@ var portCatalog = map[int]portInfo{
 	9443:  {"Portainer HTTPS", "infra"},
 	9696:  {"Prowlarr", "web"},
 	32400: {"Plex", "media"},
+	62078: {"iPhone sync", "other"},
 }
 
 // ParsePortList accepts forms like "80,443,8000-8010". An empty string yields

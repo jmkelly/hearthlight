@@ -18,9 +18,9 @@ var tagPattern = regexp.MustCompile(`(?s)<[^>]*>`)
 
 func isWebPort(port int) bool {
 	switch port {
-	case 80, 443, 3000, 5000, 5001, 5055, 6767, 7878, 8000, 8006, 8080,
-		8081, 8090, 8096, 8123, 8384, 8443, 8686, 8888, 8989, 9000, 9090,
-		9443, 9696, 32400:
+	case 80, 443, 3000, 5000, 5001, 5055, 6767, 7878, 8000, 8006, 8008,
+		8080, 8081, 8090, 8096, 8123, 8384, 8443, 8686, 8888, 8989, 9000,
+		9090, 9443, 9696, 32400:
 		return true
 	}
 	return false
@@ -28,7 +28,7 @@ func isWebPort(port int) bool {
 
 func isTLSPort(port int) bool {
 	switch port {
-	case 443, 8006, 8443, 9443:
+	case 443, 8006, 8443, 8883, 9443:
 		return true
 	}
 	return false
