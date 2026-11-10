@@ -592,6 +592,16 @@ button:focus-visible {
   transform: none;
 }
 
+.panel.docked {
+  top: 88px;
+  right: 0;
+  bottom: 0;
+  border-radius: 16px 0 0 0;
+  border-right: 0;
+  border-bottom: 0;
+  box-shadow: -24px 0 80px var(--theme-panel-shadow);
+}
+
 .panel::-webkit-scrollbar {
   width: 6px;
 }
@@ -601,10 +611,21 @@ button:focus-visible {
   background: var(--theme-line-scroll);
 }
 
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.panel-tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  margin: -7px -7px 0 0;
+}
+
 .panel-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -620,10 +641,58 @@ button:focus-visible {
   color: var(--theme-close-hover-text);
 }
 
+.panel-dock {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--theme-line-soft);
+  border-radius: 999px;
+  color: var(--theme-muted);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.panel-dock:hover {
+  background: var(--theme-close-hover);
+  color: var(--theme-close-hover-text);
+}
+
+.panel-dock[aria-pressed="true"] {
+  border-color: var(--theme-accent-line);
+  background: var(--theme-accent-wash);
+  color: var(--accent);
+}
+
+.panel-dock-icon {
+  position: relative;
+  width: 12px;
+  height: 10px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+}
+
+.panel-dock-icon::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
+  border-left: 1px solid currentColor;
+  content: "";
+}
+
 .panel-kicker {
   display: flex;
+  flex: 1;
+  flex-wrap: wrap;
   align-items: center;
   gap: 7px;
+  min-width: 0;
   color: var(--muted);
   font-size: 9.5px;
   letter-spacing: 0.16em;
@@ -987,6 +1056,12 @@ button:focus-visible {
 }
 
 /* Responsive */
+
+@media (min-width: 1100px) {
+  .panel-dock {
+    display: inline-flex;
+  }
+}
 
 @media (max-width: 1260px) {
   .stats {

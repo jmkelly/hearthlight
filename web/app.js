@@ -4,6 +4,7 @@
   const TAU = Math.PI * 2;
   const SERVICE_R = 8.5;
   const SERVICE_GLYPH_ZOOM = 1.1;
+  const DOCK_MIN_WIDTH = 1100;
   const FONT = '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
   const MONO = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
 
@@ -263,6 +264,7 @@
     height: window.innerHeight,
     dpr: Math.min(window.devicePixelRatio || 1, 2),
     chromeTop: 94,
+    insetRight: 0,
   };
 
   const view = {
@@ -276,6 +278,7 @@
     selectedServiceId: null,
     showOffline: true,
     showTailnet: true,
+    dockDetails: false,
     tailnetPresent: false,
     territories: null,
     territoryVersion: 0,
@@ -306,6 +309,9 @@
     if (window.localStorage.getItem("hearthlight.tailnet") === "0") {
       view.showTailnet = false;
     }
+    if (window.localStorage.getItem("hearthlight.dock") === "1") {
+      view.dockDetails = true;
+    }
   } catch (_error) {
     // Private browsing can disable localStorage; history stays on.
   }
@@ -319,29 +325,48 @@
     return Boolean(device.online) || view.showOffline;
   }
 
+  function dockEnabled() {
+    return view.dockDetails && size.width >= DOCK_MIN_WIDTH;
+  }
+
+  function dockedOpen() {
+    return dockEnabled() && panel.classList.contains("open");
+  }
+
+  function syncPanelDock() {
+    panel.classList.toggle("docked", dockEnabled());
+  }
+
+  function updateMapInset() {
+    size.insetRight = dockedOpen() ? panel.getBoundingClientRect().width : 0;
+  }
+
   function resize() {
     size.width = window.innerWidth;
     size.height = window.innerHeight;
     size.dpr = Math.min(window.devicePixelRatio || 1, 2);
     const topbar = document.querySelector(".topbar");
     size.chromeTop = topbar ? topbar.getBoundingClientRect().bottom + 10 : 94;
+    syncPanelDock();
+    updateMapInset();
     canvas.width = Math.round(size.width * size.dpr);
     canvas.height = Math.round(size.height * size.dpr);
     if (view.snapshot && !view.userAdjusted) {
       fitView(false);
     }
+    ensureSelectedVisible();
   }
 
   function worldToScreen(x, y) {
     return {
-      x: (x - view.camera.x) * view.camera.zoom + size.width / 2,
+      x: (x - view.camera.x) * view.camera.zoom + (size.width - size.insetRight) / 2,
       y: (y - view.camera.y) * view.camera.zoom + size.height / 2,
     };
   }
 
   function screenToWorld(x, y) {
     return {
-      x: (x - size.width / 2) / view.camera.zoom + view.camera.x,
+      x: (x - (size.width - size.insetRight) / 2) / view.camera.zoom + view.camera.x,
       y: (y - size.height / 2) / view.camera.zoom + view.camera.y,
     };
   }
@@ -388,11 +413,12 @@
 
     const width = Math.max(1, maxX - minX);
     const height = Math.max(1, maxY - minY);
+    const viewportWidth = Math.max(1, size.width - size.insetRight);
     const narrow = size.width < 700;
     const horizontalPad = narrow ? 26 : 90;
     const verticalPad = narrow ? Math.max(260, size.chromeTop + 150) : 230;
     const zoom = clamp(
-      Math.min((size.width - horizontalPad) / width, (size.height - verticalPad) / height),
+      Math.min((viewportWidth - horizontalPad) / width, (size.height - verticalPad) / height),
       narrow ? 0.2 : 0.28,
       1.55,
     );
@@ -408,6 +434,7 @@
       view.target = null;
     }
     view.userAdjusted = false;
+    ensureSelectedVisible();
   }
 
   function updateCamera(dt) {
@@ -978,7 +1005,7 @@
 
   function renderTerritoryLayer() {
     const signature = [
-      size.width, size.height, view.camera.x.toFixed(2), view.camera.y.toFixed(2),
+      size.width, size.height, size.insetRight, view.camera.x.toFixed(2), view.camera.y.toFixed(2),
       view.camera.zoom.toFixed(4), view.territoryVersion, view.tailnetPresent, view.showTailnet,
     ].join("|");
     if (view.territoryLayer && view.territorySig === signature) return view.territoryLayer;
@@ -1562,18 +1589,121 @@
     `;
   }
 
+  // The panel covers part of the canvas. Keep the selected bubble and its
+  // label inside the map area that remains visible.
+  function uncoveredMapRect() {
+    const rect = {
+      left: 12,
+      top: size.chromeTop + 12,
+      right: size.width - 12,
+      bottom: size.height - 12,
+    };
+    if (!panel.classList.contains("open")) return rect;
+    const box = panel.getBoundingClientRect();
+    if (box.width >= size.width * 0.8) {
+      rect.bottom = Math.min(rect.bottom, box.top - 12);
+    } else {
+      rect.right = Math.min(rect.right, box.left - 12);
+    }
+    return rect;
+  }
+
+  function focusTarget(x, y, zoom) {
+    const rect = uncoveredMapRect();
+    const focusX = (rect.left + rect.right) / 2;
+    const focusY = rect.bottom < size.height - 12 ? (rect.top + rect.bottom) / 2 : size.height / 2;
+    const viewportX = (size.width - size.insetRight) / 2;
+    const viewportY = size.height / 2;
+    return {
+      x: x - (focusX - viewportX) / zoom,
+      y: y - (focusY - viewportY) / zoom,
+      zoom,
+    };
+  }
+
+  function ensureSelectedVisible() {
+    if (!view.selectedDeviceId) return;
+    const node = view.nodes.get(view.selectedDeviceId);
+    if (!node) return;
+    const rect = uncoveredMapRect();
+    const camera = view.target || view.camera;
+    const zoom = camera.zoom;
+    const point = {
+      x: (node.x - camera.x) * zoom + (size.width - size.insetRight) / 2,
+      y: (node.y - camera.y) * zoom + size.height / 2,
+    };
+    const radius = node.baseR * zoom;
+    const fontSize = Math.max(9.5, 13 * zoom);
+    const subSize = Math.max(8.5, 10.5 * zoom);
+    const device = node.data;
+    const reach = deviceReach(device);
+    ctx.save();
+    ctx.font = `600 ${fontSize}px ${FONT}`;
+    const labelWidth = ctx.measureText(truncate(device.hostname || device.ip, 24)).width;
+    ctx.restore();
+    const labelBottom = radius + 8 * zoom + 3 + fontSize +
+      (device.online ? 0 : subSize + 3) +
+      (view.tailnetPresent && hasTailnet(device) && (reach === "tailnet" || device.self) ? subSize + 3 : 0) +
+      (zoom > 1.25 && reach !== "tailnet" ? subSize + 3 : 0) + 10;
+    const halfWidth = Math.min(
+      Math.max(radius + 10, labelWidth / 2 + 10),
+      Math.max(1, (rect.right - rect.left) / 2),
+    );
+    const minX = rect.left + halfWidth;
+    const maxX = rect.right - halfWidth;
+    const minY = rect.top + radius + 10;
+    const maxY = rect.bottom - labelBottom;
+    let dx = 0;
+    let dy = 0;
+    if (point.x < minX) dx = minX - point.x;
+    else if (point.x > maxX) dx = maxX - point.x;
+    if (point.y < minY) dy = minY - point.y;
+    else if (point.y > maxY) dy = maxY - point.y;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+    view.target = {
+      x: camera.x - dx / zoom,
+      y: camera.y - dy / zoom,
+      zoom,
+    };
+    view.userAdjusted = true;
+  }
+
+  function setDockDetails(docked) {
+    view.dockDetails = docked;
+    try {
+      window.localStorage.setItem("hearthlight.dock", docked ? "1" : "0");
+    } catch (_error) {
+      // Storage is optional.
+    }
+    const toggle = panel.querySelector(".panel-dock");
+    if (toggle) {
+      toggle.setAttribute("aria-pressed", String(docked));
+      toggle.title = docked ? "Show details as an overlay" : "Dock details on wide screens";
+    }
+    resize();
+    showToast(docked ? "Details docked" : "Details overlay");
+  }
+
   function openPanel(deviceId) {
     view.selectedDeviceId = deviceId;
     renderPanel();
+    syncPanelDock();
+    panel.inert = false;
     panel.classList.add("open");
     panel.setAttribute("aria-hidden", "false");
+    updateMapInset();
+    ensureSelectedVisible();
   }
 
   function closePanel() {
+    const hadFocus = panel.contains(document.activeElement);
     view.selectedDeviceId = null;
     view.selectedServiceId = null;
+    panel.inert = true;
     panel.classList.remove("open");
     panel.setAttribute("aria-hidden", "true");
+    updateMapInset();
+    if (hadFocus && panel.contains(document.activeElement)) document.activeElement.blur();
   }
 
   function selectedDevice() {
@@ -1640,11 +1770,18 @@
     meta.push(`<div><dt>Last seen</dt><dd>${escapeHTML(relativeTime(device.lastSeen))}</dd></div>`);
 
     panel.innerHTML = `
-      <button class="panel-close" type="button" aria-label="Close details">×</button>
-      <div class="panel-kicker">
-        <span class="status-dot ${device.online ? "on" : "off"}"></span>
-        <canvas class="panel-kind" aria-hidden="true"></canvas>
-        ${device.online ? "online" : "history"} · <span class="panel-kind-label" style="--c:${kind.color}">${escapeHTML(kind.label)}</span>${view.tailnetPresent ? ` · ${escapeHTML(reachLabel(reach))}` : ""}
+      <div class="panel-head">
+        <div class="panel-kicker">
+          <span class="status-dot ${device.online ? "on" : "off"}"></span>
+          <canvas class="panel-kind" aria-hidden="true"></canvas>
+          ${device.online ? "online" : "history"} · <span class="panel-kind-label" style="--c:${kind.color}">${escapeHTML(kind.label)}</span>${view.tailnetPresent ? ` · ${escapeHTML(reachLabel(reach))}` : ""}
+        </div>
+        <div class="panel-tools">
+          <button class="panel-dock" type="button" aria-pressed="${view.dockDetails}" title="${view.dockDetails ? "Show details as an overlay" : "Dock details on wide screens"}">
+            <span class="panel-dock-icon" aria-hidden="true"></span>dock details
+          </button>
+          <button class="panel-close" type="button" aria-label="Close details">×</button>
+        </div>
       </div>
       <h2>${escapeHTML(device.hostname || device.ip)}</h2>
       <p class="ip">${escapeHTML(device.ip)}${device.self ? " · this host" : ""}</p>
@@ -2754,11 +2891,11 @@
     }
     const target = node.type === "service" ? view.nodes.get(node.parentId) : node;
     if (!target) return;
-    view.target = {
-      x: target.x,
-      y: target.y,
-      zoom: clamp(Math.max(view.camera.zoom, 1.65), 0.2, 3.2),
-    };
+    view.target = focusTarget(
+      target.x,
+      target.y,
+      clamp(Math.max(view.camera.zoom, 1.65), 0.2, 3.2),
+    );
     view.userAdjusted = true;
   });
 
@@ -2803,16 +2940,20 @@
   }
 
   document.getElementById("zoomIn").addEventListener("click", () => {
-    zoomAt(size.width / 2, size.height / 2, 1.25);
+    zoomAt((size.width - size.insetRight) / 2, size.height / 2, 1.25);
   });
   document.getElementById("zoomOut").addEventListener("click", () => {
-    zoomAt(size.width / 2, size.height / 2, 1 / 1.25);
+    zoomAt((size.width - size.insetRight) / 2, size.height / 2, 1 / 1.25);
   });
   document.getElementById("fitBtn").addEventListener("click", () => {
     fitView(true);
   });
 
   panel.addEventListener("click", (event) => {
+    if (event.target.closest(".panel-dock")) {
+      setDockDetails(!view.dockDetails);
+      return;
+    }
     if (event.target.closest(".panel-close")) {
       closePanel();
       return;
@@ -2823,11 +2964,7 @@
     view.selectedServiceId = serviceId;
     const node = view.nodes.get(serviceId);
     if (node) {
-      view.target = {
-        x: node.x,
-        y: node.y,
-        zoom: Math.max(view.camera.zoom, 1.45),
-      };
+      view.target = focusTarget(node.x, node.y, Math.max(view.camera.zoom, 1.45));
       view.userAdjusted = true;
     }
     renderPanel();
@@ -2841,11 +2978,11 @@
       return;
     }
     if (event.key === "+" || event.key === "=") {
-      zoomAt(size.width / 2, size.height / 2, 1.25);
+      zoomAt((size.width - size.insetRight) / 2, size.height / 2, 1.25);
       return;
     }
     if (event.key === "-" || event.key === "_") {
-      zoomAt(size.width / 2, size.height / 2, 1 / 1.25);
+      zoomAt((size.width - size.insetRight) / 2, size.height / 2, 1 / 1.25);
       return;
     }
     if (event.key === "0" || event.key.toLowerCase() === "f") {
