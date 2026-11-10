@@ -113,6 +113,12 @@
     if (hours < 48) return `${hours}h ago`;
     return `${Math.round(hours / 24)}d ago`;
   };
+  // Map labels stay short, so seconds collapse into "just now".
+  const shortRelativeTime = (value) =>
+    (validTime(value) && Date.now() - Date.parse(value) < 60000 ? "just now" : relativeTime(value));
+  // Formatted during each draw, so the text stays current between scans.
+  const lastSeenLabel = (device) =>
+    (validTime(device.lastSeen) ? `last seen ${shortRelativeTime(device.lastSeen)}` : "history");
 
   const canvas = document.getElementById("map");
   const ctx = canvas.getContext("2d");
@@ -945,6 +951,12 @@
     ctx.font = `600 ${fontSize}px ${FONT}`;
     let width = ctx.measureText(name).width;
     let height = fontSize + 2;
+    if (!device.online) {
+      const subSize = Math.max(8.5, 10.5 * zoom);
+      ctx.font = `500 ${subSize}px ${MONO}`;
+      width = Math.max(width, ctx.measureText(lastSeenLabel(device)).width);
+      height += subSize + 3;
+    }
     if (subline) {
       const subSize = Math.max(8.5, 10.5 * zoom);
       ctx.font = `500 ${subSize}px ${MONO}`;
@@ -1954,6 +1966,15 @@
       : "";
     let subY = textY + fontSize + 3;
     const subSize = Math.max(8.5, 10.5 * zoom);
+    if (!active) {
+      ctx.globalAlpha = labelAlpha * historicAlpha;
+      ctx.font = `500 ${subSize}px ${MONO}`;
+      ctx.fillStyle = "#7f8fa6";
+      const lastSeen = lastSeenLabel(device);
+      strokeLabel(lastSeen, point.x, subY, subSize);
+      ctx.fillText(lastSeen, point.x, subY);
+      subY += subSize + 3;
+    }
     if (subline) {
       ctx.globalAlpha = labelAlpha * historicAlpha * smoothstep(0.4, 0.62, zoom);
       ctx.font = `500 ${subSize}px ${MONO}`;
