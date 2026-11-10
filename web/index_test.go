@@ -160,3 +160,149 @@ func TestSettingsMapControlsUseExistingPreferences(t *testing.T) {
 	sync := functionBody(t, js, "syncSettingsControls")
 	requireContains(t, sync, "settingsHistoryBtn", "settingsTailnetBtn")
 }
+
+func arrowBody(t *testing.T, source, name string) string {
+	t.Helper()
+	start := strings.Index(source, "const "+name+" =")
+	if start < 0 {
+		t.Fatalf("missing const %s", name)
+	}
+	open := strings.Index(source[start:], "{")
+	if open < 0 {
+		t.Fatalf("missing body for %s", name)
+	}
+	open += start
+	depth := 0
+	for i := open; i < len(source); i++ {
+		switch source[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return source[open+1 : i]
+			}
+		}
+	}
+	t.Fatalf("unterminated arrow %s", name)
+	return ""
+}
+
+func TestThemeControlSurfaceIsExposed(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-boot.js")
+	api := markupBetween(t, source, "window.HearthlightTheme = Object.freeze({", "});")
+	for _, name := range []string{
+		"STORAGE_KEY",
+		"DEFAULT_THEME",
+		"initialPreference",
+		"resolve",
+		"apply",
+		"persist",
+	} {
+		pattern := regexp.MustCompile(`(?m)^\s*` + name + `,?$`)
+		if !pattern.MatchString(api) {
+			t.Errorf("HearthlightTheme does not expose %s", name)
+		}
+	}
+	requireContains(t, source,
+		`const STORAGE_KEY = "hearthlight.theme.v1";`,
+		`const DEFAULT_THEME = Object.freeze({ family: "hearthlight", mode: "dark" });`,
+	)
+}
+
+func TestThemeResolveCarriesPaletteAndModes(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-boot.js")
+	resolve := arrowBody(t, source, "resolve")
+	requireContains(t, resolve,
+		"family:",
+		"variant:",
+		"requestedMode",
+		"resolvedMode",
+		"fallback",
+		"palette,",
+		"kinds:",
+		"categories:",
+		"effects:",
+	)
+}
+
+func TestThemeQueryOverride(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-boot.js")
+	requireContains(t, source,
+		`const QUERY_MODES = new Set(["dark", "light", "auto"]);`,
+		`new URLSearchParams(window.location.search)`,
+	)
+	query := arrowBody(t, source, "readQueryOverride")
+	requireContains(t, query,
+		`params.get("theme")`,
+		`params.get("mode")`,
+		"findVariantById(theme)",
+		"if (!match) return null;",
+		"if (!QUERY_MODES.has(mode)) return null;",
+		"override.variant = match.variant.id;",
+	)
+	initial := arrowBody(t, source, "initialPreference")
+	requireContains(t, initial, "readPreference()", "queryPreference", "mergePreference(")
+}
+
+func TestThemeQueryOverrideNeverWritesStorage(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-boot.js")
+	if count := strings.Count(source, ".setItem("); count != 1 {
+		t.Fatalf("theme-boot.js writes localStorage from %d places, want persist() only", count)
+	}
+	persist := arrowBody(t, source, "persist")
+	requireContains(t, persist, ".setItem(STORAGE_KEY, JSON.stringify(normalized))")
+	for _, name := range []string{"readPreference", "readQueryOverride", "initialPreference", "resolve", "apply"} {
+		if strings.Contains(arrowBody(t, source, name), ".setItem(") {
+			t.Errorf("%s writes localStorage", name)
+		}
+	}
+}
+
+func TestThemePersistWritesStoredPreference(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-boot.js")
+	persist := arrowBody(t, source, "persist")
+	requireContains(t, persist,
+		"normalizePreference(preference)",
+		"JSON.stringify(normalized)",
+		"update(normalized)",
+	)
+}
+
+func TestThemeControlDispatchesAndListens(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-boot.js")
+	dispatch := arrowBody(t, source, "dispatchTheme")
+	requireContains(t, dispatch,
+		`new CustomEvent("hearthlight:theme"`,
+		"detail: theme",
+		"window.dispatchEvent(",
+	)
+	update := arrowBody(t, source, "update")
+	requireContains(t, update, "apply(resolve(preference))", "dispatchTheme(theme)")
+	requireContains(t, source,
+		`window.addEventListener("storage"`,
+		`if (event.key === STORAGE_KEY || event.key === null) update(initialPreference());`,
+		`lightQuery.addEventListener("change"`,
+		`lightQuery.addListener(`,
+	)
+}
+
+func TestThemeControlAppliesBeforeFirstPaint(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-boot.js")
+	applyCall := strings.Index(source, "apply(resolve(initialPreference()));")
+	storageListener := strings.Index(source, `window.addEventListener("storage"`)
+	exposed := strings.Index(source, "window.HearthlightTheme =")
+	if applyCall < 0 {
+		t.Fatal("theme-boot.js does not resolve and apply the initial theme")
+	}
+	if storageListener < 0 || exposed < 0 || applyCall > storageListener || applyCall > exposed {
+		t.Error("theme-boot.js must apply the initial theme before wiring listeners and exposing the API")
+	}
+	apply := arrowBody(t, source, "apply")
+	requireContains(t, apply,
+		"root.dataset.theme =",
+		"root.dataset.mode =",
+		`setMeta("theme-color"`,
+		`setMeta("color-scheme"`,
+	)
+}
