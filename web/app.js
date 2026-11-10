@@ -278,6 +278,7 @@
   const settingsClose = document.getElementById("settingsClose");
   const settingsHistoryBtn = document.getElementById("settingsHistoryBtn");
   const settingsTailnetBtn = document.getElementById("settingsTailnetBtn");
+  const settingsResetBtn = document.getElementById("settingsResetBtn");
   const conn = document.getElementById("conn");
   const legend = document.getElementById("legend");
   const empty = document.getElementById("empty");
@@ -364,6 +365,22 @@
   // the rest of the automatic layout settles around it.
   function deviceAnchored(node) {
     return Boolean(node.data.pinned) || node.id === view.dragNodeId;
+  }
+
+  // The automatic layout seeds every host from its id, then physics settles
+  // the cluster. Reset reuses the same seed so a cleared map returns to the
+  // placement it had before the first pin.
+  function automaticDeviceOrigin(device) {
+    const seed = hashString(device.id);
+    const angle = ((seed % 3600) / 3600) * TAU;
+    const radius = 120 + (seed % 240);
+    const reach = deviceReach(device);
+    const bias = !view.tailnetPresent ? 0 : reach === "local" ? -600 : reach === "tailnet" ? 620 : 0;
+    return {
+      x: Math.cos(angle) * radius * 0.8 + bias,
+      y: Math.sin(angle) * radius * 0.5,
+      seed: (seed % 1000) / 1000,
+    };
   }
 
   function dockEnabled() {
@@ -1414,18 +1431,14 @@
       const savedX = Number.isFinite(device.x) ? device.x : 0;
       const savedY = Number.isFinite(device.y) ? device.y : 0;
       if (!node) {
-        const seed = hashString(device.id);
-        const angle = ((seed % 3600) / 3600) * TAU;
-        const radius = 120 + (seed % 240);
-        const reach = deviceReach(device);
-        const bias = !view.tailnetPresent ? 0 : reach === "local" ? -600 : reach === "tailnet" ? 620 : 0;
+        const origin = automaticDeviceOrigin(device);
         node = {
           id: device.id,
           type: "device",
           data: device,
-          x: device.pinned ? savedX : Math.cos(angle) * radius * 0.8 + bias,
-          y: device.pinned ? savedY : Math.sin(angle) * radius * 0.5,
-          seed: (seed % 1000) / 1000,
+          x: device.pinned ? savedX : origin.x,
+          y: device.pinned ? savedY : origin.y,
+          seed: origin.seed,
           baseR: 30,
           r: 30,
           hover: 0,
@@ -2988,6 +3001,37 @@
     selectNode(node);
   }
 
+  // Reset drops every manual position and replays the automatic seed and
+  // physics pass, then frames the result.
+  function reseedAutomaticLayout() {
+    for (const node of view.nodes.values()) {
+      if (node.type !== "device") continue;
+      const origin = automaticDeviceOrigin(node.data);
+      node.data = { ...node.data, x: 0, y: 0, pinned: false };
+      node.seed = origin.seed;
+      moveDeviceTo(node, origin.x, origin.y);
+    }
+    for (let i = 0; i < 300; i += 1) physicsStep(1 / 60);
+    fitView(true);
+  }
+
+  async function resetLayout() {
+    if (!settingsResetBtn || settingsResetBtn.disabled) return;
+    settingsResetBtn.disabled = true;
+    try {
+      const response = await fetch("/api/layout/reset", { method: "POST" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      clearNodeDrag();
+      reseedAutomaticLayout();
+      closeSettings();
+      showToast("Layout reset");
+    } catch (_error) {
+      showToast("Could not reset layout");
+    } finally {
+      settingsResetBtn.disabled = false;
+    }
+  }
+
   // Moving a device carries its service children, so the orbit ring stays
   // rigid until physics has a chance to settle it around the new centre.
   function moveDeviceTo(node, x, y) {
@@ -3279,6 +3323,7 @@
   settingsTailnetBtn.addEventListener("click", () => {
     setTailnetVisible(!view.showTailnet, false);
   });
+  settingsResetBtn.addEventListener("click", resetLayout);
   settingsDialog.addEventListener("cancel", (event) => {
     event.preventDefault();
     closeSettings();

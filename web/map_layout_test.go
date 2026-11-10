@@ -1,6 +1,9 @@
 package web
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestMapDragWiresNodeDragAndPersistence(t *testing.T) {
 	js := readAccessibilityFile(t, "app.js")
@@ -59,4 +62,49 @@ func TestPinnedDevicesRestoreAndShowPinAffordance(t *testing.T) {
 	requireContains(t, legend, `class="legend-pin"`, ">pinned<")
 	css := readAccessibilityFile(t, "style.css")
 	requireContains(t, cssRule(t, css, ".legend-pin {"), "border: 1.5px solid var(--theme-warning);")
+}
+
+func TestFitViewIncludesPinnedDevices(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	fit := functionBody(t, js, "fitView")
+	requireContains(t, fit, `node.type === "device" && deviceVisible(node.data)`)
+	if strings.Contains(fit, "pinned") {
+		t.Error("fitView filters by pin state; pinned devices must stay inside the visible bounds")
+	}
+}
+
+func TestResetLayoutClearsPinsAndReplaysAutomaticLayout(t *testing.T) {
+	html := readAccessibilityFile(t, "index.html")
+	dialog := markupBetween(t, html, `<dialog id="settingsDialog"`, `</dialog>`)
+	requireContains(t, dialog,
+		`id="settingsResetBtn"`,
+		`>Reset layout<`,
+		"Clear every pinned device and return to the automatic layout",
+	)
+
+	js := readAccessibilityFile(t, "app.js")
+	requireContains(t, js, `settingsResetBtn.addEventListener("click", resetLayout)`)
+	reset := functionBody(t, js, "resetLayout")
+	requireContains(t, reset,
+		`fetch("/api/layout/reset"`,
+		`method: "POST"`,
+		"reseedAutomaticLayout()",
+		"closeSettings()",
+		`showToast("Layout reset")`,
+	)
+
+	reseed := functionBody(t, js, "reseedAutomaticLayout")
+	requireContains(t, reseed,
+		`node.type !== "device"`,
+		"automaticDeviceOrigin(node.data)",
+		"pinned: false",
+		"moveDeviceTo(node, origin.x, origin.y)",
+		"physicsStep(1 / 60)",
+		"fitView(true)",
+	)
+
+	origin := functionBody(t, js, "automaticDeviceOrigin")
+	requireContains(t, origin, "hashString(device.id)", "deviceReach(device)")
+	apply := functionBody(t, js, "applySnapshot")
+	requireContains(t, apply, "automaticDeviceOrigin(device)")
 }
