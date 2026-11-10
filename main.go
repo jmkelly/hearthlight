@@ -76,10 +76,17 @@ func main() {
 		logger.Warn("listening beyond loopback without an API token; anyone who can reach the port can read the network inventory")
 	}
 	scanRequests := make(chan struct{}, 1)
+	var st *store.Store
+	var layout api.LayoutStore
+	if !*demoMode {
+		st = loadState(*dataPath, logger)
+		layout = st
+	}
 	app := api.New(scanRequests, api.Config{
 		Logger:       logger,
 		Token:        tokenValue,
 		AllowedHosts: allowedHosts,
+		Layout:       layout,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -93,7 +100,6 @@ func main() {
 			})
 		}
 	} else {
-		st := loadState(*dataPath, logger)
 		app.SetSnapshot(st.Snapshot(store.SnapshotOptions{Now: time.Now(), Interval: *interval}))
 
 		scanner, err := discovery.New(discovery.Config{

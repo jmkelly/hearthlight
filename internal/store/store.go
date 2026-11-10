@@ -22,6 +22,10 @@ import (
 // only have been observed on the LAN, so they migrate to local=true.
 const stateVersion = 2
 
+// ErrUnknownDevice reports a position update for an id the store has never
+// observed. Callers can test it with errors.Is.
+var ErrUnknownDevice = errors.New("unknown device")
+
 // Store is safe for concurrent use.
 type Store struct {
 	mu       sync.Mutex
@@ -624,7 +628,7 @@ func (s *Store) SetDevicePosition(id string, x, y float64) error {
 
 	rec := s.devices[id]
 	if rec == nil {
-		return fmt.Errorf("set device position: unknown device %q", id)
+		return fmt.Errorf("set device position: %w %q", ErrUnknownDevice, id)
 	}
 	rec.X = x
 	rec.Y = y

@@ -8,12 +8,15 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/jmkelly/hearthlight/internal/model"
+	"github.com/jmkelly/hearthlight/internal/store"
 	"github.com/jmkelly/hearthlight/web"
 )
 
@@ -187,6 +190,220 @@ func TestScanRequiresSameOrigin(t *testing.T) {
 				t.Fatalf("scan queued = %v, want %v", queued, tc.queued)
 			}
 		})
+	}
+}
+
+func layoutDevice(ip, mac string) model.Device {
+	return model.Device{IP: ip, MAC: mac}
+}
+
+func newLayoutTestHandler(t *testing.T, devices ...model.Device) (http.Handler, *App, string) {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "state.json")
+	st, err := store.Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Date(2026, 11, 10, 12, 0, 0, 0, time.UTC)
+	if len(devices) > 0 {
+		if err := st.Apply(devices, now, nil); err != nil {
+			t.Fatal(err)
+		}
+	}
+	app := New(nil, Config{
+		Logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+		Layout: st,
+	})
+	app.SetSnapshot(st.Snapshot(store.SnapshotOptions{Now: now, Interval: time.Minute}))
+	return app.Handler(web.Files), app, path
+}
+
+func doPositionRequest(handler http.Handler, target, contentType, body string, headers map[string]string) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(http.MethodPost, target, strings.NewReader(body))
+	req.Host = "127.0.0.1:8090"
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	return rec
+}
+
+func deviceFromStore(t *testing.T, path, id string) model.Device {
+	t.Helper()
+	st, err := store.Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snap := st.Snapshot(store.SnapshotOptions{Now: time.Now(), Interval: time.Minute})
+	for _, d := range snap.Devices {
+		if d.ID == id {
+			return d
+		}
+	}
+	t.Fatalf("device %s missing from reloaded store", id)
+	return model.Device{}
+}
+
+func deviceFromApp(app *App, id string) model.Device {
+	for _, d := range app.Snapshot().Devices {
+		if d.ID == id {
+			return d
+		}
+	}
+	return model.Device{}
+}
+
+func TestDevicePositionAcceptsJSONAndForm(t *testing.T) {
+	const id = "mac:aa:bb:cc:dd:ee:01"
+	cases := []struct {
+		name        string
+		contentType string
+		body        string
+		x, y        float64
+	}{
+		{"json", "application/json", `{"x":12.5,"y":-7.25}`, 12.5, -7.25},
+		{"json without content type", "", `{"x":3,"y":4}`, 3, 4},
+		{"form", "application/x-www-form-urlencoded", "x=5.5&y=-6", 5.5, -6},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			handler, app, path := newLayoutTestHandler(t, layoutDevice("192.0.2.20", "aa:bb:cc:dd:ee:01"))
+			rec := doPositionRequest(handler, "/api/devices/"+id+"/position", tc.contentType, tc.body, nil)
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, want %d: %s", rec.Code, http.StatusOK, rec.Body)
+			}
+
+			stored := deviceFromStore(t, path, id)
+			if !stored.Pinned || stored.X != tc.x || stored.Y != tc.y {
+				t.Fatalf("stored position = (%v, %v) pinned=%v, want (%v, %v) pinned", stored.X, stored.Y, stored.Pinned, tc.x, tc.y)
+			}
+			published := deviceFromApp(app, id)
+			if !published.Pinned || published.X != tc.x || published.Y != tc.y {
+				t.Fatalf("published position = (%v, %v) pinned=%v, want (%v, %v) pinned", published.X, published.Y, published.Pinned, tc.x, tc.y)
+			}
+		})
+	}
+}
+
+func TestDevicePositionUnknownDeviceReturns404(t *testing.T) {
+	handler, app, path := newLayoutTestHandler(t, layoutDevice("192.0.2.20", "aa:bb:cc:dd:ee:01"))
+	rec := doPositionRequest(handler, "/api/devices/mac:aa:bb:cc:dd:ee:99/position", "application/json", `{"x":1,"y":2}`, nil)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d: %s", rec.Code, http.StatusNotFound, rec.Body)
+	}
+	stored := deviceFromStore(t, path, "mac:aa:bb:cc:dd:ee:01")
+	if stored.Pinned {
+		t.Fatal("store mutated after an unknown device")
+	}
+	if published := deviceFromApp(app, "mac:aa:bb:cc:dd:ee:01"); published.Pinned {
+		t.Fatal("published snapshot mutated after an unknown device")
+	}
+}
+
+func TestDevicePositionRejectsInvalidCoordinates(t *testing.T) {
+	const id = "mac:aa:bb:cc:dd:ee:01"
+	cases := []struct {
+		name        string
+		contentType string
+		body        string
+	}{
+		{"nan form", "application/x-www-form-urlencoded", "x=NaN&y=0"},
+		{"positive infinity form", "application/x-www-form-urlencoded", "x=Inf&y=0"},
+		{"negative infinity form", "application/x-www-form-urlencoded", "y=-Inf&x=0"},
+		{"out of bounds x", "application/json", `{"x":1000001,"y":0}`},
+		{"out of bounds negative y", "application/json", `{"x":0,"y":-1000001}`},
+		{"missing y", "application/json", `{"x":1}`},
+		{"missing x", "application/json", `{"y":1}`},
+		{"string coordinate", "application/json", `{"x":"1","y":2}`},
+		{"trailing json", "application/json", `{"x":1,"y":2}{"x":3,"y":4}`},
+		{"overflowing number", "application/json", `{"x":1e999,"y":0}`},
+		{"malformed json", "application/json", `{`},
+		{"empty form", "application/x-www-form-urlencoded", ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			handler, app, path := newLayoutTestHandler(t, layoutDevice("192.0.2.20", "aa:bb:cc:dd:ee:01"))
+			rec := doPositionRequest(handler, "/api/devices/"+id+"/position", tc.contentType, tc.body, nil)
+			if rec.Code != http.StatusBadRequest {
+				t.Fatalf("status = %d, want %d: %s", rec.Code, http.StatusBadRequest, rec.Body)
+			}
+			stored := deviceFromStore(t, path, id)
+			if stored.Pinned || stored.X != 0 || stored.Y != 0 {
+				t.Fatalf("store mutated on invalid input: (%v, %v) pinned=%v", stored.X, stored.Y, stored.Pinned)
+			}
+			published := deviceFromApp(app, id)
+			if published.Pinned || published.X != 0 || published.Y != 0 {
+				t.Fatalf("snapshot mutated on invalid input: (%v, %v) pinned=%v", published.X, published.Y, published.Pinned)
+			}
+		})
+	}
+}
+
+func TestLayoutEndpointsRequireSameOrigin(t *testing.T) {
+	const id = "mac:aa:bb:cc:dd:ee:01"
+	cases := []struct {
+		name    string
+		headers map[string]string
+	}{
+		{"cross-origin", map[string]string{"Origin": "https://evil.example"}},
+		{"cross-site fetch", map[string]string{"Sec-Fetch-Site": "cross-site"}},
+		{"origin host mismatch", map[string]string{"Origin": "http://127.0.0.1:9999"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			handler, app, path := newLayoutTestHandler(t, layoutDevice("192.0.2.20", "aa:bb:cc:dd:ee:01"))
+			rec := doPositionRequest(handler, "/api/devices/"+id+"/position", "application/json", `{"x":1,"y":2}`, tc.headers)
+			if rec.Code != http.StatusForbidden {
+				t.Fatalf("position status = %d, want %d: %s", rec.Code, http.StatusForbidden, rec.Body)
+			}
+			rec = doPositionRequest(handler, "/api/layout/reset", "", "", tc.headers)
+			if rec.Code != http.StatusForbidden {
+				t.Fatalf("reset status = %d, want %d: %s", rec.Code, http.StatusForbidden, rec.Body)
+			}
+			stored := deviceFromStore(t, path, id)
+			if stored.Pinned {
+				t.Fatal("store mutated by a cross-origin request")
+			}
+			if published := deviceFromApp(app, id); published.Pinned {
+				t.Fatal("snapshot mutated by a cross-origin request")
+			}
+		})
+	}
+}
+
+func TestResetLayoutClearsEveryPin(t *testing.T) {
+	devices := []model.Device{
+		layoutDevice("192.0.2.20", "aa:bb:cc:dd:ee:01"),
+		layoutDevice("192.0.2.21", "aa:bb:cc:dd:ee:02"),
+	}
+	handler, app, path := newLayoutTestHandler(t, devices...)
+	for i, d := range devices {
+		id := "mac:" + d.MAC
+		rec := doPositionRequest(handler, "/api/devices/"+id+"/position", "application/json",
+			`{"x":`+strconv.Itoa(i+1)+`,"y":`+strconv.Itoa(i+2)+`}`, nil)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("pin %s status = %d, want %d: %s", id, rec.Code, http.StatusOK, rec.Body)
+		}
+	}
+
+	rec := doPositionRequest(handler, "/api/layout/reset", "", "", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("reset status = %d, want %d: %s", rec.Code, http.StatusOK, rec.Body)
+	}
+	for _, d := range devices {
+		id := "mac:" + d.MAC
+		stored := deviceFromStore(t, path, id)
+		if stored.Pinned || stored.X != 0 || stored.Y != 0 {
+			t.Fatalf("%s still has position (%v, %v) pinned=%v", id, stored.X, stored.Y, stored.Pinned)
+		}
+		published := deviceFromApp(app, id)
+		if published.Pinned || published.X != 0 || published.Y != 0 {
+			t.Fatalf("%s still has published position (%v, %v) pinned=%v", id, published.X, published.Y, published.Pinned)
+		}
 	}
 }
 
