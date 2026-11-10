@@ -5,6 +5,7 @@
   const DEFAULT_THEME = Object.freeze({ family: "hearthlight", mode: "dark" });
   const AUTO_MODES = new Set(["auto", "system"]);
   const MODES = new Set(["dark", "light"]);
+  const QUERY_MODES = new Set(["dark", "light", "auto"]);
 
   const root = document.documentElement;
   const lightQuery = window.matchMedia("(prefers-color-scheme: light)");
@@ -21,6 +22,41 @@
     return family.variants.find((variant) => variant && variant.mode === mode) || null;
   };
 
+  const findVariantById = (id) => {
+    if (typeof id !== "string" || !id) return null;
+    for (const family of families) {
+      if (!family || !Array.isArray(family.variants)) continue;
+      const variant = family.variants.find((candidate) => candidate && candidate.id === id);
+      if (variant) return { family, variant };
+    }
+    return null;
+  };
+
+  const firstVariant = (family) => {
+    if (!family || !Array.isArray(family.variants)) return null;
+    return family.variants.find((variant) => variant && typeof variant === "object") || null;
+  };
+
+  const normalizePreference = (preference) => {
+    if (!preference || typeof preference !== "object" || Array.isArray(preference)) {
+      return { ...DEFAULT_THEME };
+    }
+    let family =
+      typeof preference.family === "string" && findFamily(preference.family)
+        ? preference.family
+        : null;
+    if (!family && typeof preference.variant === "string") {
+      const match = findVariantById(preference.variant);
+      if (match) family = match.family.id;
+    }
+    const mode =
+      typeof preference.mode === "string" &&
+      (MODES.has(preference.mode) || AUTO_MODES.has(preference.mode))
+        ? preference.mode
+        : DEFAULT_THEME.mode;
+    return { family: family || DEFAULT_THEME.family, mode };
+  };
+
   const readPreference = () => {
     let stored = null;
     try {
@@ -28,18 +64,48 @@
     } catch {
       stored = null;
     }
-    if (!stored || typeof stored !== "object" || Array.isArray(stored)) {
-      return { ...DEFAULT_THEME };
+    return normalizePreference(stored);
+  };
+
+  const readQueryOverride = () => {
+    let params;
+    try {
+      params = new URLSearchParams(window.location.search);
+    } catch {
+      return null;
     }
-    const family =
-      typeof stored.family === "string" && findFamily(stored.family)
-        ? stored.family
-        : DEFAULT_THEME.family;
-    const mode =
-      typeof stored.mode === "string" && (MODES.has(stored.mode) || AUTO_MODES.has(stored.mode))
-        ? stored.mode
-        : DEFAULT_THEME.mode;
-    return { family, mode };
+    const theme = params.get("theme");
+    const mode = params.get("mode");
+    if (theme === null && mode === null) return null;
+    const override = {};
+    if (theme !== null) {
+      const match = findVariantById(theme);
+      if (!match) return null;
+      override.family = match.family.id;
+      override.variant = match.variant.id;
+      override.mode = match.variant.mode;
+    }
+    if (mode !== null) {
+      if (!QUERY_MODES.has(mode)) return null;
+      override.mode = mode;
+    }
+    return override;
+  };
+
+  const queryPreference = readQueryOverride();
+
+  const mergePreference = (stored, override) => {
+    if (!override) return { ...stored };
+    const merged = {
+      family: override.family || stored.family,
+      mode: override.mode || stored.mode,
+    };
+    if (override.variant) merged.variant = override.variant;
+    return merged;
+  };
+
+  const initialPreference = () => {
+    return mergePreference(readPreference(), queryPreference);
   };
 
   const resolveMode = (mode) => {
@@ -64,35 +130,99 @@
     if (tag && content) tag.setAttribute("content", content);
   };
 
-  const apply = () => {
-    const preference = readPreference();
-    const family = findFamily(preference.family) || findFamily(DEFAULT_THEME.family);
-    const mode = resolveMode(preference.mode);
-    const variant =
-      findVariant(family, mode) ||
-      findVariant(family, DEFAULT_THEME.mode) ||
-      (family && Array.isArray(family.variants) ? family.variants[0] : null);
+  const resolve = (preference) => {
+    const source = preference && typeof preference === "object" ? preference : initialPreference();
+    const normalized = normalizePreference(source);
+    const requestedMode = normalized.mode;
+    const resolvedMode = resolveMode(requestedMode);
+    let family = findFamily(normalized.family) || findFamily(DEFAULT_THEME.family);
+    const requestedVariant =
+      typeof source.variant === "string" ? findVariantById(source.variant) : null;
+    let variant = requestedVariant ? requestedVariant.variant : null;
+    let fallback = false;
+    if (requestedVariant) {
+      family = requestedVariant.family;
+    } else {
+      variant = findVariant(family, resolvedMode);
+      if (!variant) {
+        variant = findVariant(family, DEFAULT_THEME.mode) || firstVariant(family);
+        fallback = true;
+      }
+      if (typeof source.variant === "string") fallback = true;
+    }
+    if (!family) fallback = true;
     const palette =
       variant && variant.palette && typeof variant.palette === "object" ? variant.palette : null;
-    const familyID = (family && family.id) || DEFAULT_THEME.family;
-    const variantMode = (variant && variant.mode) || DEFAULT_THEME.mode;
-
-    root.dataset.theme = familyID;
-    root.dataset.mode = variantMode;
-    applyPalette(palette);
-    setMeta("theme-color", palette && palette.bg);
-    setMeta("color-scheme", variantMode);
+    return {
+      family: family ? family.id : DEFAULT_THEME.family,
+      variant: variant ? variant.id : null,
+      requestedMode,
+      resolvedMode,
+      fallback,
+      palette,
+      kinds: variant && variant.kinds ? variant.kinds : null,
+      categories: variant && variant.categories ? variant.categories : null,
+      effects: variant && variant.effects ? variant.effects : null,
+    };
   };
 
-  apply();
+  const apply = (theme) => {
+    const resolved =
+      theme && typeof theme === "object" && typeof theme.resolvedMode === "string"
+        ? theme
+        : resolve(theme || initialPreference());
+    const family =
+      typeof resolved.family === "string"
+        ? resolved.family
+        : (resolved.family && resolved.family.id) || DEFAULT_THEME.family;
+    const mode = resolved.resolvedMode || DEFAULT_THEME.mode;
+    root.dataset.theme = family;
+    root.dataset.mode = mode;
+    applyPalette(resolved.palette);
+    setMeta("theme-color", resolved.palette && resolved.palette.bg);
+    setMeta("color-scheme", mode);
+    return resolved;
+  };
+
+  const dispatchTheme = (theme) => {
+    if (typeof window.CustomEvent !== "function") return;
+    window.dispatchEvent(new CustomEvent("hearthlight:theme", { detail: theme }));
+  };
+
+  const update = (preference) => {
+    const theme = apply(resolve(preference));
+    dispatchTheme(theme);
+    return theme;
+  };
+
+  const persist = (preference) => {
+    const normalized = normalizePreference(preference);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    } catch {
+      // Private browsing can disable localStorage; the live theme still applies.
+    }
+    return update(normalized);
+  };
+
+  apply(resolve(initialPreference()));
 
   window.addEventListener("storage", (event) => {
-    if (event.key === STORAGE_KEY || event.key === null) apply();
+    if (event.key === STORAGE_KEY || event.key === null) update(initialPreference());
   });
 
   if (typeof lightQuery.addEventListener === "function") {
-    lightQuery.addEventListener("change", apply);
+    lightQuery.addEventListener("change", () => update(initialPreference()));
   } else if (typeof lightQuery.addListener === "function") {
-    lightQuery.addListener(apply);
+    lightQuery.addListener(() => update(initialPreference()));
   }
+
+  window.HearthlightTheme = Object.freeze({
+    STORAGE_KEY,
+    DEFAULT_THEME,
+    initialPreference,
+    resolve,
+    apply,
+    persist,
+  });
 })();
