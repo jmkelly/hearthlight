@@ -779,11 +779,29 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-.svc-main span {
-  display: block;
+.svc-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 5px;
   margin-top: 2px;
   color: var(--theme-section-label);
   font-size: 10px;
+}
+
+.svc-state {
+  color: var(--theme-muted);
+  white-space: nowrap;
+}
+
+.svc-state::before {
+  content: "·";
+  margin-right: 5px;
+  color: var(--theme-section-label);
+}
+
+.svc-state.on {
+  color: var(--theme-online);
 }
 
 .svc-port {

@@ -119,6 +119,20 @@
   // Formatted during each draw, so the text stays current between scans.
   const lastSeenLabel = (device) =>
     (validTime(device.lastSeen) ? `last seen ${shortRelativeTime(device.lastSeen)}` : "history");
+  const absoluteTime = (value) =>
+    (validTime(value)
+      ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+      : "unknown");
+  // One source for a service row's visible state and its accessible timestamp.
+  const serviceState = (service) => {
+    if (!validTime(service.lastSeen)) {
+      return { label: "history", title: "No recorded last seen", tone: "off" };
+    }
+    if (service.online) {
+      return { label: "active", title: `Active, last seen ${absoluteTime(service.lastSeen)}`, tone: "on" };
+    }
+    return { label: `last seen ${shortRelativeTime(service.lastSeen)}`, title: `Last seen ${absoluteTime(service.lastSeen)}`, tone: "off" };
+  };
 
   const canvas = document.getElementById("map");
   const ctx = canvas.getContext("2d");
@@ -1451,10 +1465,14 @@
     panel.setAttribute("aria-hidden", "true");
   }
 
-  function renderPanel() {
+  function selectedDevice() {
     const snapshot = view.snapshot;
-    if (!snapshot || !view.selectedDeviceId) return;
-    const device = snapshot.devices.find((candidate) => candidate.id === view.selectedDeviceId);
+    if (!snapshot || !view.selectedDeviceId) return null;
+    return snapshot.devices.find((candidate) => candidate.id === view.selectedDeviceId) || null;
+  }
+
+  function renderPanel() {
+    const device = selectedDevice();
     if (!device) return;
     const kind = KIND[device.kind] || KIND.device;
     const reach = deviceReach(device);
@@ -1474,10 +1492,14 @@
         const reachTag = view.tailnetPresent
           ? `<span class="svc-reach ${serviceReach}" title="${escapeHTML(reachLabel(serviceReach))}">${reachShort(serviceReach)}</span>`
           : "";
+        const state = serviceState(service);
         return `
           <li class="service-row ${service.online ? "on" : "off"} ${selected ? "selected" : ""}" data-service-id="${escapeHTML(service.id)}">
             <span class="svc-dot" style="--c:${color}"></span>
-            <span class="svc-main"><strong>${escapeHTML(name)}</strong><span>${escapeHTML(sub)}</span></span>
+            <span class="svc-main">
+              <strong>${escapeHTML(name)}</strong>
+              <span class="svc-sub">${escapeHTML(sub)}<span class="svc-state ${state.tone}" title="${escapeHTML(state.title)}" aria-label="${escapeHTML(state.title)}">${escapeHTML(state.label)}</span></span>
+            </span>
             ${reachTag}
             <span class="svc-port">:${service.port}</span>
           </li>
@@ -1522,6 +1544,24 @@
       ${rows || '<div class="empty-services">No TCP services found on this device.</div>'}
     `;
     renderPanelTraffic();
+  }
+
+  // Keep relative times current without rebuilding the panel and losing scroll.
+  function refreshServiceTimes() {
+    const device = selectedDevice();
+    if (!device || !panel.classList.contains("open")) return;
+    const services = device.services || [];
+    for (const row of panel.querySelectorAll(".service-row")) {
+      const service = services.find((candidate) => candidate.id === row.dataset.serviceId);
+      const node = row.querySelector(".svc-state");
+      if (!service || !node) continue;
+      const state = serviceState(service);
+      node.textContent = state.label;
+      node.title = state.title;
+      node.setAttribute("aria-label", state.title);
+      node.classList.toggle("on", state.tone === "on");
+      node.classList.toggle("off", state.tone === "off");
+    }
   }
 
   function selectNode(node) {
@@ -2687,6 +2727,7 @@
 
   window.addEventListener("resize", resize);
   window.setInterval(updateSubtitle, 1000);
+  window.setInterval(refreshServiceTimes, 15000);
   window.setInterval(() => {
     if (!eventSource || eventSource.readyState !== 1) loadState();
   }, 15000);
