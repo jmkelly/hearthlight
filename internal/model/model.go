@@ -37,6 +37,11 @@ type Device struct {
 	Self      bool      `json:"self"`
 	FirstSeen time.Time `json:"firstSeen"`
 	LastSeen  time.Time `json:"lastSeen"`
+	// X and Y are the manual map position. Pinned is true when the user placed
+	// the device; unpinned devices use the automatic layout.
+	X      float64 `json:"x,omitempty"`
+	Y      float64 `json:"y,omitempty"`
+	Pinned bool    `json:"pinned,omitempty"`
 	// Local and Tailnet are the dual memberships of a host. A device seen only
 	// on the LAN is local, a remote Tailscale peer is tailnet, and a peer that
 	// is also on the scanned LAN is both.

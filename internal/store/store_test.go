@@ -1,6 +1,7 @@
 package store
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -220,6 +221,174 @@ func TestStateRoundTrip(t *testing.T) {
 	}
 	if len(snap.Networks) != 1 || snap.Networks[0] != "192.0.2.0/24" {
 		t.Fatalf("networks not preserved: %v", snap.Networks)
+	}
+}
+
+func TestDevicePositionPersistsAcrossReload(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "state.json")
+	st, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Date(2026, 11, 8, 12, 0, 0, 0, time.UTC)
+	if err := st.Apply([]model.Device{sampleDevice("192.0.2.20", "aa:bb:cc:dd:ee:ff")}, now, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	const id = "mac:aa:bb:cc:dd:ee:ff"
+	if err := st.SetDevicePosition(id, 12.5, -7.25); err != nil {
+		t.Fatal(err)
+	}
+
+	reloaded, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snap := reloaded.Snapshot(SnapshotOptions{Now: now, Interval: time.Minute})
+	if len(snap.Devices) != 1 {
+		t.Fatalf("got %d devices, want 1", len(snap.Devices))
+	}
+	d := snap.Devices[0]
+	if !d.Pinned || d.X != 12.5 || d.Y != -7.25 {
+		t.Fatalf("position = (%v, %v) pinned=%v, want (12.5, -7.25) pinned", d.X, d.Y, d.Pinned)
+	}
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var persisted struct {
+		Devices map[string]struct {
+			X      float64 `json:"x"`
+			Y      float64 `json:"y"`
+			Pinned bool    `json:"pinned"`
+		} `json:"devices"`
+	}
+	if err := json.Unmarshal(raw, &persisted); err != nil {
+		t.Fatal(err)
+	}
+	rec := persisted.Devices[id]
+	if !rec.Pinned || rec.X != 12.5 || rec.Y != -7.25 {
+		t.Fatalf("state file position = (%v, %v) pinned=%v", rec.X, rec.Y, rec.Pinned)
+	}
+
+	wire, err := json.Marshal(d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(wire, &fields); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"x", "y", "pinned"} {
+		if _, ok := fields[name]; !ok {
+			t.Fatalf("snapshot device JSON is missing %q: %s", name, wire)
+		}
+	}
+}
+
+func TestLoadLayoutlessStateLeavesDevicesUnpinned(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "state.json")
+	raw := `{
+	  "version": 2,
+	  "lastScan": "2026-11-08T12:00:00Z",
+	  "devices": {
+	    "ip:192.0.2.5": {
+	      "id": "ip:192.0.2.5",
+	      "ip": "192.0.2.5",
+	      "hostname": "pi-hole",
+	      "lastSeen": "2026-11-08T12:00:00Z",
+	      "local": true
+	    }
+	  }
+	}`
+	if err := os.WriteFile(path, []byte(raw), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	st, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snap := st.Snapshot(SnapshotOptions{Now: time.Date(2026, 11, 8, 12, 1, 0, 0, time.UTC), Interval: time.Minute})
+	if len(snap.Devices) != 1 {
+		t.Fatalf("got %d devices, want 1", len(snap.Devices))
+	}
+	d := snap.Devices[0]
+	if d.Pinned || d.X != 0 || d.Y != 0 {
+		t.Fatalf("layoutless state loaded position = (%v, %v) pinned=%v, want unpinned", d.X, d.Y, d.Pinned)
+	}
+}
+
+func TestSetDevicePositionUnknownIDChangesNothing(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "state.json")
+	st, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Date(2026, 11, 8, 12, 0, 0, 0, time.UTC)
+	if err := st.Apply([]model.Device{sampleDevice("192.0.2.20", "aa:bb:cc:dd:ee:ff")}, now, nil); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := st.SetDevicePosition("mac:aa:bb:cc:dd:ee:99", 4, 5); err == nil {
+		t.Fatal("SetDevicePosition with an unknown id returned no error")
+	}
+
+	after, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(before) != string(after) {
+		t.Fatal("state file changed after an unknown device id")
+	}
+	snap := st.Snapshot(SnapshotOptions{Now: now, Interval: time.Minute})
+	if len(snap.Devices) != 1 {
+		t.Fatalf("got %d devices, want 1", len(snap.Devices))
+	}
+	if d := snap.Devices[0]; d.Pinned || d.X != 0 || d.Y != 0 {
+		t.Fatalf("device changed after an unknown id: position (%v, %v) pinned=%v", d.X, d.Y, d.Pinned)
+	}
+}
+
+func TestClearDevicePositionsUnpinsAndPersists(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "state.json")
+	st, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Date(2026, 11, 8, 12, 0, 0, 0, time.UTC)
+	devices := []model.Device{
+		sampleDevice("192.0.2.20", "aa:bb:cc:dd:ee:01"),
+		sampleDevice("192.0.2.21", "aa:bb:cc:dd:ee:02"),
+	}
+	if err := st.Apply(devices, now, nil); err != nil {
+		t.Fatal(err)
+	}
+	for i, d := range devices {
+		if err := st.SetDevicePosition("mac:"+d.MAC, float64(i+1), float64(i+2)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := st.ClearDevicePositions(); err != nil {
+		t.Fatal(err)
+	}
+
+	reloaded, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snap := reloaded.Snapshot(SnapshotOptions{Now: now, Interval: time.Minute})
+	if len(snap.Devices) != 2 {
+		t.Fatalf("got %d devices, want 2", len(snap.Devices))
+	}
+	for _, d := range snap.Devices {
+		if d.Pinned || d.X != 0 || d.Y != 0 {
+			t.Fatalf("device %s still has position (%v, %v) pinned=%v", d.ID, d.X, d.Y, d.Pinned)
+		}
 	}
 }
 
