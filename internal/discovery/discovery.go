@@ -448,17 +448,17 @@ func classifyDevice(gateway bool, hostname, vendor string, services []model.Serv
 	case vend == "hp" || hasVendor("epson", "brother", "canon") ||
 		hasHost("printer", "epson", "brother", "canon", "laserjet", "officejet", "deskjet"):
 		return "printer"
-	case hasHost("iphone", "ipad", "phone", "android", "pixel", "galaxy"):
+	case hasHost("iphone", "ipad", "phone", "android", "pixel", "galaxy") || has(62078):
 		return "phone"
 	case has(445) || has(2049) || has(5000) || has(5001):
 		return "nas"
 	case has(631):
 		return "printer"
-	case has(32400) || has(8096) || has(554) || has(8009):
+	case has(32400) || has(8096) || has(554) || has(8008) || has(8009):
 		return "media"
 	case hasHost("chromecast", "appletv", "apple-tv", "firetv", "fire-tv", "roku", "sonos", "shield", "tv"):
 		return "media"
-	case has(1883) || has(8123):
+	case has(1883) || has(8123) || has(8883):
 		return "iot"
 	case hasVendor("espressif", "philips hue", "xiaomi", "tuya", "sonoff") ||
 		hasHost("esp_", "esp-", "esp", "yeelink", "yeelight", "hs110", "shelly", "tasmota", "miio", "plug", "bulb", "light", "rako", "rakmodule", "echo", "alexa", "amazon-"):
