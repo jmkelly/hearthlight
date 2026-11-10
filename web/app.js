@@ -366,7 +366,9 @@
   const themeEffect = (name) => {
     const effects = view.theme && view.theme.effects;
     const value = effects && effects[name];
-    return Number.isFinite(value) ? value : 0;
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value) return value;
+    return 0;
   };
 
   const deviceSummaryState = {
@@ -1009,15 +1011,16 @@
 
   function drawTerritoryFill(target, territory, tailnet) {
     const bounds = territory.bounds;
+    const territoryAlpha = themeEffect("territoryAlpha");
     const gradient = target.createLinearGradient(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
     if (tailnet) {
-      gradient.addColorStop(0, rgba(themeColor("accent"), 0.22));
-      gradient.addColorStop(0.5, rgba(themeCategory("media"), 0.14));
-      gradient.addColorStop(1, rgba(themeCategory("remote"), 0.05));
+      gradient.addColorStop(0, rgba(themeColor("accent"), 0.22 * territoryAlpha));
+      gradient.addColorStop(0.5, rgba(themeCategory("media"), 0.14 * territoryAlpha));
+      gradient.addColorStop(1, rgba(themeCategory("remote"), 0.05 * territoryAlpha));
     } else {
-      gradient.addColorStop(0, rgba(themeColor("warning"), 0.24));
-      gradient.addColorStop(0.55, rgba(themeColor("warning"), 0.12));
-      gradient.addColorStop(1, rgba(themeColor("accent"), 0.04));
+      gradient.addColorStop(0, rgba(themeColor("warning"), 0.24 * territoryAlpha));
+      gradient.addColorStop(0.55, rgba(themeColor("warning"), 0.12 * territoryAlpha));
+      gradient.addColorStop(1, rgba(themeColor("accent"), 0.04 * territoryAlpha));
     }
     target.save();
     if (typeof target.filter === "string") target.filter = `blur(${themeEffect("territoryBlur")}px)`;
@@ -1029,8 +1032,8 @@
 
     target.save();
     target.fillStyle = tailnet
-      ? rgba(themeColor("accent"), 0.028)
-      : rgba(themeColor("warning"), 0.022);
+      ? rgba(themeColor("accent"), 0.028 * territoryAlpha)
+      : rgba(themeColor("warning"), 0.022 * territoryAlpha);
     target.beginPath();
     traceLoops(target, territory.loops);
     target.fill("evenodd");
@@ -1042,9 +1045,10 @@
     const to = tailnet.bounds;
     const start = { x: (from.minX + from.maxX) / 2, y: (from.minY + from.maxY) / 2 - 40 };
     const end = { x: (to.minX + to.maxX) / 2, y: (to.minY + to.maxY) / 2 - 30 };
+    const territoryAlpha = themeEffect("territoryAlpha");
     const gradient = target.createLinearGradient(start.x, 0, end.x, 0);
-    gradient.addColorStop(0, rgba(themeColor("accent"), 0.2));
-    gradient.addColorStop(0.55, rgba(themeCategory("media"), 0.13));
+    gradient.addColorStop(0, rgba(themeColor("accent"), 0.2 * territoryAlpha));
+    gradient.addColorStop(0.55, rgba(themeCategory("media"), 0.13 * territoryAlpha));
     gradient.addColorStop(1, rgba(themeColor("accent"), 0));
     target.save();
     if (typeof target.filter === "string") target.filter = `blur(${themeEffect("ribbonBlur")}px)`;
@@ -1090,11 +1094,14 @@
     target.beginPath();
     traceLoops(target, tailnet.loops);
     target.clip("evenodd");
-    target.globalCompositeOperation = "screen";
+    const blend = themeEffect("territoryBlend");
+    target.globalCompositeOperation = typeof blend === "string" && blend ? blend : "source-over";
+    const territoryAlpha = themeEffect("territoryAlpha");
+    const glowStrength = themeEffect("glowStrength");
     if (typeof target.filter === "string") target.filter = `blur(${themeEffect("lensBlur")}px)`;
     const glow = target.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
-    glow.addColorStop(0, rgba(themeColor("ink"), 0.26));
-    glow.addColorStop(0.46, rgba(themeColor("accent"), 0.1));
+    glow.addColorStop(0, rgba(themeColor("ink"), 0.26 * territoryAlpha * glowStrength));
+    glow.addColorStop(0.46, rgba(themeColor("accent"), 0.1 * territoryAlpha * glowStrength));
     glow.addColorStop(1, rgba(themeColor("accent"), 0));
     target.fillStyle = glow;
     target.fillRect(cx - rx * 1.7, cy - ry * 1.7, rx * 3.4, ry * 3.4);
@@ -1105,6 +1112,8 @@
     const signature = [
       size.width, size.height, size.insetRight, view.camera.x.toFixed(2), view.camera.y.toFixed(2),
       view.camera.zoom.toFixed(4), view.territoryVersion, view.tailnetPresent, view.showTailnet,
+      view.theme ? view.theme.variant : "",
+      view.theme ? view.theme.resolvedMode : "",
     ].join("|");
     if (view.territoryLayer && view.territorySig === signature) return view.territoryLayer;
     const pixelWidth = Math.max(1, Math.round(size.width * size.dpr));
@@ -1124,7 +1133,8 @@
       const lan = territories.lan ? screenTerritory(territories.lan) : null;
       const tailnet = territories.tailnet ? screenTerritory(territories.tailnet) : null;
       target.save();
-      target.globalCompositeOperation = "screen";
+      const blend = themeEffect("territoryBlend");
+      target.globalCompositeOperation = typeof blend === "string" && blend ? blend : "source-over";
       if (lan) drawTerritoryFill(target, lan, false);
       if (tailnet) drawTerritoryFill(target, tailnet, true);
       if (lan && tailnet) {
@@ -1144,7 +1154,7 @@
     ctx.lineWidth = 1.2;
     ctx.strokeStyle = color;
     ctx.shadowColor = glow;
-    ctx.shadowBlur = 9;
+    ctx.shadowBlur = 9 * themeEffect("glowStrength") * themeEffect("shadowStrength");
     ctx.beginPath();
     traceLoops(ctx, territory.loops);
     ctx.stroke();
@@ -2607,8 +2617,9 @@
   }
 
   function strokeLabel(text, x, y, fontSize) {
-    ctx.lineWidth = Math.max(3, fontSize * 0.28);
-    ctx.strokeStyle = rgba(themeColor("canvasBottom"), 0.86);
+    const halo = themeEffect("labelHalo");
+    ctx.lineWidth = Math.max(3, fontSize * 0.28) * halo;
+    ctx.strokeStyle = rgba(themeColor("labelHalo"), 0.86 * halo);
     ctx.lineJoin = "round";
     ctx.strokeText(text, x, y);
   }
@@ -2652,7 +2663,7 @@
     const color = themeKind(device.kind).color;
     const active = device.online;
     const reach = deviceReach(device);
-    const glowStrength = themeEffect("deviceGlow");
+    const glowStrength = themeEffect("deviceGlow") * themeEffect("glowStrength");
 
     if (active) {
       const glow = ctx.createRadialGradient(
@@ -2843,7 +2854,7 @@
         point.y,
         radius * 3,
       );
-      glow.addColorStop(0, rgba(color, themeEffect("serviceGlow")));
+      glow.addColorStop(0, rgba(color, themeEffect("serviceGlow") * themeEffect("glowStrength")));
       glow.addColorStop(1, rgba(color, 0));
       ctx.fillStyle = glow;
       ctx.beginPath();
@@ -2970,7 +2981,8 @@
     if (tailnetShown() && view.territories) {
       const layer = renderTerritoryLayer();
       ctx.save();
-      ctx.globalCompositeOperation = "screen";
+      const blend = themeEffect("territoryBlend");
+      ctx.globalCompositeOperation = typeof blend === "string" && blend ? blend : "source-over";
       ctx.drawImage(layer, 0, 0, size.width, size.height);
       ctx.restore();
       drawTerritoryBoundaries();

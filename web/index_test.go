@@ -495,3 +495,39 @@ func TestCanvasEffectsComeFromTheme(t *testing.T) {
 	requireContains(t, functionBody(t, js, "drawDevice"), `themeEffect("deviceGlow")`, `themeEffect("devicePulse")`)
 	requireContains(t, functionBody(t, js, "drawService"), `themeEffect("serviceGlow")`)
 }
+
+func TestCanvasTerritoryCompositingReadsTheme(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	layer := functionBody(t, js, "renderTerritoryLayer")
+	requireContains(t, layer,
+		`themeEffect("territoryBlend")`,
+		`view.theme.variant`,
+		`view.theme.resolvedMode`,
+	)
+	for _, name := range []string{"drawTerritoryFill", "drawAuroraRibbon", "drawOverlapLens"} {
+		requireContains(t, functionBody(t, js, name), `themeEffect("territoryAlpha")`)
+	}
+	requireContains(t, functionBody(t, js, "drawOverlapLens"),
+		`themeEffect("territoryBlend")`,
+		`themeEffect("glowStrength")`,
+	)
+	requireContains(t, functionBody(t, js, "drawBoundary"),
+		`themeEffect("glowStrength")`,
+		`themeEffect("shadowStrength")`,
+	)
+	requireContains(t, functionBody(t, js, "strokeLabel"),
+		`themeColor("labelHalo")`,
+		`themeEffect("labelHalo")`,
+	)
+	requireContains(t, functionBody(t, js, "drawDevice"), `themeEffect("glowStrength")`)
+	requireContains(t, functionBody(t, js, "drawService"), `themeEffect("glowStrength")`)
+	requireContains(t, functionBody(t, js, "draw"), `themeEffect("territoryBlend")`)
+	if strings.Contains(js, `globalCompositeOperation = "screen"`) {
+		t.Error("app.js hard-codes screen compositing instead of reading the territory blend token")
+	}
+}
+
+func TestCanvasGridReadsThemeToken(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	requireContains(t, functionBody(t, js, "drawBackground"), `themeColor("grid")`)
+}
