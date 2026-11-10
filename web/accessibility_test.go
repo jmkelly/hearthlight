@@ -167,3 +167,88 @@ func TestDeviceListStaysFindableAndHidden(t *testing.T) {
 	summary := cssRule(t, css, ".visually-hidden {")
 	requireContains(t, summary, "overflow: hidden;", "clip: rect(0, 0, 0, 0);", "clip-path: inset(50%);")
 }
+
+func TestDeviceSheetMarkup(t *testing.T) {
+	html := readAccessibilityFile(t, "index.html")
+	button := markupBetween(t, html, `<button id="devicesBtn"`, `</button>`)
+	requireContains(t, button,
+		`aria-label="Devices"`,
+		`aria-expanded="false"`,
+		`aria-controls="deviceList"`,
+		`aria-keyshortcuts="l"`,
+		`<span>Devices</span>`,
+	)
+
+	section := markupBetween(t, html, `<section id="deviceList"`, `</section>`)
+	requireContains(t, section,
+		`aria-labelledby="deviceListHeading"`,
+		`aria-describedby="deviceListHint"`,
+		`tabindex="-1"`,
+		`<p id="deviceListHint"`,
+		`<button id="deviceListClose"`,
+		`aria-label="Close devices"`,
+	)
+	hint := markupBetween(t, section, `<p id="deviceListHint"`, `</p>`)
+	requireContains(t, hint, "Arrow keys", "Enter", "Escape")
+}
+
+func TestCanvasIsNotADuplicateFocusStop(t *testing.T) {
+	html := readAccessibilityFile(t, "index.html")
+	canvas := markupBetween(t, html, `<canvas id="map"`, `</canvas>`)
+	requireContains(t, canvas, `aria-hidden="true"`)
+	if strings.Contains(canvas, "tabindex") {
+		t.Error("the canvas must not be a second keyboard focus stop beside the device sheet")
+	}
+}
+
+func TestDeviceSheetKeyboardBehaviour(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	requireContains(t, js,
+		`devicesBtn.addEventListener("click", toggleDeviceSheet)`,
+		`devicesBtn.setAttribute("aria-expanded"`,
+		`case "ArrowDown":`,
+		`case "ArrowUp":`,
+		`case "Home":`,
+		`case "End":`,
+		`event.key === "Tab"`,
+		`event.key === "Escape"`,
+		`event.key.toLowerCase() === "l"`,
+		`toggleDeviceSheet();`,
+		`event.stopPropagation()`,
+		`closeDeviceSheet(false);`,
+		`selectNode(node, devicesBtn);`,
+	)
+
+	open := functionBody(t, js, "openDeviceSheet")
+	requireContains(t, open, "view.deviceSheetOpen = true", "syncDeviceSheet()", "target.focus()")
+	close := functionBody(t, js, "closeDeviceSheet")
+	requireContains(t, close, "view.deviceSheetOpen = false", "syncDeviceSheet()", "devicesBtn.focus()")
+	move := functionBody(t, js, "moveDeviceSheetFocus")
+	requireContains(t, move, `document.activeElement.closest(".device-entry")`, "entries[next].focus()")
+	trap := functionBody(t, js, "trapDeviceSheetFocus")
+	requireContains(t, trap, "FOCUSABLE_SELECTOR", "event.shiftKey", "last.focus()", "first.focus()")
+}
+
+func TestDeviceSheetReusesTheVisibleDeviceList(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	entries := functionBody(t, js, "deviceEntries")
+	requireContains(t, entries, `querySelectorAll(".device-entry")`)
+	sync := functionBody(t, js, "syncDeviceSheet")
+	requireContains(t, sync, `classList.toggle("open"`, `aria-expanded`)
+}
+
+func TestDeviceSheetStyling(t *testing.T) {
+	css := readAccessibilityFile(t, "style.css")
+	sheet := cssRule(t, css, ".device-list.open,")
+	requireContains(t, sheet,
+		"z-index: 25;",
+		"width: min(",
+		"overflow-y: auto;",
+		"clip: auto;",
+		"clip-path: none;",
+	)
+	close := cssRule(t, css, ".device-list.open .device-list-close,")
+	requireContains(t, close, "display: inline-flex;")
+	hint := cssRule(t, css, ".device-list-hint {")
+	requireContains(t, hint, "font-size:", "line-height:")
+}

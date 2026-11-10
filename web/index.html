@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <canvas id="map" aria-label="Interactive map of your home network"></canvas>
+  <canvas id="map" aria-hidden="true"></canvas>
   <div class="vignette" aria-hidden="true"></div>
 
   <header class="topbar">
@@ -40,6 +40,14 @@
           <circle cx="2.7" cy="2.2" r=".85" fill="currentColor" stroke="none"/>
         </svg><span>tailnet</span>
       </button>
+      <button id="devicesBtn" class="icon-text devices-btn" type="button" aria-label="Devices" aria-expanded="false" aria-controls="deviceList" aria-keyshortcuts="l" title="Devices (l)">
+        <svg viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="-5.2" cy="-4" r="1" fill="currentColor" stroke="none"/>
+          <circle cx="-5.2" cy="0" r="1" fill="currentColor" stroke="none"/>
+          <circle cx="-5.2" cy="4" r="1" fill="currentColor" stroke="none"/>
+          <path d="M -2.4 -4 H 5.6 M -2.4 0 H 5.6 M -2.4 4 H 5.6"/>
+        </svg><span>Devices</span>
+      </button>
       <span class="divider" aria-hidden="true"></span>
       <button id="scanBtn" class="scan-btn" type="button">
         <span class="scan-icon" aria-hidden="true"></span><span>Scan</span>
@@ -60,8 +68,14 @@
     </div>
   </header>
 
-  <section id="deviceList" class="device-list" aria-labelledby="deviceListHeading">
-    <h2 id="deviceListHeading">Devices</h2>
+  <section id="deviceList" class="device-list" aria-labelledby="deviceListHeading" aria-describedby="deviceListHint" tabindex="-1">
+    <header class="device-list-head">
+      <div>
+        <h2 id="deviceListHeading">Devices</h2>
+        <p id="deviceListHint" class="device-list-hint">Arrow keys move. Enter opens details. Escape closes.</p>
+      </div>
+      <button id="deviceListClose" class="device-list-close" type="button" aria-label="Close devices">×</button>
+    </header>
     <p id="deviceSummary" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
     <ul id="deviceListItems"></ul>
   </section>
@@ -75,7 +89,7 @@
   </div>
 
   <div id="legend" class="legend glass" aria-label="Map legend"></div>
-  <div class="hint">drag to pan · scroll to zoom · click a bubble</div>
+  <div class="hint">drag to pan · scroll to zoom · click a bubble · l for devices</div>
   <div id="tooltip" class="tooltip" role="status"></div>
   <div id="toast" class="toast" role="status"></div>
 
