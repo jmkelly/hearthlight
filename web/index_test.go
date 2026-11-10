@@ -306,3 +306,103 @@ func TestThemeControlAppliesBeforeFirstPaint(t *testing.T) {
 		`setMeta("color-scheme"`,
 	)
 }
+
+func TestCanvasThemeBootstrapsFromControl(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	requireContains(t, js,
+		"theme: null,",
+		`window.addEventListener("hearthlight:theme"`,
+		"applyTheme(event.detail)",
+		"\n  applyTheme();\n",
+	)
+	apply := functionBody(t, js, "applyTheme")
+	requireContains(t, apply,
+		"window.HearthlightTheme",
+		"control.resolve(preference)",
+		"view.theme = control.apply(resolved)",
+		`view.territorySig = ""`,
+		"view.territoryLayer = null",
+		"renderLegend()",
+		"requestDraw()",
+	)
+	draw := functionBody(t, js, "requestDraw")
+	requireContains(t, draw, "window.requestAnimationFrame", "draw(now)")
+}
+
+func TestCanvasRenderersReadThemeTokens(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	readers := []string{
+		"drawBackground",
+		"drawTerritoryFill",
+		"drawAuroraRibbon",
+		"drawOverlapLens",
+		"drawTerritoryBoundaries",
+		"drawRegionPill",
+		"drawReachBadge",
+		"drawDevice",
+		"drawService",
+		"drawTraffic",
+		"strokeLabel",
+	}
+	tokenPattern := regexp.MustCompile(`theme(Color|Kind|Category|Effect)\(`)
+	colorLiteral := regexp.MustCompile(`#[0-9a-fA-F]{3,8}`)
+	rgbLiteral := regexp.MustCompile(`rgba?\(\s*[0-9]`)
+	for _, name := range readers {
+		body := functionBody(t, js, name)
+		if !tokenPattern.MatchString(body) {
+			t.Errorf("%s does not read a theme token", name)
+		}
+		if colorLiteral.MatchString(body) {
+			t.Errorf("%s still carries a hard-coded colour literal", name)
+		}
+		if rgbLiteral.MatchString(body) {
+			t.Errorf("%s still carries a hard-coded rgb colour", name)
+		}
+	}
+
+	for _, name := range []string{"themeColor", "themeKind", "themeCategory", "themeEffect"} {
+		if body := arrowBody(t, js, name); !strings.Contains(body, "view.theme") {
+			t.Errorf("%s does not read view.theme", name)
+		}
+	}
+}
+
+func TestThemeConstantsCarryNoColours(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	definitions := markupBetween(t, js, "  const KIND = {", "  // Glyph shapes live")
+	requireContains(t, definitions,
+		`const CATEGORY = ["web", "media", "data", "remote", "infra", "iot", "other"];`,
+		`token: "warning"`,
+		`token: "accent"`,
+	)
+	for _, pattern := range []*regexp.Regexp{
+		regexp.MustCompile(`#[0-9a-fA-F]{3,8}`),
+		regexp.MustCompile(`rgba?\(\s*[0-9]`),
+	} {
+		if pattern.MatchString(definitions) {
+			t.Errorf("KIND, CATEGORY or TRAFFIC still carries a hard-coded colour: %s", pattern)
+		}
+	}
+}
+
+func TestLegendReadsThemeTokens(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	legend := functionBody(t, js, "renderLegend")
+	requireContains(t, legend,
+		`themeKind(`,
+		`themeCategory(`,
+		`themeColor("online")`,
+		`themeColor("history")`,
+		`themeColor(TRAFFIC.lan.token)`,
+		`themeColor(TRAFFIC.tailnet.token)`,
+	)
+}
+
+func TestCanvasEffectsComeFromTheme(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	requireContains(t, functionBody(t, js, "drawTerritoryFill"), `themeEffect("territoryBlur")`)
+	requireContains(t, functionBody(t, js, "drawAuroraRibbon"), `themeEffect("ribbonBlur")`)
+	requireContains(t, functionBody(t, js, "drawOverlapLens"), `themeEffect("lensBlur")`)
+	requireContains(t, functionBody(t, js, "drawDevice"), `themeEffect("deviceGlow")`, `themeEffect("devicePulse")`)
+	requireContains(t, functionBody(t, js, "drawService"), `themeEffect("serviceGlow")`)
+}
