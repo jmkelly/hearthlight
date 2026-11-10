@@ -138,6 +138,21 @@
       }
     });
 
+  // Only local suffixes are stripped for display; public domains stay intact.
+  // Store matching and merge keys keep using the full hostname.
+  const LOCAL_HOST_SUFFIXES = [".home.arpa", ".internal", ".local", ".lan", ".home"];
+  const displayName = (device) => {
+    let name = String(device.hostname || "").trim().replace(/\.$/, "");
+    const lower = name.toLowerCase();
+    for (const suffix of LOCAL_HOST_SUFFIXES) {
+      if (lower.endsWith(suffix)) {
+        name = name.slice(0, -suffix.length).trim();
+        break;
+      }
+    }
+    return name || String(device.ip || "").trim();
+  };
+
   const serviceGlyph = (service) => {
     const name = String(service.name || "");
     const product = String(service.product || "");
@@ -1091,7 +1106,7 @@
     const device = node.data;
     const point = worldToScreen(node.x, node.y);
     const radius = node.baseR * zoom * (1 + node.hover * 0.06);
-    const name = truncate(device.hostname || device.ip, 24);
+    const name = truncate(displayName(device), 24);
     const fontSize = Math.max(9.5, 13 * zoom);
     const textY = point.y + radius + 8 * zoom + 3;
     const reach = deviceReach(device);
@@ -1639,7 +1654,7 @@
     const reach = deviceReach(device);
     ctx.save();
     ctx.font = `600 ${fontSize}px ${FONT}`;
-    const labelWidth = ctx.measureText(truncate(device.hostname || device.ip, 24)).width;
+    const labelWidth = ctx.measureText(truncate(displayName(device), 24)).width;
     ctx.restore();
     const labelBottom = radius + 8 * zoom + 3 + fontSize +
       (device.online ? 0 : subSize + 3) +
@@ -1715,6 +1730,8 @@
   function renderPanel() {
     const device = selectedDevice();
     if (!device) return;
+    const name = displayName(device);
+    const hostname = String(device.hostname || "").trim();
     const kind = KIND[device.kind] || KIND.device;
     const reach = deviceReach(device);
     const services = [...(device.services || [])].sort(
@@ -1752,6 +1769,9 @@
     if (view.tailnetPresent) {
       meta.push(`<div><dt>Reach</dt><dd>${escapeHTML(reachLabel(reach))}</dd></div>`);
     }
+    if (hostname && hostname !== name) {
+      meta.push(`<div><dt>Hostname</dt><dd>${escapeHTML(hostname)}</dd></div>`);
+    }
     if (device.tailnetIp) {
       meta.push(`<div><dt>Tailnet IP</dt><dd>${escapeHTML(device.tailnetIp)}</dd></div>`);
     }
@@ -1783,7 +1803,7 @@
           <button class="panel-close" type="button" aria-label="Close details">×</button>
         </div>
       </div>
-      <h2>${escapeHTML(device.hostname || device.ip)}</h2>
+      <h2>${escapeHTML(name)}</h2>
       <p class="ip">${escapeHTML(device.ip)}${device.self ? " · this host" : ""}</p>
       <dl class="meta panel-traffic" hidden></dl>
       <dl class="meta">
@@ -1843,16 +1863,22 @@
   function showTooltip(node, x, y) {
     if (node.type === "device") {
       const device = node.data;
+      const name = displayName(device);
+      const hostname = String(device.hostname || "").trim();
       const services = device.services || [];
       const online = services.filter((service) => service.online).length;
       const kind = KIND[device.kind] || KIND.device;
       const reach = deviceReach(device);
+      const fullHostname = hostname && hostname !== name
+        ? `<div class="tip-meta">${escapeHTML(hostname)}</div>`
+        : "";
       const tailnet = device.tailnetIp
         ? `<div class="tip-meta">${escapeHTML(device.tailnetIp)}${device.tailnetOs ? ` · ${escapeHTML(device.tailnetOs)}` : ""}${device.tailnetName ? ` · ${escapeHTML(device.tailnetName)}` : ""}</div>`
         : "";
       tooltip.innerHTML = `
-        <strong>${escapeHTML(device.hostname || device.ip)}</strong>
+        <strong>${escapeHTML(name)}</strong>
         <div>${escapeHTML(device.ip)} · ${escapeHTML(kind.label)}${device.online ? "" : " · history"}</div>
+        ${fullHostname}
         <div class="tip-meta">${view.tailnetPresent ? `${escapeHTML(reachLabel(reach))} · ` : ""}${online}/${services.length} services up${device.vendor ? ` · ${escapeHTML(device.vendor)}` : ""}</div>
         ${tailnet}
       `;
@@ -1862,7 +1888,7 @@
       tooltip.innerHTML = `
         <strong>${escapeHTML(node.data.product || node.data.name || "service")}</strong>
         <div>${escapeHTML(node.data.name || "TCP")} · port ${node.data.port}</div>
-        <div class="tip-meta">${parent ? `${escapeHTML(parent.data.hostname || parent.data.ip)} · ` : ""}${node.data.online ? "online" : "history"}${view.tailnetPresent ? ` · ${escapeHTML(reachLabel(serviceReach))}` : ""}</div>
+        <div class="tip-meta">${parent ? `${escapeHTML(displayName(parent.data))} · ` : ""}${node.data.online ? "online" : "history"}${view.tailnetPresent ? ` · ${escapeHTML(reachLabel(serviceReach))}` : ""}</div>
       `;
     }
     tooltip.classList.add("show");
@@ -2306,7 +2332,7 @@
     const labelAlpha = forced ? 1 : smoothstep(0.26, 0.52, zoom);
     if (labelAlpha <= 0.01) return;
 
-    const name = truncate(device.hostname || device.ip, 24);
+    const name = truncate(displayName(device), 24);
     const fontSize = Math.max(9.5, 13 * zoom);
     ctx.save();
     ctx.globalAlpha = labelAlpha * historicAlpha;
