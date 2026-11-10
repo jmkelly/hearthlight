@@ -78,7 +78,11 @@ func main() {
 	scanRequests := make(chan struct{}, 1)
 	var st *store.Store
 	var layout api.LayoutStore
-	if !*demoMode {
+	var demoLayout *demo.Layout
+	if *demoMode {
+		demoLayout = demo.NewLayout()
+		layout = demoLayout
+	} else {
 		st = loadState(*dataPath, logger)
 		layout = st
 	}
@@ -93,7 +97,7 @@ func main() {
 
 	if *demoMode {
 		logger.Info("starting in demo mode", "version", version)
-		go runDemoLoop(ctx, app, scanRequests, logger)
+		go runDemoLoop(ctx, app, scanRequests, demoLayout, logger)
 		if *trafficEnabled {
 			go runEvery(ctx, trafficInterval, func(now time.Time) {
 				app.SetTraffic(demo.Traffic(now, trafficInterval))
@@ -260,8 +264,15 @@ func runScannerLoop(ctx context.Context, app *api.App, st *store.Store, scanner 
 	}
 }
 
-func runDemoLoop(ctx context.Context, app *api.App, trigger <-chan struct{}, logger *slog.Logger) {
-	app.SetSnapshot(demo.Generate(time.Now()))
+func runDemoLoop(ctx context.Context, app *api.App, trigger <-chan struct{}, layout *demo.Layout, logger *slog.Logger) {
+	publish := func() {
+		snapshot := demo.Generate(time.Now())
+		if layout != nil {
+			snapshot = layout.Apply(snapshot)
+		}
+		app.SetSnapshot(snapshot)
+	}
+	publish()
 	ticker := time.NewTicker(12 * time.Second)
 	defer ticker.Stop()
 
@@ -272,7 +283,7 @@ func runDemoLoop(ctx context.Context, app *api.App, trigger <-chan struct{}, log
 			return
 		case <-time.After(900 * time.Millisecond):
 		}
-		app.SetSnapshot(demo.Generate(time.Now()))
+		publish()
 		logger.Info("demo scan complete")
 	}
 
@@ -281,7 +292,7 @@ func runDemoLoop(ctx context.Context, app *api.App, trigger <-chan struct{}, log
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			app.SetSnapshot(demo.Generate(time.Now()))
+			publish()
 		case <-trigger:
 			scan()
 		}

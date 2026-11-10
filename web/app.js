@@ -6,6 +6,8 @@
   const SERVICE_GLYPH_ZOOM = 1.1;
   const DOCK_MIN_WIDTH = 1100;
   const DEVICE_SUMMARY_THROTTLE_MS = 5000;
+  // Movement below this many screen pixels stays a click, not a drag.
+  const DRAG_THRESHOLD = 4;
   const FONT = '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
   const MONO = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
 
@@ -311,6 +313,8 @@
     dragging: false,
     dragMoved: false,
     dragStart: null,
+    dragNodeId: null,
+    nodeDragStart: null,
     pointers: new Map(),
     pinchDistance: 0,
     lastPinchCenter: null,
@@ -354,6 +358,12 @@
   function deviceVisible(device) {
     if (hasTailnet(device) && !hasLocal(device) && !view.showTailnet) return false;
     return Boolean(device.online) || view.showOffline;
+  }
+
+  // A pinned or actively dragged device holds its manual map position while
+  // the rest of the automatic layout settles around it.
+  function deviceAnchored(node) {
+    return Boolean(node.data.pinned) || node.id === view.dragNodeId;
   }
 
   function dockEnabled() {
@@ -1307,10 +1317,14 @@
           const push = ((desired - distance) / distance) * 0.32;
           const px = dx * push;
           const py = dy * push;
-          displacement.get(a.id).x -= px;
-          displacement.get(a.id).y -= py;
-          displacement.get(b.id).x += px;
-          displacement.get(b.id).y += py;
+          if (!deviceAnchored(a)) {
+            displacement.get(a.id).x -= px;
+            displacement.get(a.id).y -= py;
+          }
+          if (!deviceAnchored(b)) {
+            displacement.get(b.id).x += px;
+            displacement.get(b.id).y += py;
+          }
         }
       }
     }
@@ -1360,6 +1374,7 @@
     }
 
     for (const device of devices) {
+      if (deviceAnchored(device)) continue;
       const move = displacement.get(device.id);
       if (view.tailnetPresent) {
         // Bias the two memberships into left and right territories, with
@@ -1378,6 +1393,7 @@
 
     const step = clamp(dt * 60, 0, 2);
     for (const node of nodes) {
+      if (node.type === "device" && deviceAnchored(node)) continue;
       const move = displacement.get(node.id);
       node.x += move.x * step;
       node.y += move.y * step;
@@ -1395,6 +1411,8 @@
     for (const device of snapshot.devices) {
       presentDevices.add(device.id);
       let node = view.nodes.get(device.id);
+      const savedX = Number.isFinite(device.x) ? device.x : 0;
+      const savedY = Number.isFinite(device.y) ? device.y : 0;
       if (!node) {
         const seed = hashString(device.id);
         const angle = ((seed % 3600) / 3600) * TAU;
@@ -1405,8 +1423,8 @@
           id: device.id,
           type: "device",
           data: device,
-          x: Math.cos(angle) * radius * 0.8 + bias,
-          y: Math.sin(angle) * radius * 0.5,
+          x: device.pinned ? savedX : Math.cos(angle) * radius * 0.8 + bias,
+          y: device.pinned ? savedY : Math.sin(angle) * radius * 0.5,
           seed: (seed % 1000) / 1000,
           baseR: 30,
           r: 30,
@@ -1415,6 +1433,9 @@
         view.nodes.set(device.id, node);
       }
       node.data = device;
+      if (device.pinned && node.id !== view.dragNodeId) {
+        moveDeviceTo(node, savedX, savedY);
+      }
       const serviceCount = (device.services || []).length;
       node.baseR = 30 + Math.min(16, Math.sqrt(serviceCount) * 4.4);
       node.r = node.baseR;
@@ -1452,6 +1473,7 @@
 
     for (const [id, node] of view.nodes) {
       if (node.type === "device" && !presentDevices.has(id)) {
+        if (view.dragNodeId === id) clearNodeDrag();
         view.nodes.delete(id);
       } else if (node.type === "service" && !presentServices.has(id)) {
         view.nodes.delete(id);
@@ -1686,6 +1708,7 @@
         <span class="legend-label">status</span>
         <span class="legend-item"><i class="legend-dot pulse" style="--c:#5ee7a5"></i>online</span>
         <span class="legend-item"><i class="legend-dot hollow" style="--c:#8494a8"></i>history</span>
+        <span class="legend-item"><i class="legend-pin"></i>pinned</span>
       </div>
       <div class="legend-row">
         <span class="legend-label">device</span>
@@ -1981,7 +2004,7 @@
         <strong>${escapeHTML(name)}</strong>
         <div>${escapeHTML(device.ip)} · ${escapeHTML(kind.label)}${device.online ? "" : " · history"}</div>
         ${fullHostname}
-        <div class="tip-meta">${view.tailnetPresent ? `${escapeHTML(reachLabel(reach))} · ` : ""}${online}/${services.length} services up${device.vendor ? ` · ${escapeHTML(device.vendor)}` : ""}</div>
+        <div class="tip-meta">${view.tailnetPresent ? `${escapeHTML(reachLabel(reach))} · ` : ""}${online}/${services.length} services up${device.pinned ? " · pinned" : ""}${device.vendor ? ` · ${escapeHTML(device.vendor)}` : ""}</div>
         ${tailnet}
       `;
     } else {
@@ -2368,6 +2391,26 @@
     ctx.strokeText(text, x, y);
   }
 
+  // Pinned devices wear a warm ring, visible at every zoom, so manual
+  // placement reads apart from the automatic layout and the history dash.
+  function drawPinAffordance(point, radius, alpha) {
+    const scale = clamp(view.camera.zoom, 0.6, 1.4);
+    const offset = 3.4 + scale * 1.4;
+    const headY = point.y - radius - offset;
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.9;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, radius + offset, 0, TAU);
+    ctx.strokeStyle = rgba("#ffd166", 0.64);
+    ctx.lineWidth = Math.max(1, 1.1 * scale);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(point.x, headY, Math.max(1.5, 1.8 * scale), 0, TAU);
+    ctx.fillStyle = "#ffd166";
+    ctx.fill();
+    ctx.restore();
+  }
+
   function drawDevice(node, time, zoom) {
     const device = node.data;
     if (!deviceVisible(device)) return;
@@ -2442,6 +2485,8 @@
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.restore();
+
+    if (device.pinned) drawPinAffordance(point, radius, historicAlpha);
 
     ctx.save();
     ctx.globalAlpha = historicAlpha;
@@ -2943,11 +2988,105 @@
     selectNode(node);
   }
 
+  // Moving a device carries its service children, so the orbit ring stays
+  // rigid until physics has a chance to settle it around the new centre.
+  function moveDeviceTo(node, x, y) {
+    const dx = x - node.x;
+    const dy = y - node.y;
+    if (!dx && !dy) return;
+    node.x = x;
+    node.y = y;
+    for (const child of view.nodes.values()) {
+      if (child.type === "service" && child.parentId === node.id) {
+        child.x += dx;
+        child.y += dy;
+      }
+    }
+  }
+
+  // A service bubble drags the device it belongs to, because the position
+  // endpoint stores host positions, not individual service offsets.
+  function beginNodeDrag(node, event) {
+    if (!node) return false;
+    const device = node.type === "service" ? view.nodes.get(node.parentId) : node;
+    if (!device || device.type !== "device") return false;
+    view.dragNodeId = device.id;
+    view.nodeDragStart = {
+      x: device.x,
+      y: device.y,
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+    };
+    return true;
+  }
+
+  function clearNodeDrag() {
+    view.dragNodeId = null;
+    view.nodeDragStart = null;
+  }
+
+  function cancelNodeDrag() {
+    if (!view.dragNodeId) return;
+    const node = view.nodes.get(view.dragNodeId);
+    if (node && view.nodeDragStart) {
+      moveDeviceTo(node, view.nodeDragStart.x, view.nodeDragStart.y);
+    }
+    clearNodeDrag();
+  }
+
+  function updateNodeDrag(event) {
+    if (!view.dragNodeId || !view.nodeDragStart) return false;
+    const start = view.nodeDragStart;
+    const dx = event.clientX - start.pointerX;
+    const dy = event.clientY - start.pointerY;
+    if (!view.dragMoved && Math.hypot(dx, dy) <= DRAG_THRESHOLD) return true;
+    view.dragMoved = true;
+    const node = view.nodes.get(view.dragNodeId);
+    if (!node) {
+      clearNodeDrag();
+      return false;
+    }
+    moveDeviceTo(node, start.x + dx / view.camera.zoom, start.y + dy / view.camera.zoom);
+    view.target = null;
+    view.userAdjusted = true;
+    return true;
+  }
+
+  function saveDevicePosition(node) {
+    const x = node.x;
+    const y = node.y;
+    node.data = { ...node.data, x, y, pinned: true };
+    fetch(`/api/devices/${encodeURIComponent(node.id)}/position`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ x, y }),
+    }).then((response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    }).catch(() => {
+      showToast("Could not save position");
+    });
+  }
+
+  function endNodeDrag(event) {
+    if (!view.dragNodeId) return;
+    const node = view.nodes.get(view.dragNodeId);
+    if (node && view.nodeDragStart) {
+      if (event.type === "pointercancel") {
+        moveDeviceTo(node, view.nodeDragStart.x, view.nodeDragStart.y);
+      } else if (view.dragMoved) {
+        saveDevicePosition(node);
+      }
+    }
+    clearNodeDrag();
+  }
+
   function endPointer(event) {
     view.pointers.delete(event.pointerId);
     if (view.pointers.size === 0) {
       const moved = view.dragMoved;
-      const clickTarget = moved ? undefined : view.pointerDownHit;
+      const cancelled = event.type === "pointercancel";
+      const clickTarget = moved || cancelled ? undefined : view.pointerDownHit;
+      endNodeDrag(event);
       view.dragging = false;
       view.dragStart = null;
       canvas.classList.remove("dragging");
@@ -2990,13 +3129,17 @@
     if (view.pointers.size === 1) {
       view.dragging = true;
       view.dragMoved = false;
-      view.dragStart = {
-        x: event.clientX,
-        y: event.clientY,
-        cameraX: view.camera.x,
-        cameraY: view.camera.y,
-      };
       view.pointerDownHit = hitTest(event.clientX, event.clientY);
+      if (beginNodeDrag(view.pointerDownHit, event)) {
+        view.dragStart = null;
+      } else {
+        view.dragStart = {
+          x: event.clientX,
+          y: event.clientY,
+          cameraX: view.camera.x,
+          cameraY: view.camera.y,
+        };
+      }
       canvas.classList.add("dragging");
       hideTooltip();
       return;
@@ -3008,6 +3151,7 @@
         x: (points[0].x + points[1].x) / 2,
         y: (points[0].y + points[1].y) / 2,
       };
+      cancelNodeDrag();
       view.dragMoved = true;
       view.dragging = false;
       canvas.classList.remove("dragging");
@@ -3040,10 +3184,15 @@
       return;
     }
 
+    if (view.dragNodeId) {
+      updateNodeDrag(event);
+      return;
+    }
+
     if (view.dragging && view.dragStart) {
       const dx = event.clientX - view.dragStart.x;
       const dy = event.clientY - view.dragStart.y;
-      if (Math.hypot(dx, dy) > 4) view.dragMoved = true;
+      if (Math.hypot(dx, dy) > DRAG_THRESHOLD) view.dragMoved = true;
       view.camera.x = view.dragStart.cameraX - dx / view.camera.zoom;
       view.camera.y = view.dragStart.cameraY - dy / view.camera.zoom;
       view.target = null;
