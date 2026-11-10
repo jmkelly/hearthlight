@@ -56,7 +56,7 @@ func TestPinnedDevicesRestoreAndShowPinAffordance(t *testing.T) {
 	draw := functionBody(t, js, "drawDevice")
 	requireContains(t, draw, "device.pinned", "drawPinAffordance(point, radius, historicAlpha)")
 	pin := functionBody(t, js, "drawPinAffordance")
-	requireContains(t, pin, "ctx.arc(", `rgba("#ffd166"`)
+	requireContains(t, pin, "ctx.arc(", `rgba(themeColor("warning")`)
 
 	legend := functionBody(t, js, "renderLegend")
 	requireContains(t, legend, `class="legend-pin"`, ">pinned<")

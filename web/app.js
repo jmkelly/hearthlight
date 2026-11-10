@@ -12,30 +12,22 @@
   const MONO = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
 
   const KIND = {
-    router: { label: "Router", color: "#ffd166" },
-    server: { label: "Server", color: "#5ee7ff" },
-    computer: { label: "Computer", color: "#8fb3ff" },
-    phone: { label: "Phone", color: "#ff9ec7" },
-    nas: { label: "NAS", color: "#5ee0a5" },
-    media: { label: "Media", color: "#b18cff" },
-    iot: { label: "IoT", color: "#f08fc8" },
-    printer: { label: "Printer", color: "#ffb86b" },
-    device: { label: "Device", color: "#94a3b8" },
+    router: { label: "Router" },
+    server: { label: "Server" },
+    computer: { label: "Computer" },
+    phone: { label: "Phone" },
+    nas: { label: "NAS" },
+    media: { label: "Media" },
+    iot: { label: "IoT" },
+    printer: { label: "Printer" },
+    device: { label: "Device" },
   };
 
-  const CATEGORY = {
-    web: "#5ee7ff",
-    media: "#b18cff",
-    data: "#ffb454",
-    remote: "#5ee0a5",
-    infra: "#6aa9ff",
-    iot: "#f08fc8",
-    other: "#93a4b8",
-  };
+  const CATEGORY = ["web", "media", "data", "remote", "infra", "iot", "other"];
 
   const TRAFFIC = {
-    lan: { label: "LAN", color: "#ffd166", bend: -1 },
-    tailnet: { label: "Tailnet", color: "#5ee7ff", bend: 1 },
+    lan: { label: "LAN", token: "warning", bend: -1 },
+    tailnet: { label: "Tailnet", token: "accent", bend: 1 },
   };
 
   // Glyph shapes live in an -4..4 box with a 1-unit stroke, so one table
@@ -192,16 +184,28 @@
   };
 
   const rgbCache = new Map();
-  const rgba = (hex, alpha) => {
-    let rgb = rgbCache.get(hex);
+  // Theme tokens are either hex or rgba() strings, so parse both before
+  // applying a renderer-specific alpha.
+  const rgba = (color, alpha) => {
+    if (typeof color !== "string" || !color) return "rgba(0, 0, 0, 0)";
+    let rgb = rgbCache.get(color);
     if (!rgb) {
-      const value = hex.replace("#", "");
-      rgb = [
-        parseInt(value.slice(0, 2), 16),
-        parseInt(value.slice(2, 4), 16),
-        parseInt(value.slice(4, 6), 16),
-      ];
-      rgbCache.set(hex, rgb);
+      const value = color.trim();
+      if (value.startsWith("#")) {
+        const hex = value.length === 4 || value.length === 5
+          ? value.slice(1).split("").map((digit) => digit + digit).join("")
+          : value.slice(1);
+        rgb = [
+          parseInt(hex.slice(0, 2), 16),
+          parseInt(hex.slice(2, 4), 16),
+          parseInt(hex.slice(4, 6), 16),
+        ];
+      } else {
+        const match = value.match(/^rgba?\(([^)]+)\)$/i);
+        if (!match) return value;
+        rgb = match[1].split(",").slice(0, 3).map((part) => Number(part.trim()));
+      }
+      rgbCache.set(color, rgb);
     }
     return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
   };
@@ -298,6 +302,7 @@
 
   const view = {
     snapshot: null,
+    theme: null,
     nodes: new Map(),
     links: [],
     camera: { x: 0, y: 0, zoom: 1 },
@@ -333,6 +338,27 @@
     // Live traffic edges keyed by "deviceId|via". Entries fade out rather
     // than vanish when a flow stops.
     traffic: new Map(),
+  };
+
+  const themeColor = (name) => {
+    const palette = view.theme && view.theme.palette;
+    return (palette && palette[name]) || "";
+  };
+
+  const themeKind = (kind) => {
+    const kinds = view.theme && view.theme.kinds;
+    return (kinds && (kinds[kind] || kinds.device)) || KIND[kind] || KIND.device;
+  };
+
+  const themeCategory = (category) => {
+    const categories = view.theme && view.theme.categories;
+    return (categories && (categories[category] || categories.other)) || "";
+  };
+
+  const themeEffect = (name) => {
+    const effects = view.theme && view.theme.effects;
+    const value = effects && effects[name];
+    return Number.isFinite(value) ? value : 0;
   };
 
   const deviceSummaryState = {
@@ -977,16 +1003,16 @@
     const bounds = territory.bounds;
     const gradient = target.createLinearGradient(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
     if (tailnet) {
-      gradient.addColorStop(0, "rgba(94, 231, 255, 0.22)");
-      gradient.addColorStop(0.5, "rgba(177, 140, 255, 0.14)");
-      gradient.addColorStop(1, "rgba(94, 224, 165, 0.05)");
+      gradient.addColorStop(0, rgba(themeColor("accent"), 0.22));
+      gradient.addColorStop(0.5, rgba(themeCategory("media"), 0.14));
+      gradient.addColorStop(1, rgba(themeCategory("remote"), 0.05));
     } else {
-      gradient.addColorStop(0, "rgba(255, 226, 166, 0.24)");
-      gradient.addColorStop(0.55, "rgba(255, 209, 102, 0.12)");
-      gradient.addColorStop(1, "rgba(94, 231, 255, 0.04)");
+      gradient.addColorStop(0, rgba(themeColor("warning"), 0.24));
+      gradient.addColorStop(0.55, rgba(themeColor("warning"), 0.12));
+      gradient.addColorStop(1, rgba(themeColor("accent"), 0.04));
     }
     target.save();
-    if (typeof target.filter === "string") target.filter = "blur(26px)";
+    if (typeof target.filter === "string") target.filter = `blur(${themeEffect("territoryBlur")}px)`;
     target.fillStyle = gradient;
     target.beginPath();
     traceLoops(target, territory.loops);
@@ -994,7 +1020,9 @@
     target.restore();
 
     target.save();
-    target.fillStyle = tailnet ? "rgba(94, 231, 255, 0.028)" : "rgba(255, 209, 102, 0.022)";
+    target.fillStyle = tailnet
+      ? rgba(themeColor("accent"), 0.028)
+      : rgba(themeColor("warning"), 0.022);
     target.beginPath();
     traceLoops(target, territory.loops);
     target.fill("evenodd");
@@ -1007,11 +1035,11 @@
     const start = { x: (from.minX + from.maxX) / 2, y: (from.minY + from.maxY) / 2 - 40 };
     const end = { x: (to.minX + to.maxX) / 2, y: (to.minY + to.maxY) / 2 - 30 };
     const gradient = target.createLinearGradient(start.x, 0, end.x, 0);
-    gradient.addColorStop(0, "rgba(94, 231, 255, 0.2)");
-    gradient.addColorStop(0.55, "rgba(177, 140, 255, 0.13)");
-    gradient.addColorStop(1, "rgba(94, 231, 255, 0)");
+    gradient.addColorStop(0, rgba(themeColor("accent"), 0.2));
+    gradient.addColorStop(0.55, rgba(themeCategory("media"), 0.13));
+    gradient.addColorStop(1, rgba(themeColor("accent"), 0));
     target.save();
-    if (typeof target.filter === "string") target.filter = "blur(16px)";
+    if (typeof target.filter === "string") target.filter = `blur(${themeEffect("ribbonBlur")}px)`;
     target.strokeStyle = gradient;
     target.lineWidth = 54;
     target.lineCap = "round";
@@ -1055,11 +1083,11 @@
     traceLoops(target, tailnet.loops);
     target.clip("evenodd");
     target.globalCompositeOperation = "screen";
-    if (typeof target.filter === "string") target.filter = "blur(14px)";
+    if (typeof target.filter === "string") target.filter = `blur(${themeEffect("lensBlur")}px)`;
     const glow = target.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
-    glow.addColorStop(0, "rgba(232, 255, 255, 0.26)");
-    glow.addColorStop(0.46, "rgba(94, 231, 255, 0.1)");
-    glow.addColorStop(1, "rgba(94, 231, 255, 0)");
+    glow.addColorStop(0, rgba(themeColor("ink"), 0.26));
+    glow.addColorStop(0.46, rgba(themeColor("accent"), 0.1));
+    glow.addColorStop(1, rgba(themeColor("accent"), 0));
     target.fillStyle = glow;
     target.fillRect(cx - rx * 1.7, cy - ry * 1.7, rx * 3.4, ry * 3.4);
     target.restore();
@@ -1118,10 +1146,12 @@
   function drawTerritoryBoundaries() {
     if (!view.territories) return;
     if (view.territories.lan) {
-      drawBoundary(screenTerritory(view.territories.lan), "rgba(255, 226, 166, 0.66)", "rgba(255, 209, 102, 0.42)");
+      const warning = themeColor("warning");
+      drawBoundary(screenTerritory(view.territories.lan), rgba(warning, 0.66), rgba(warning, 0.42));
     }
     if (view.territories.tailnet) {
-      drawBoundary(screenTerritory(view.territories.tailnet), "rgba(126, 240, 255, 0.82)", "rgba(94, 231, 255, 0.62)");
+      const accent = themeColor("accent");
+      drawBoundary(screenTerritory(view.territories.tailnet), rgba(accent, 0.82), rgba(accent, 0.62));
     }
   }
 
@@ -1197,28 +1227,30 @@
     }
     top = Math.min(top, size.height - 110);
 
-    ctx.shadowColor = tailnet ? "rgba(94, 231, 255, 0.14)" : "rgba(0, 0, 0, 0.45)";
-    ctx.shadowBlur = 14;
+    const accent = themeColor("accent");
+    const ink = themeColor("ink");
+    ctx.shadowColor = tailnet ? rgba(accent, 0.14) : rgba(themeColor("canvasBottom"), 0.45);
+    ctx.shadowBlur = themeEffect("glassBlur");
     roundRectPath(left, top, width, height, height / 2);
-    ctx.fillStyle = tailnet ? "rgba(7, 18, 28, 0.78)" : "rgba(7, 14, 24, 0.78)";
+    ctx.fillStyle = rgba(themeColor("canvasMiddle"), 0.78);
     ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = tailnet ? "rgba(94, 231, 255, 0.32)" : "rgba(151, 196, 225, 0.2)";
+    ctx.strokeStyle = tailnet ? rgba(accent, 0.32) : rgba(themeColor("line"), 0.2);
     ctx.lineWidth = 1;
     ctx.stroke();
 
     ctx.beginPath();
     ctx.arc(left + 14, top + height / 2, 2.6, 0, TAU);
-    ctx.fillStyle = tailnet ? "#5ee7ff" : "#dbe7f3";
+    ctx.fillStyle = tailnet ? accent : ink;
     ctx.fill();
 
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
     ctx.font = `600 9px ${MONO}`;
-    ctx.fillStyle = tailnet ? "#d7fbff" : "#e6eff8";
+    ctx.fillStyle = ink;
     ctx.fillText(title, left + 23, top + height / 2 + 0.5);
     ctx.font = `500 9px ${MONO}`;
-    ctx.fillStyle = tailnet ? "#96dbe8" : "#8fa2b8";
+    ctx.fillStyle = tailnet ? rgba(accent, 0.72) : themeColor("muted");
     ctx.fillText(detail, left + 23 + titleWidth + 9, top + height / 2 + 0.5);
     ctx.restore();
     return { left, top, width, height };
@@ -1254,12 +1286,14 @@
     const cy = point.y - radius * 0.72;
     const left = cx - width / 2;
     const top = cy - height / 2;
+    const accent = themeColor("accent");
+    const ink = themeColor("ink");
     ctx.save();
     ctx.globalAlpha = alpha;
     roundRectPath(left, top, width, height, height / 2);
-    ctx.fillStyle = "rgba(6, 15, 25, 0.94)";
+    ctx.fillStyle = rgba(themeColor("canvasMiddle"), 0.94);
     ctx.fill();
-    ctx.strokeStyle = reach === "local" ? "rgba(219, 231, 243, 0.28)" : "rgba(94, 231, 255, 0.36)";
+    ctx.strokeStyle = reach === "local" ? rgba(ink, 0.28) : rgba(accent, 0.36);
     ctx.lineWidth = 1;
     ctx.stroke();
 
@@ -1268,13 +1302,13 @@
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     if (reach === "tailnet" || reach === "both") {
-      ctx.strokeStyle = "#5ee7ff";
-      ctx.fillStyle = "#5ee7ff";
+      ctx.strokeStyle = accent;
+      ctx.fillStyle = accent;
       traceKnot(reach === "both" ? left + width * 0.31 : cx, cy, glyph);
     }
     if (reach === "local" || reach === "both") {
-      ctx.strokeStyle = "#dbe7f3";
-      ctx.fillStyle = "#dbe7f3";
+      ctx.strokeStyle = ink;
+      ctx.fillStyle = ink;
       traceHouse(reach === "both" ? left + width * 0.7 : cx, cy, glyph);
     }
     ctx.restore();
@@ -1569,6 +1603,7 @@
     deviceListItems.innerHTML = devices
       .map((device) => {
         const kind = KIND[device.kind] || KIND.device;
+        const label = themeKind(device.kind).label || kind.label;
         const serviceCount = (device.services || []).length;
         const services = `${serviceCount} service${serviceCount === 1 ? "" : "s"}`;
         const ip = String(device.ip || "").trim() || "no address";
@@ -1576,7 +1611,7 @@
           <li>
             <button type="button" class="device-entry" data-device-id="${escapeHTML(device.id)}">
               <span class="device-entry-name">${escapeHTML(displayName(device))}</span>
-              <span class="device-entry-meta">${device.online ? "online" : "history"} · ${escapeHTML(ip)} · ${escapeHTML(kind.label)} · ${services}</span>
+              <span class="device-entry-meta">${device.online ? "online" : "history"} · ${escapeHTML(ip)} · ${escapeHTML(label)} · ${services}</span>
             </button>
           </li>
         `;
@@ -1769,11 +1804,14 @@
   }
 
   function renderLegend() {
-    const kinds = Object.entries(KIND)
-      .map(([, info]) => `<span class="legend-item"><i class="legend-dot" style="--c:${info.color}"></i>${info.label}</span>`)
+    const kinds = Object.keys(KIND)
+      .map((name) => {
+        const info = themeKind(name);
+        return `<span class="legend-item"><i class="legend-dot" style="--c:${info.color}"></i>${info.label}</span>`;
+      })
       .join("");
-    const categories = Object.entries(CATEGORY)
-      .map(([name, color]) => `<span class="legend-item"><i class="legend-dot" style="--c:${color}"></i>${name}</span>`)
+    const categories = CATEGORY
+      .map((name) => `<span class="legend-item"><i class="legend-dot" style="--c:${themeCategory(name)}"></i>${name}</span>`)
       .join("");
     const tailnet = view.tailnetPresent;
     const tailnetOnly = tailnet
@@ -1791,8 +1829,8 @@
     legend.innerHTML = `
       <div class="legend-row">
         <span class="legend-label">status</span>
-        <span class="legend-item"><i class="legend-dot pulse" style="--c:#5ee7a5"></i>online</span>
-        <span class="legend-item"><i class="legend-dot hollow" style="--c:#8494a8"></i>history</span>
+        <span class="legend-item"><i class="legend-dot pulse" style="--c:${themeColor("online")}"></i>online</span>
+        <span class="legend-item"><i class="legend-dot hollow" style="--c:${themeColor("history")}"></i>history</span>
         <span class="legend-item"><i class="legend-pin"></i>pinned</span>
       </div>
       <div class="legend-row">
@@ -1807,11 +1845,29 @@
       ${reach}
       <div class="legend-row">
         <span class="legend-label">traffic</span>
-        <span class="legend-item"><i class="legend-flow" style="--c:${TRAFFIC.lan.color}"></i>LAN</span>
-        <span class="legend-item"><i class="legend-flow" style="--c:${TRAFFIC.tailnet.color}"></i>tailnet</span>
-        <span class="legend-item"><i class="legend-flow dashed" style="--c:#c9d7e6"></i>connections only</span>
+        <span class="legend-item"><i class="legend-flow" style="--c:${themeColor(TRAFFIC.lan.token)}"></i>LAN</span>
+        <span class="legend-item"><i class="legend-flow" style="--c:${themeColor(TRAFFIC.tailnet.token)}"></i>tailnet</span>
+        <span class="legend-item"><i class="legend-flow dashed" style="--c:${rgba(themeColor("ink"), 0.72)}"></i>connections only</span>
       </div>
     `;
+  }
+
+  function requestDraw() {
+    window.requestAnimationFrame((now) => draw(now));
+  }
+
+  function applyTheme(preference) {
+    const control = window.HearthlightTheme;
+    if (!control) return;
+    const resolved = preference && typeof preference.resolvedMode === "string"
+      ? preference
+      : control.resolve(preference);
+    view.theme = control.apply(resolved);
+    view.territorySig = "";
+    view.territoryLayer = null;
+    renderLegend();
+    if (view.snapshot && panel.classList.contains("open")) renderPanel();
+    requestDraw();
   }
 
   // The panel covers part of the canvas. Keep the selected bubble and its
@@ -1946,7 +2002,7 @@
     if (!device) return;
     const name = displayName(device);
     const hostname = String(device.hostname || "").trim();
-    const kind = KIND[device.kind] || KIND.device;
+    const kind = themeKind(device.kind);
     const reach = deviceReach(device);
     const services = [...(device.services || [])].sort(
       (a, b) => Number(b.online) - Number(a.online) || a.port - b.port,
@@ -1954,7 +2010,7 @@
     const onlineCount = services.filter((service) => service.online).length;
     const rows = services
       .map((service) => {
-        const color = CATEGORY[service.category] || CATEGORY.other;
+        const color = themeCategory(service.category);
         const name = service.product || service.name || `TCP ${service.port}`;
         const sub = service.product && service.name && service.product !== service.name
           ? service.name
@@ -2033,7 +2089,7 @@
   function paintPanelKind(device) {
     const node = panel.querySelector(".panel-kind");
     if (!node) return;
-    const kind = KIND[device.kind] || KIND.device;
+    const kind = themeKind(device.kind);
     const box = 18;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     node.width = Math.round(box * dpr);
@@ -2082,7 +2138,7 @@
       const hostname = String(device.hostname || "").trim();
       const services = device.services || [];
       const online = services.filter((service) => service.online).length;
-      const kind = KIND[device.kind] || KIND.device;
+      const kind = themeKind(device.kind);
       const reach = deviceReach(device);
       const fullHostname = hostname && hostname !== name
         ? `<div class="tip-meta">${escapeHTML(hostname)}</div>`
@@ -2273,16 +2329,16 @@
       size.height * 0.5,
       Math.max(size.width, size.height) * 0.85,
     );
-    background.addColorStop(0, "#0a1526");
-    background.addColorStop(0.55, "#060b14");
-    background.addColorStop(1, "#03060c");
+    background.addColorStop(0, themeColor("canvasTop"));
+    background.addColorStop(0.55, themeColor("canvasMiddle"));
+    background.addColorStop(1, themeColor("canvasBottom"));
     ctx.fillStyle = background;
     ctx.fillRect(0, 0, size.width, size.height);
 
     const gap = 46;
     const offsetX = ((-view.camera.x * view.camera.zoom * 0.08) % gap + gap) % gap;
     const offsetY = ((-view.camera.y * view.camera.zoom * 0.08) % gap + gap) % gap;
-    ctx.fillStyle = "rgba(120, 185, 230, 0.055)";
+    ctx.fillStyle = themeColor("grid");
     for (let x = offsetX; x < size.width; x += gap) {
       for (let y = offsetY; y < size.height; y += gap) {
         ctx.fillRect(x, y, 1, 1);
@@ -2297,8 +2353,8 @@
       -size.height * 0.2,
       size.height * 0.95,
     );
-    glow.addColorStop(0, "rgba(70, 150, 190, 0.1)");
-    glow.addColorStop(1, "rgba(70, 150, 190, 0)");
+    glow.addColorStop(0, themeColor("ambientGlow"));
+    glow.addColorStop(1, rgba(themeColor("ambientGlow"), 0));
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, size.width, size.height);
   }
@@ -2492,7 +2548,7 @@
 
   function strokeLabel(text, x, y, fontSize) {
     ctx.lineWidth = Math.max(3, fontSize * 0.28);
-    ctx.strokeStyle = "rgba(3, 7, 12, 0.86)";
+    ctx.strokeStyle = rgba(themeColor("canvasBottom"), 0.86);
     ctx.lineJoin = "round";
     ctx.strokeText(text, x, y);
   }
@@ -2507,12 +2563,12 @@
     ctx.globalAlpha = alpha * 0.9;
     ctx.beginPath();
     ctx.arc(point.x, point.y, radius + offset, 0, TAU);
-    ctx.strokeStyle = rgba("#ffd166", 0.64);
+    ctx.strokeStyle = rgba(themeColor("warning"), 0.64);
     ctx.lineWidth = Math.max(1, 1.1 * scale);
     ctx.stroke();
     ctx.beginPath();
     ctx.arc(point.x, headY, Math.max(1.5, 1.8 * scale), 0, TAU);
-    ctx.fillStyle = "#ffd166";
+    ctx.fillStyle = themeColor("warning");
     ctx.fill();
     ctx.restore();
   }
@@ -2533,9 +2589,10 @@
       return;
     }
 
-    const color = (KIND[device.kind] || KIND.device).color;
+    const color = themeKind(device.kind).color;
     const active = device.online;
     const reach = deviceReach(device);
+    const glowStrength = themeEffect("deviceGlow");
 
     if (active) {
       const glow = ctx.createRadialGradient(
@@ -2546,8 +2603,8 @@
         point.y,
         radius * 2.6,
       );
-      glow.addColorStop(0, rgba(color, 0.22));
-      glow.addColorStop(0.55, rgba(color, 0.06));
+      glow.addColorStop(0, rgba(color, glowStrength));
+      glow.addColorStop(0.55, rgba(color, glowStrength * 0.27));
       glow.addColorStop(1, rgba(color, 0));
       ctx.fillStyle = glow;
       ctx.beginPath();
@@ -2558,7 +2615,7 @@
         const phase = ((time / 2600) + node.seed) % 1;
         ctx.beginPath();
         ctx.arc(point.x, point.y, radius + phase * 24, 0, TAU);
-        ctx.strokeStyle = rgba(color, (1 - phase) * 0.3);
+        ctx.strokeStyle = rgba(color, (1 - phase) * themeEffect("devicePulse"));
         ctx.lineWidth = 1.2;
         ctx.stroke();
       }
@@ -2566,7 +2623,7 @@
 
     ctx.beginPath();
     ctx.arc(point.x, point.y, radius, 0, TAU);
-    ctx.fillStyle = "rgba(6, 12, 21, 0.94)";
+    ctx.fillStyle = rgba(themeColor("canvasMiddle"), 0.94);
     ctx.fill();
     const inner = ctx.createRadialGradient(
       point.x,
@@ -2606,7 +2663,7 @@
         ctx.beginPath();
         ctx.arc(point.x, point.y, radius + 6.5, 0, TAU);
         ctx.setLineDash([2, 4]);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.38)";
+        ctx.strokeStyle = rgba(themeColor("ink"), 0.38);
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.restore();
@@ -2617,7 +2674,7 @@
     if (view.selectedDeviceId === node.id || view.hoverId === node.id) {
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius + 5, 0, TAU);
-      ctx.strokeStyle = rgba("#ffffff", view.selectedDeviceId === node.id ? 0.45 : 0.25);
+      ctx.strokeStyle = rgba(themeColor("ink"), view.selectedDeviceId === node.id ? 0.45 : 0.25);
       ctx.lineWidth = 1.1;
       ctx.stroke();
     }
@@ -2632,12 +2689,12 @@
       ctx.globalAlpha = historicAlpha;
       ctx.beginPath();
       ctx.arc(badgeX, badgeY, badgeRadius, 0, TAU);
-      ctx.fillStyle = "rgba(6, 12, 21, 0.95)";
+      ctx.fillStyle = rgba(themeColor("canvasMiddle"), 0.95);
       ctx.fill();
-      ctx.strokeStyle = rgba(onlineCount > 0 ? color : "#718198", 0.85);
+      ctx.strokeStyle = rgba(onlineCount > 0 ? color : themeColor("history"), 0.85);
       ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.fillStyle = onlineCount > 0 ? "#dcecf8" : "#7f8fa6";
+      ctx.fillStyle = onlineCount > 0 ? themeColor("ink") : themeColor("muted");
       ctx.font = `600 ${Math.max(7.5, badgeRadius * 1.05)}px ${MONO}`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -2658,7 +2715,7 @@
     ctx.font = `600 ${fontSize}px ${FONT}`;
     const textY = point.y + radius + 8 * zoom + 3;
     strokeLabel(name, point.x, textY, fontSize);
-    ctx.fillStyle = active ? (reach === "tailnet" ? "#d8f8ff" : "#eaf4fd") : "#8b9aad";
+    ctx.fillStyle = active ? themeColor("ink") : themeColor("muted");
     ctx.fillText(name, point.x, textY);
 
     const subline = view.tailnetPresent && hasTailnet(device) && (reach === "tailnet" || device.self)
@@ -2669,7 +2726,7 @@
     if (!active) {
       ctx.globalAlpha = labelAlpha * historicAlpha;
       ctx.font = `500 ${subSize}px ${MONO}`;
-      ctx.fillStyle = "#7f8fa6";
+      ctx.fillStyle = themeColor("muted");
       const lastSeen = lastSeenLabel(device);
       strokeLabel(lastSeen, point.x, subY, subSize);
       ctx.fillText(lastSeen, point.x, subY);
@@ -2678,7 +2735,7 @@
     if (subline) {
       ctx.globalAlpha = labelAlpha * historicAlpha * smoothstep(0.4, 0.62, zoom);
       ctx.font = `500 ${subSize}px ${MONO}`;
-      ctx.fillStyle = device.self ? "#9bb0c5" : "#7abccc";
+      ctx.fillStyle = device.self ? themeColor("muted") : themeColor("accent");
       strokeLabel(subline, point.x, subY, subSize);
       ctx.fillText(subline, point.x, subY);
       subY += subSize + 3;
@@ -2687,7 +2744,7 @@
     if (zoom > 1.25) {
       ctx.globalAlpha = labelAlpha * historicAlpha * smoothstep(1.25, 1.6, zoom);
       ctx.font = `500 ${subSize}px ${MONO}`;
-      ctx.fillStyle = "#73869c";
+      ctx.fillStyle = themeColor("muted");
       if (reach !== "tailnet") {
         strokeLabel(device.ip, point.x, subY, subSize);
         ctx.fillText(device.ip, point.x, subY);
@@ -2712,7 +2769,7 @@
       return;
     }
 
-    const color = CATEGORY[node.data.category] || CATEGORY.other;
+    const color = themeCategory(node.data.category);
     const active = node.data.online;
 
     ctx.save();
@@ -2726,7 +2783,7 @@
         point.y,
         radius * 3,
       );
-      glow.addColorStop(0, rgba(color, 0.16));
+      glow.addColorStop(0, rgba(color, themeEffect("serviceGlow")));
       glow.addColorStop(1, rgba(color, 0));
       ctx.fillStyle = glow;
       ctx.beginPath();
@@ -2765,7 +2822,7 @@
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius + 4.4, 0, TAU);
       ctx.setLineDash([1.5, 3.2]);
-      ctx.strokeStyle = "rgba(94, 231, 255, 0.55)";
+      ctx.strokeStyle = rgba(themeColor("accent"), 0.55);
       ctx.lineWidth = 0.9;
       ctx.stroke();
       ctx.setLineDash([]);
@@ -2775,7 +2832,7 @@
     if (view.hoverId === node.id || view.selectedServiceId === node.id) {
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius + 4, 0, TAU);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.strokeStyle = rgba(themeColor("ink"), 0.5);
       ctx.lineWidth = 1;
       ctx.stroke();
     }
@@ -2827,14 +2884,14 @@
     ctx.globalAlpha = labelAlpha * alpha;
     strokeLabel(label, textX, textY, fontSize);
     ctx.fillStyle = active
-      ? (node.data.tailnet && !node.data.local ? "#a9e7f1" : "#d8e8f6")
-      : "#8191a5";
+      ? (node.data.tailnet && !node.data.local ? themeColor("accent") : themeColor("ink"))
+      : themeColor("muted");
     ctx.fillText(label, textX, textY);
 
     if (zoom > 1.45) {
       ctx.globalAlpha = labelAlpha * alpha * smoothstep(1.45, 1.8, zoom);
       ctx.font = `500 ${Math.max(8, 9.5 * zoom)}px ${MONO}`;
-      ctx.fillStyle = "#6f8298";
+      ctx.fillStyle = themeColor("muted");
       const portY = textY + fontSize * 0.95;
       const portText = `:${node.data.port}`;
       strokeLabel(portText, textX, portY, Math.max(8, 9.5 * zoom));
@@ -2878,7 +2935,7 @@
       const related = view.hoverId === service.id ||
         view.hoverId === device.id ||
         view.selectedDeviceId === device.id;
-      const color = CATEGORY[service.data.category] || CATEGORY.other;
+      const color = themeCategory(service.data.category);
       const from = worldToScreen(device.x, device.y);
       const to = worldToScreen(service.x, service.y);
       ctx.beginPath();
@@ -2986,6 +3043,7 @@
       if (!node || node === self || !node.data.online || !deviceVisible(node.data)) continue;
       if (entry.via === "tailnet" && !view.showTailnet) continue;
       const style = TRAFFIC[entry.via];
+      const color = themeColor(style.token);
       const to = worldToScreen(node.x, node.y);
       const dx = to.x - from.x;
       const dy = to.y - from.y;
@@ -3015,7 +3073,7 @@
       // Soft glow under the edge.
       path();
       ctx.setLineDash([]);
-      ctx.strokeStyle = rgba(style.color, 0.08 * entry.alpha * emphasis);
+      ctx.strokeStyle = rgba(color, 0.08 * entry.alpha * emphasis);
       ctx.lineWidth = width * 4;
       ctx.stroke();
 
@@ -3026,7 +3084,7 @@
         ctx.setLineDash([4 * scale, 7 * scale]);
         ctx.lineDashOffset = view.reducedMotion ? 0 : -seconds * 14;
       }
-      ctx.strokeStyle = rgba(style.color, 0.55 * entry.alpha * emphasis);
+      ctx.strokeStyle = rgba(color, 0.55 * entry.alpha * emphasis);
       ctx.lineWidth = width;
       ctx.stroke();
       ctx.setLineDash([]);
@@ -3046,11 +3104,11 @@
           const edgeFade = Math.min(1, t * 6, (1 - t) * 6);
           ctx.beginPath();
           ctx.arc(point.x, point.y, radius * 2.4, 0, TAU);
-          ctx.fillStyle = rgba(style.color, 0.14 * entry.alpha * edgeFade);
+          ctx.fillStyle = rgba(color, 0.14 * entry.alpha * edgeFade);
           ctx.fill();
           ctx.beginPath();
           ctx.arc(point.x, point.y, radius, 0, TAU);
-          ctx.fillStyle = rgba(inbound ? style.color : "#ffffff", 0.9 * entry.alpha * edgeFade);
+          ctx.fillStyle = rgba(inbound ? color : themeColor("ink"), 0.9 * entry.alpha * edgeFade);
           ctx.fill();
         }
       }
@@ -3580,6 +3638,9 @@
     window.requestAnimationFrame(frame);
   }
 
+  window.addEventListener("hearthlight:theme", (event) => {
+    applyTheme(event.detail);
+  });
   window.addEventListener("resize", resize);
   window.setInterval(updateSubtitle, 1000);
   window.setInterval(refreshServiceTimes, 15000);
@@ -3588,7 +3649,7 @@
   }, 15000);
 
   resize();
-  renderLegend();
+  applyTheme();
   setConnection("connecting");
   loadState();
   connectEvents();
