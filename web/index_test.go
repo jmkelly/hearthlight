@@ -128,12 +128,10 @@ func TestSettingsAppearanceMarkup(t *testing.T) {
 	requireContains(t, appearance,
 		`aria-labelledby="settingsAppearanceHeading"`,
 		`<h3 id="settingsAppearanceHeading">Appearance</h3>`,
-		`class="theme-card"`,
-		`class="theme-swatch theme-swatch-dark"`,
-		`class="theme-swatch theme-swatch-light"`,
-		`id="themeDefaultBadge"`,
-		`>Default<`,
+		`id="themeFamilies"`,
+		`class="theme-families"`,
 		`role="group"`,
+		`aria-label="Theme family"`,
 		`aria-label="Theme mode"`,
 		`id="themeModeDark"`,
 		`id="themeModeLight"`,
@@ -170,7 +168,7 @@ func TestAppearanceControlsApplyAndPersist(t *testing.T) {
 		"window.HearthlightTheme",
 		"THEME_MODES.has(mode)",
 		"control.initialPreference()",
-		"control.persist(preference)",
+		"control.persist({ family, mode })",
 		"applyTheme(",
 	)
 	reset := functionBody(t, js, "resetTheme")
@@ -195,10 +193,73 @@ func TestAppearanceControlsApplyAndPersist(t *testing.T) {
 	requireContains(t, open, "syncThemeControls()")
 }
 
+func TestThemeFamilyCardsRenderFromCatalog(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	render := functionBody(t, js, "renderThemeFamilies")
+	requireContains(t, render,
+		"window.HearthlightThemes",
+		"Array.isArray(catalog.families)",
+		"catalog.families.filter(",
+		"themeFamilyPreview(family)",
+		`<button type="button" class="theme-card theme-family"`,
+		`data-family="${escapeHTML(family.id)}"`,
+		`aria-pressed="false"`,
+		`tabindex="-1"`,
+		`class="theme-swatch theme-swatch-dark"`,
+		`class="theme-swatch theme-swatch-light"`,
+		`class="theme-card-name">${escapeHTML(name)}<`,
+		"family.id === defaultFamily",
+		`id="themeDefaultBadge"`,
+		`querySelectorAll(".theme-family")`,
+		`button.addEventListener("click", () => setThemeFamily(button.dataset.family))`,
+	)
+}
+
+func TestThemeFamilyKeyboardNavigation(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	requireContains(t, js, `themeFamilies.addEventListener("keydown", onThemeFamilyKeydown)`)
+
+	move := functionBody(t, js, "onThemeFamilyKeydown")
+	requireContains(t, move,
+		`event.target.closest(".theme-family")`,
+		`event.key === "ArrowRight"`,
+		`event.key === "ArrowDown"`,
+		`event.key === "ArrowLeft"`,
+		`event.key === "ArrowUp"`,
+		`event.key === "Home"`,
+		`event.key === "End"`,
+		"event.preventDefault()",
+		"button.tabIndex =",
+		"target.focus()",
+	)
+}
+
+func TestThemeFamilySelectionPersists(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	choose := functionBody(t, js, "setThemeFamily")
+	requireContains(t, choose,
+		"window.HearthlightTheme",
+		"control.initialPreference()",
+		"family: familyId",
+		"mode",
+		"control.persist({ family: familyId, mode })",
+		"applyTheme(",
+	)
+
+	sync := functionBody(t, js, "syncThemeFamilies")
+	requireContains(t, sync,
+		"themeFamilyButtons",
+		`button.dataset.family === selected`,
+		`button.setAttribute("aria-pressed"`,
+		"button.tabIndex =",
+	)
+}
+
 func TestAppearanceStylingUsesThemeTokens(t *testing.T) {
 	css := readAccessibilityFile(t, "style.css")
 	for _, selector := range []string{
 		".theme-card {",
+		`.theme-card[aria-pressed="true"] {`,
 		".theme-swatch-dark {",
 		".theme-swatch-light {",
 		".theme-modes {",

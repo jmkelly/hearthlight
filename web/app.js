@@ -287,11 +287,13 @@
   const settingsHistoryBtn = document.getElementById("settingsHistoryBtn");
   const settingsTailnetBtn = document.getElementById("settingsTailnetBtn");
   const settingsResetBtn = document.getElementById("settingsResetBtn");
+  const themeFamilies = document.getElementById("themeFamilies");
   const themeModeDark = document.getElementById("themeModeDark");
   const themeModeLight = document.getElementById("themeModeLight");
   const themeModeAuto = document.getElementById("themeModeAuto");
   const themeReset = document.getElementById("themeReset");
-  const themeDefaultBadge = document.getElementById("themeDefaultBadge");
+  let themeFamilyButtons = [];
+  let themeDefaultBadge = null;
   const themeFallbackNote = document.getElementById("themeFallbackNote");
   const conn = document.getElementById("conn");
   const legend = document.getElementById("legend");
@@ -1756,6 +1758,106 @@
     syncToggleState(settingsTailnetBtn, view.showTailnet);
   }
 
+  function themeFamilyPreview(family) {
+    const variants = family && Array.isArray(family.variants) ? family.variants : [];
+    const dark = variants.find((variant) => variant && variant.mode === "dark") || variants[0] || null;
+    const light = variants.find((variant) => variant && variant.mode === "light") || null;
+    const darkPalette = (dark && dark.palette) || {};
+    const lightPalette = (light && light.palette) || {};
+    const colour = (palette, name, fallback) =>
+      typeof palette[name] === "string" && palette[name] ? palette[name] : fallback;
+    return [
+      `--swatch-dark-top:${escapeHTML(colour(darkPalette, "canvasTop", "var(--theme-canvas-top)"))}`,
+      `--swatch-dark-bottom:${escapeHTML(colour(darkPalette, "canvasBottom", "var(--theme-canvas-bottom)"))}`,
+      `--swatch-light-top:${escapeHTML(colour(lightPalette, "canvasTop", "var(--theme-ink)"))}`,
+      `--swatch-light-bottom:${escapeHTML(colour(lightPalette, "canvasBottom", "var(--theme-muted)"))}`,
+    ].join(";");
+  }
+
+  function renderThemeFamilies() {
+    if (!themeFamilies) return;
+    const catalog = window.HearthlightThemes;
+    const families = catalog && Array.isArray(catalog.families)
+      ? catalog.families.filter((family) => family && typeof family.id === "string" && family.id)
+      : [];
+    if (!families.length) {
+      themeFamilies.hidden = true;
+      return;
+    }
+    const control = window.HearthlightTheme;
+    const defaultFamily = control && control.DEFAULT_THEME ? control.DEFAULT_THEME.family : "hearthlight";
+    themeFamilies.hidden = false;
+    themeFamilies.innerHTML = families.map((family) => {
+      const swatches = themeFamilyPreview(family);
+      const name = typeof family.name === "string" && family.name ? family.name : family.id;
+      const badge = family.id === defaultFamily
+        ? '<span id="themeDefaultBadge" class="theme-default-badge">Default</span>'
+        : "";
+      return `
+        <button type="button" class="theme-card theme-family" data-family="${escapeHTML(family.id)}" aria-pressed="false" tabindex="-1">
+          <span class="theme-card-swatches" aria-hidden="true">
+            <span class="theme-swatch theme-swatch-dark" style="${swatches}"></span>
+            <span class="theme-swatch theme-swatch-light" style="${swatches}"></span>
+          </span>
+          <span class="theme-card-copy">
+            <span class="theme-card-name">${escapeHTML(name)}</span>
+            <span class="theme-card-hint">Map theme family</span>
+          </span>
+          ${badge}
+        </button>`;
+    }).join("");
+    themeFamilyButtons = [...themeFamilies.querySelectorAll(".theme-family")];
+    themeDefaultBadge = document.getElementById("themeDefaultBadge");
+    for (const button of themeFamilyButtons) {
+      button.addEventListener("click", () => setThemeFamily(button.dataset.family));
+    }
+  }
+
+  function themeFamilyName(id) {
+    const catalog = window.HearthlightThemes;
+    const families = catalog && Array.isArray(catalog.families) ? catalog.families : [];
+    const family = families.find((candidate) => candidate && candidate.id === id);
+    return family && typeof family.name === "string" && family.name ? family.name : "Theme";
+  }
+
+  function syncThemeFamilies(theme) {
+    if (!themeFamilyButtons.length) return;
+    const control = window.HearthlightTheme;
+    const defaultFamily = control && control.DEFAULT_THEME ? control.DEFAULT_THEME.family : "hearthlight";
+    const selected = theme && theme.family ? theme.family : defaultFamily;
+    for (const button of themeFamilyButtons) {
+      const on = button.dataset.family === selected;
+      button.setAttribute("aria-pressed", String(on));
+      button.tabIndex = on ? 0 : -1;
+    }
+    if (!themeFamilyButtons.some((button) => button.tabIndex === 0)) {
+      themeFamilyButtons[0].tabIndex = 0;
+    }
+  }
+
+  function onThemeFamilyKeydown(event) {
+    if (!themeFamilyButtons.length) return;
+    const current = event.target.closest(".theme-family");
+    if (!current) return;
+    const index = themeFamilyButtons.indexOf(current);
+    if (index < 0) return;
+    let next = -1;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      next = (index + 1) % themeFamilyButtons.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      next = (index - 1 + themeFamilyButtons.length) % themeFamilyButtons.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = themeFamilyButtons.length - 1;
+    }
+    if (next < 0) return;
+    event.preventDefault();
+    const target = themeFamilyButtons[next];
+    for (const button of themeFamilyButtons) button.tabIndex = button === target ? 0 : -1;
+    target.focus();
+  }
+
   function themeModeLabel(mode) {
     if (mode === "auto") return "Auto";
     if (mode === "light") return "Light";
@@ -1781,6 +1883,7 @@
     ]) {
       if (button) button.setAttribute("aria-pressed", String(mode === requested));
     }
+    syncThemeFamilies(resolved);
     if (themeDefaultBadge) themeDefaultBadge.hidden = !isDefaultTheme(resolved);
     if (themeFallbackNote) {
       const fallback = Boolean(resolved && resolved.fallback);
@@ -1794,9 +1897,19 @@
   function setThemeMode(mode) {
     const control = window.HearthlightTheme;
     if (!control || !THEME_MODES.has(mode)) return;
-    const preference = { ...control.initialPreference(), mode };
-    applyTheme(control.persist(preference));
+    const family = view.theme && view.theme.family
+      ? view.theme.family
+      : control.initialPreference().family;
+    applyTheme(control.persist({ family, mode }));
     showToast(`${themeModeLabel(mode)} theme`);
+  }
+
+  function setThemeFamily(familyId) {
+    const control = window.HearthlightTheme;
+    if (!control || !familyId) return;
+    const mode = control.initialPreference().mode;
+    applyTheme(control.persist({ family: familyId, mode }));
+    showToast(`${themeFamilyName(familyId)} theme`);
   }
 
   function resetTheme() {
@@ -3606,6 +3719,9 @@
   if (themeReset) {
     themeReset.addEventListener("click", resetTheme);
   }
+  if (themeFamilies) {
+    themeFamilies.addEventListener("keydown", onThemeFamilyKeydown);
+  }
   settingsDialog.addEventListener("cancel", (event) => {
     event.preventDefault();
     closeSettings();
@@ -3749,6 +3865,7 @@
     if (!eventSource || eventSource.readyState !== 1) loadState();
   }, 15000);
 
+  renderThemeFamilies();
   resize();
   applyTheme();
   setConnection("connecting");
