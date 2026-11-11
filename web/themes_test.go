@@ -475,6 +475,128 @@ var wantDraculaEffects = map[string]any{
 	"shadowStrength": 1.0,
 }
 
+var wantOneDarkPalette = map[string]string{
+	"bg":           "#282c34",
+	"ink":          "#abb2bf",
+	"muted":        "#5c6370",
+	"accent":       "#61afef",
+	"line":         "rgba(171, 178, 191, 0.14)",
+	"glass":        "rgba(40, 44, 52, 0.74)",
+	"canvasTop":    "#313640",
+	"canvasMiddle": "#282c34",
+	"canvasBottom": "#21252b",
+	"grid":         "rgba(97, 175, 239, 0.06)",
+	"ambientGlow":  "rgba(97, 175, 239, 0.12)",
+	"online":       "#98c379",
+	"warning":      "#e5c07b",
+	"danger":       "#e06c75",
+	"history":      "#5c6370",
+	"vignette":     "rgba(33, 37, 43, 0.55)",
+	"labelHalo":    "rgba(33, 37, 43, 0.88)",
+	"bubble":       "rgba(40, 44, 52, 0.94)",
+	"panel":        "rgba(40, 44, 52, 0.95)",
+}
+
+var wantOneDarkKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#e5c07b"},
+	"server":   {Label: "Server", Color: "#61afef"},
+	"computer": {Label: "Computer", Color: "#528bff"},
+	"phone":    {Label: "Phone", Color: "#e06c75"},
+	"nas":      {Label: "NAS", Color: "#98c379"},
+	"media":    {Label: "Media", Color: "#c678dd"},
+	"iot":      {Label: "IoT", Color: "#56b6c2"},
+	"printer":  {Label: "Printer", Color: "#d19a66"},
+	"device":   {Label: "Device", Color: "#818896"},
+}
+
+var wantOneDarkCategories = map[string]string{
+	"web":    "#61afef",
+	"media":  "#c678dd",
+	"data":   "#d19a66",
+	"remote": "#98c379",
+	"infra":  "#56b6c2",
+	"iot":    "#528bff",
+	"other":  "#818896",
+}
+
+var wantOneDarkEffects = map[string]any{
+	"vignette":       0.55,
+	"deviceGlow":     0.22,
+	"devicePulse":    0.3,
+	"serviceGlow":    0.16,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "screen",
+	"territoryAlpha": 1.0,
+	"glowStrength":   1.0,
+	"labelHalo":      1.0,
+	"shadowStrength": 1.0,
+}
+
+var wantSolarizedDarkPalette = map[string]string{
+	"bg":           "#002b36",
+	"ink":          "#839496",
+	"muted":        "#586e75",
+	"accent":       "#268bd2",
+	"line":         "rgba(131, 148, 150, 0.14)",
+	"glass":        "rgba(0, 43, 54, 0.74)",
+	"canvasTop":    "#073642",
+	"canvasMiddle": "#002b36",
+	"canvasBottom": "#001f27",
+	"grid":         "rgba(38, 139, 210, 0.06)",
+	"ambientGlow":  "rgba(38, 139, 210, 0.12)",
+	"online":       "#859900",
+	"warning":      "#b58900",
+	"danger":       "#dc322f",
+	"history":      "#586e75",
+	"vignette":     "rgba(0, 31, 39, 0.55)",
+	"labelHalo":    "rgba(0, 31, 39, 0.88)",
+	"bubble":       "rgba(0, 43, 54, 0.94)",
+	"panel":        "rgba(0, 43, 54, 0.95)",
+}
+
+var wantSolarizedDarkKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#b58900"},
+	"server":   {Label: "Server", Color: "#268bd2"},
+	"computer": {Label: "Computer", Color: "#6c71c4"},
+	"phone":    {Label: "Phone", Color: "#d33682"},
+	"nas":      {Label: "NAS", Color: "#859900"},
+	"media":    {Label: "Media", Color: "#2aa198"},
+	"iot":      {Label: "IoT", Color: "#dc322f"},
+	"printer":  {Label: "Printer", Color: "#cb4b16"},
+	"device":   {Label: "Device", Color: "#93a1a1"},
+}
+
+var wantSolarizedDarkCategories = map[string]string{
+	"web":    "#268bd2",
+	"media":  "#6c71c4",
+	"data":   "#cb4b16",
+	"remote": "#859900",
+	"infra":  "#2aa198",
+	"iot":    "#d33682",
+	"other":  "#93a1a1",
+}
+
+var wantSolarizedDarkEffects = map[string]any{
+	"vignette":       0.55,
+	"deviceGlow":     0.22,
+	"devicePulse":    0.3,
+	"serviceGlow":    0.16,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "screen",
+	"territoryAlpha": 1.0,
+	"glowStrength":   1.0,
+	"labelHalo":      1.0,
+	"shadowStrength": 1.0,
+}
+
 var requiredPaletteTokens = []string{
 	"bg", "ink", "muted", "accent", "line", "glass",
 	"canvasTop", "canvasMiddle", "canvasBottom", "grid", "ambientGlow",
@@ -830,6 +952,72 @@ func TestDraculaVariant(t *testing.T) {
 	}
 	if !reflect.DeepEqual(variant.Effects, wantDraculaEffects) {
 		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantDraculaEffects)
+	}
+}
+
+func TestOneDarkVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "one")
+	if family.Name != "One" {
+		t.Fatalf("family name = %q, want One", family.Name)
+	}
+	if family.Source.Name != "Atom One Dark" {
+		t.Errorf("source name = %q, want Atom One Dark", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/atom/one-dark-syntax" {
+		t.Errorf("source url = %q, want the One Dark project URL", family.Source.URL)
+	}
+	if len(family.Variants) != 1 {
+		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	}
+	variant := family.Variants[0]
+	if variant.ID != "one-dark" || variant.Name != "One Dark" || variant.Mode != "dark" {
+		t.Fatalf("variant = %+v, want One Dark dark", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantOneDarkPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantOneDarkPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantOneDarkKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantOneDarkKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantOneDarkCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantOneDarkCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantOneDarkEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantOneDarkEffects)
+	}
+}
+
+func TestSolarizedDarkVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "solarized")
+	if family.Name != "Solarized" {
+		t.Fatalf("family name = %q, want Solarized", family.Name)
+	}
+	if family.Source.Name != "Solarized" {
+		t.Errorf("source name = %q, want Solarized", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/altercation/solarized" {
+		t.Errorf("source url = %q, want the Solarized project URL", family.Source.URL)
+	}
+	if len(family.Variants) != 1 {
+		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	}
+	variant := family.Variants[0]
+	if variant.ID != "solarized-dark" || variant.Name != "Solarized Dark" || variant.Mode != "dark" {
+		t.Fatalf("variant = %+v, want Solarized Dark dark", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantSolarizedDarkPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantSolarizedDarkPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantSolarizedDarkKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantSolarizedDarkKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantSolarizedDarkCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantSolarizedDarkCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantSolarizedDarkEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantSolarizedDarkEffects)
 	}
 }
 
