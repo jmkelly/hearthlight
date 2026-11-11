@@ -369,7 +369,7 @@ var wantKanagawaWaveEffects = map[string]any{
 var wantKanagawaLotusPalette = map[string]string{
 	"bg":           "#F2ECBC",
 	"ink":          "#545464",
-	"muted":        "#6B695C",
+	"muted":        "#686659",
 	"accent":       "#4D699B",
 	"line":         "rgba(84, 84, 100, 0.18)",
 	"glass":        "rgba(242, 236, 188, 0.82)",
@@ -2027,77 +2027,112 @@ func contrastRatioColours(a, b themeColour) float64 {
 	return contrastRatio([3]float64{a.r, a.g, a.b}, [3]float64{b.r, b.g, b.b})
 }
 
-type themeSurface struct {
-	name   string
-	colour themeColour
+type contrastCheck struct {
+	key        string
+	token      string
+	role       string
+	surface    string
+	foreground themeColour
+	background themeColour
+	minimum    float64
+	text       bool
 }
 
-func mustThemeColour(t *testing.T, variant themeVariant, token string) themeColour {
-	t.Helper()
-	value, ok := variant.Palette[token]
-	if !ok {
-		t.Fatalf("%s: palette is missing %q", variant.ID, token)
-	}
-	colour, err := parseThemeColour(value)
-	if err != nil {
-		t.Fatalf("%s: palette %q: %v", variant.ID, token, err)
-	}
-	return colour
+var contrastPaletteTokens = []string{
+	"bg", "ink", "muted", "panel", "bubble", "glass",
+	"canvasTop", "canvasMiddle", "canvasBottom", "labelHalo",
+	"accent", "online", "history",
 }
 
-func canvasSurfaces(t *testing.T, variant themeVariant) []themeSurface {
-	t.Helper()
-	return []themeSurface{
-		{name: "canvasTop", colour: mustThemeColour(t, variant, "canvasTop")},
-		{name: "canvasMiddle", colour: mustThemeColour(t, variant, "canvasMiddle")},
-		{name: "canvasBottom", colour: mustThemeColour(t, variant, "canvasBottom")},
+func loadContrastColours(variant themeVariant) (map[string]themeColour, []string) {
+	colours := make(map[string]themeColour, len(contrastPaletteTokens))
+	var failures []string
+	for _, token := range contrastPaletteTokens {
+		value, ok := variant.Palette[token]
+		if !ok {
+			failures = append(failures, fmt.Sprintf("%s: palette is missing %q", variant.ID, token))
+			continue
+		}
+		colour, err := parseThemeColour(value)
+		if err != nil {
+			failures = append(failures, fmt.Sprintf("%s: palette %q: %v", variant.ID, token, err))
+			continue
+		}
+		colours[token] = colour
 	}
+	return colours, failures
 }
 
-func textSurfaces(t *testing.T, variant themeVariant) []themeSurface {
-	t.Helper()
-	background := mustThemeColour(t, variant, "bg")
-	panel := compositeColour(mustThemeColour(t, variant, "panel"), background)
-	bubble := mustThemeColour(t, variant, "bubble")
-	halo := mustThemeColour(t, variant, "labelHalo")
-
-	surfaces := []themeSurface{
-		{name: "bg", colour: background},
-		{name: "panel", colour: panel},
+// Panel and glass chrome sit over the page background. Device bubbles sit on
+// the canvas, and the label halo is drawn over every canvas stop.
+func contrastSurfaces(colours map[string]themeColour) map[string]themeColour {
+	background := colours["bg"]
+	halo := colours["labelHalo"]
+	bubble := colours["bubble"]
+	surfaces := map[string]themeColour{
+		"bg":           background,
+		"canvasTop":    colours["canvasTop"],
+		"canvasMiddle": colours["canvasMiddle"],
+		"canvasBottom": colours["canvasBottom"],
+		"panel":        compositeColour(colours["panel"], background),
+		"glass":        compositeColour(colours["glass"], background),
+		"bubble":       compositeColour(bubble, colours["canvasMiddle"]),
 	}
-	for _, canvas := range canvasSurfaces(t, variant) {
-		surfaces = append(surfaces,
-			themeSurface{name: "bubble." + canvas.name, colour: compositeColour(bubble, canvas.colour)},
-			themeSurface{name: "labelHalo." + canvas.name, colour: compositeColour(halo, canvas.colour)},
-		)
+	for _, canvas := range []string{"canvasTop", "canvasMiddle", "canvasBottom"} {
+		surfaces["labelHalo."+canvas] = compositeColour(halo, colours[canvas])
 	}
+	surfaces["bubble.canvasTop"] = compositeColour(bubble, colours["canvasTop"])
+	surfaces["bubble.canvasBottom"] = compositeColour(bubble, colours["canvasBottom"])
 	return surfaces
 }
 
-func graphicalSurfaces(t *testing.T, variant themeVariant) []themeSurface {
-	t.Helper()
-	surfaces := canvasSurfaces(t, variant)
-	background := mustThemeColour(t, variant, "bg")
-	return append(surfaces, themeSurface{
-		name:   "panel",
-		colour: compositeColour(mustThemeColour(t, variant, "panel"), background),
-	})
-}
-
-type contrastSubject struct {
-	name  string
-	value string
-}
-
-func graphicalSubjects(t *testing.T, variant themeVariant) []contrastSubject {
-	t.Helper()
-	subjects := make([]contrastSubject, 0, 3+len(variant.Kinds)+len(variant.Categories))
-	for _, token := range []string{"accent", "online", "history"} {
-		value, ok := variant.Palette[token]
-		if !ok {
-			t.Fatalf("%s: palette is missing %q", variant.ID, token)
+func themeContrastChecks(variant themeVariant) ([]contrastCheck, []string) {
+	colours, failures := loadContrastColours(variant)
+	if len(failures) > 0 {
+		return nil, failures
+	}
+	surfaces := contrastSurfaces(colours)
+	checks := make([]contrastCheck, 0, 2*7+3+5+3*len(variant.Kinds)+3*len(variant.Categories))
+	seen := make(map[string]bool)
+	add := func(key, token, role, surface string, foreground themeColour, minimum float64, text bool) {
+		if seen[key] {
+			return
 		}
-		subjects = append(subjects, contrastSubject{name: token, value: value})
+		seen[key] = true
+		checks = append(checks, contrastCheck{
+			key: key, token: token, role: role, surface: surface,
+			foreground: foreground, background: surfaces[surface],
+			minimum: minimum, text: text,
+		})
+	}
+
+	for _, pair := range themeTextPairs {
+		for _, surface := range []string{"bg", "canvasMiddle", "panel", "bubble", "glass", "bubble.canvasTop", "bubble.canvasBottom"} {
+			role := pair.role
+			if role != pair.token {
+				role = fmt.Sprintf("%s (%s)", pair.role, pair.token)
+			}
+			add(pair.token+"/"+surface, pair.token, role, surface, colours[pair.token], textContrastMinimum, true)
+		}
+	}
+	for _, canvas := range []string{"canvasTop", "canvasMiddle", "canvasBottom"} {
+		surface := "labelHalo." + canvas
+		add("ink/"+surface, "ink", "ink label text", surface, colours["ink"], textContrastMinimum, true)
+	}
+
+	addGraphical := func(token, surface string, foreground themeColour) {
+		add(token+"/"+surface, token, token, surface, foreground, graphicalContrastMinimum, false)
+	}
+	addGraphical("accent", "bg", colours["accent"])
+	addGraphical("accent", "panel", colours["accent"])
+	addGraphical("online", "canvasMiddle", colours["online"])
+	addGraphical("history", "canvasMiddle", colours["history"])
+	// Keep the earlier all-canvas coverage in addition to the exact adjacent
+	// pairs, so a mark cannot regress at a different canvas stop.
+	for _, token := range []string{"accent", "online", "history"} {
+		for _, surface := range []string{"canvasTop", "canvasMiddle", "canvasBottom", "panel"} {
+			addGraphical(token, surface, colours[token])
+		}
 	}
 
 	kindNames := make([]string, 0, len(variant.Kinds))
@@ -2106,7 +2141,15 @@ func graphicalSubjects(t *testing.T, variant themeVariant) []contrastSubject {
 	}
 	sort.Strings(kindNames)
 	for _, name := range kindNames {
-		subjects = append(subjects, contrastSubject{name: "kind." + name, value: variant.Kinds[name].Color})
+		colour, err := parseThemeColour(variant.Kinds[name].Color)
+		if err != nil {
+			failures = append(failures, fmt.Sprintf("%s: kind %q colour: %v", variant.ID, name, err))
+			continue
+		}
+		token := "kind." + name
+		for _, surface := range []string{"bubble", "canvasTop", "canvasMiddle", "canvasBottom"} {
+			addGraphical(token, surface, colour)
+		}
 	}
 
 	categoryNames := make([]string, 0, len(variant.Categories))
@@ -2115,9 +2158,80 @@ func graphicalSubjects(t *testing.T, variant themeVariant) []contrastSubject {
 	}
 	sort.Strings(categoryNames)
 	for _, name := range categoryNames {
-		subjects = append(subjects, contrastSubject{name: "category." + name, value: variant.Categories[name]})
+		colour, err := parseThemeColour(variant.Categories[name])
+		if err != nil {
+			failures = append(failures, fmt.Sprintf("%s: category %q colour: %v", variant.ID, name, err))
+			continue
+		}
+		token := "category." + name
+		for _, surface := range []string{"canvasTop", "canvasMiddle", "canvasBottom"} {
+			addGraphical(token, surface, colour)
+		}
 	}
-	return subjects
+	return checks, failures
+}
+
+func contrastFailures(variant themeVariant) []string {
+	checks, failures := themeContrastChecks(variant)
+	if len(failures) > 0 {
+		return failures
+	}
+
+	textPairs := make(map[string]bool)
+	graphicalPairs := make(map[string]bool)
+	for _, check := range checks {
+		if check.text {
+			textPairs[check.key] = true
+		} else {
+			graphicalPairs[check.key] = true
+		}
+	}
+
+	exceptions := make(map[string]themeContrastException, len(variant.ContrastExceptions))
+	order := make([]string, 0, len(variant.ContrastExceptions))
+	for _, exception := range variant.ContrastExceptions {
+		key := strings.TrimSpace(exception.Pair)
+		if key == "" {
+			failures = append(failures, fmt.Sprintf("%s: contrast exception has an empty pair", variant.ID))
+			continue
+		}
+		if _, exists := exceptions[key]; exists {
+			failures = append(failures, fmt.Sprintf("%s: duplicate contrast exception %q", variant.ID, key))
+			continue
+		}
+		exceptions[key] = exception
+		order = append(order, key)
+	}
+
+	exempted := make(map[string]bool, len(exceptions))
+	for _, key := range order {
+		exception := exceptions[key]
+		if textPairs[key] {
+			failures = append(failures, fmt.Sprintf("%s: text pair %s declares an exception (%q); text pairs must never be exempt",
+				variant.ID, key, exception.Reason))
+			continue
+		}
+		if strings.TrimSpace(exception.Reason) == "" {
+			failures = append(failures, fmt.Sprintf("%s: contrast exception %q has no reason", variant.ID, key))
+		}
+		if graphicalPairs[key] {
+			exempted[key] = true
+		} else {
+			failures = append(failures, fmt.Sprintf("%s: contrast exception %q does not match a checked pair", variant.ID, key))
+		}
+	}
+
+	for _, check := range checks {
+		if exempted[check.key] {
+			continue
+		}
+		ratio := contrastRatioColours(check.foreground, check.background)
+		if ratio < check.minimum {
+			failures = append(failures, fmt.Sprintf("%s: %s on %s contrast is %.2f:1, want at least %.1f:1",
+				variant.ID, check.role, check.surface, ratio, check.minimum))
+		}
+	}
+	return failures
 }
 
 func TestThemeContrast(t *testing.T) {
@@ -2126,75 +2240,175 @@ func TestThemeContrast(t *testing.T) {
 		for _, variant := range family.Variants {
 			variant := variant
 			t.Run(variant.ID, func(t *testing.T) {
-				exceptions := make(map[string]themeContrastException, len(variant.ContrastExceptions))
-				for _, exception := range variant.ContrastExceptions {
-					if _, exists := exceptions[exception.Pair]; exists {
-						t.Errorf("%s: duplicate contrast exception %q", variant.ID, exception.Pair)
-					}
-					exceptions[exception.Pair] = exception
-				}
-				usedExceptions := make(map[string]bool, len(exceptions))
-
-				surfaces := textSurfaces(t, variant)
-				for _, pair := range themeTextPairs {
-					colour := mustThemeColour(t, variant, pair.token)
-					for _, surface := range surfaces {
-						key := pair.token + "/" + surface.name
-						if exception, ok := exceptions[key]; ok {
-							usedExceptions[key] = true
-							t.Errorf("%s: text pair %s declares an exception (%q); text pairs must never be exempt",
-								variant.ID, key, exception.Reason)
-						}
-						ratio := contrastRatioColours(colour, surface.colour)
-						if ratio < textContrastMinimum {
-							label := pair.role
-							if label != pair.token {
-								label = fmt.Sprintf("%s (%s)", pair.role, pair.token)
-							}
-							t.Errorf("%s: %s on %s contrast is %.2f:1, want at least %.1f:1",
-								variant.ID, label, surface.name, ratio, textContrastMinimum)
-						}
-					}
-				}
-
-				surfaces = graphicalSurfaces(t, variant)
-				for _, subject := range graphicalSubjects(t, variant) {
-					colour, err := parseThemeColour(subject.value)
-					if err != nil {
-						t.Errorf("%s: %s colour: %v", variant.ID, subject.name, err)
-						continue
-					}
-					for _, surface := range surfaces {
-						key := subject.name + "/" + surface.name
-						if exception, ok := exceptions[key]; ok {
-							usedExceptions[key] = true
-							if strings.TrimSpace(exception.Reason) == "" {
-								t.Errorf("%s: contrast exception %q has no reason", variant.ID, key)
-							}
-							continue
-						}
-						ratio := contrastRatioColours(colour, surface.colour)
-						if ratio < graphicalContrastMinimum {
-							t.Errorf("%s: %s on %s contrast is %.2f:1, want at least %.1f:1",
-								variant.ID, subject.name, surface.name, ratio, graphicalContrastMinimum)
-						}
-					}
-				}
-
-				for key, exception := range exceptions {
-					if strings.TrimSpace(exception.Pair) == "" {
-						t.Errorf("%s: contrast exception has an empty pair", variant.ID)
-					}
-					if strings.TrimSpace(exception.Reason) == "" {
-						t.Errorf("%s: contrast exception %q has no reason", variant.ID, key)
-					}
-					if !usedExceptions[key] {
-						t.Errorf("%s: contrast exception %q does not match a checked graphical pair", variant.ID, key)
-					}
+				for _, failure := range contrastFailures(variant) {
+					t.Error(failure)
 				}
 			})
 		}
 	}
+}
+
+func TestThemeContrastCoversRequiredPairs(t *testing.T) {
+	_, catalog := readCatalog(t)
+	for _, family := range catalog.Families {
+		for _, variant := range family.Variants {
+			checks, failures := themeContrastChecks(variant)
+			if len(failures) > 0 {
+				t.Fatalf("%s: theme contrast checks failed: %v", variant.ID, failures)
+			}
+			keys := make(map[string]bool, len(checks))
+			for _, check := range checks {
+				keys[check.key] = true
+			}
+
+			required := []string{
+				"ink/bg", "ink/canvasMiddle", "ink/panel", "ink/bubble", "ink/glass",
+				"muted/bg", "muted/canvasMiddle", "muted/panel", "muted/bubble", "muted/glass",
+				"ink/labelHalo.canvasTop", "ink/labelHalo.canvasMiddle", "ink/labelHalo.canvasBottom",
+				"accent/bg", "accent/panel", "online/canvasMiddle", "history/canvasMiddle",
+			}
+			for name := range variant.Kinds {
+				required = append(required, "kind."+name+"/bubble")
+			}
+			for name := range variant.Categories {
+				required = append(required, "category."+name+"/canvasMiddle")
+			}
+			sort.Strings(required)
+			for _, key := range required {
+				if !keys[key] {
+					t.Errorf("%s: missing contrast pair %q", variant.ID, key)
+				}
+			}
+		}
+	}
+}
+
+func syntheticContrastVariant(t *testing.T, id string) themeVariant {
+	t.Helper()
+	_, catalog := readCatalog(t)
+	base := findThemeVariant(t, findThemeFamily(t, catalog, "hearthlight"), "hearthlight-dark")
+	variant := themeVariant{
+		ID:         id,
+		Name:       id,
+		Mode:       base.Mode,
+		Palette:    make(map[string]string, len(base.Palette)),
+		Kinds:      make(map[string]themeKind, len(base.Kinds)),
+		Categories: make(map[string]string, len(base.Categories)),
+		Effects:    make(map[string]any, len(base.Effects)),
+	}
+	for name, value := range base.Palette {
+		variant.Palette[name] = value
+	}
+	for name, value := range base.Kinds {
+		variant.Kinds[name] = value
+	}
+	for name, value := range base.Categories {
+		variant.Categories[name] = value
+	}
+	for name, value := range base.Effects {
+		variant.Effects[name] = value
+	}
+	return variant
+}
+
+func accentContrastExceptions(t *testing.T, variant themeVariant, reason string) []themeContrastException {
+	t.Helper()
+	checks, failures := themeContrastChecks(variant)
+	if len(failures) > 0 {
+		t.Fatalf("theme contrast checks failed before exceptions: %v", failures)
+	}
+	var exceptions []themeContrastException
+	for _, check := range checks {
+		if check.token == "accent" {
+			exceptions = append(exceptions, themeContrastException{Pair: check.key, Reason: reason})
+		}
+	}
+	return exceptions
+}
+
+func TestThemeContrastFailureNamesLowMuted(t *testing.T) {
+	variant := syntheticContrastVariant(t, "synthetic-low-muted")
+	variant.Palette["muted"] = "#232323"
+	failures := contrastFailures(variant)
+	message := strings.Join(failures, "\n")
+	for _, want := range []string{
+		"synthetic-low-muted",
+		"inkMuted (muted)",
+		"on bg",
+		"want at least 4.5:1",
+	} {
+		if !strings.Contains(message, want) {
+			t.Errorf("failure message %q does not name %q", message, want)
+		}
+	}
+	if !regexp.MustCompile(`contrast is [0-9]+\.[0-9]+:1`).MatchString(message) {
+		t.Errorf("failure message %q does not name the measured ratio", message)
+	}
+}
+
+func TestThemeContrastRejectsTextException(t *testing.T) {
+	variant := syntheticContrastVariant(t, "synthetic-text-exception")
+	variant.ContrastExceptions = []themeContrastException{{Pair: "muted/bg", Reason: "quiet labels are decorative"}}
+	message := strings.Join(contrastFailures(variant), "\n")
+	for _, want := range []string{
+		"text pair muted/bg declares an exception",
+		"text pairs must never be exempt",
+	} {
+		if !strings.Contains(message, want) {
+			t.Errorf("failure message %q does not name %q", message, want)
+		}
+	}
+}
+
+func TestThemeContrastAcceptsGraphicalException(t *testing.T) {
+	variant := syntheticContrastVariant(t, "synthetic-graphical-exception")
+	variant.Palette["accent"] = "#101010"
+	variant.ContrastExceptions = accentContrastExceptions(t, variant, "accent is decorative in this synthetic case")
+	if failures := contrastFailures(variant); len(failures) > 0 {
+		t.Fatalf("valid graphical exceptions were not accepted:\n%s", strings.Join(failures, "\n"))
+	}
+}
+
+func TestThemeContrastRejectsInvalidGraphicalExceptions(t *testing.T) {
+	t.Run("empty reason", func(t *testing.T) {
+		variant := syntheticContrastVariant(t, "synthetic-empty-reason")
+		variant.Palette["accent"] = "#101010"
+		variant.ContrastExceptions = accentContrastExceptions(t, variant, "")
+		message := strings.Join(contrastFailures(variant), "\n")
+		if !strings.Contains(message, "has no reason") {
+			t.Errorf("failure message %q does not reject the empty reason", message)
+		}
+	})
+
+	t.Run("unmatched pair", func(t *testing.T) {
+		variant := syntheticContrastVariant(t, "synthetic-unmatched-exception")
+		variant.ContrastExceptions = []themeContrastException{{Pair: "kind.router/nowhere", Reason: "not a checked pair"}}
+		message := strings.Join(contrastFailures(variant), "\n")
+		if !strings.Contains(message, "does not match a checked pair") {
+			t.Errorf("failure message %q does not reject the unmatched pair", message)
+		}
+	})
+
+	t.Run("duplicate pair", func(t *testing.T) {
+		variant := syntheticContrastVariant(t, "synthetic-duplicate-exception")
+		variant.ContrastExceptions = []themeContrastException{
+			{Pair: "accent/bg", Reason: "first declaration"},
+			{Pair: "accent/bg", Reason: "second declaration"},
+		}
+		message := strings.Join(contrastFailures(variant), "\n")
+		if !strings.Contains(message, "duplicate contrast exception") {
+			t.Errorf("failure message %q does not reject the duplicate pair", message)
+		}
+	})
+
+	t.Run("empty pair", func(t *testing.T) {
+		variant := syntheticContrastVariant(t, "synthetic-empty-pair")
+		variant.ContrastExceptions = []themeContrastException{{Pair: "  ", Reason: "no pair named"}}
+		message := strings.Join(contrastFailures(variant), "\n")
+		if !strings.Contains(message, "has an empty pair") {
+			t.Errorf("failure message %q does not reject the empty pair", message)
+		}
+	})
 }
 
 type effectRange struct {

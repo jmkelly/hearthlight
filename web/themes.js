@@ -762,7 +762,7 @@ window.HearthlightThemes = {
       "source": {
         "name": "Kanagawa",
         "url": "https://github.com/rebelot/kanagawa.nvim",
-        "note": "muted, history, device, and other lightened from #727169 to #9E9B82 for 4.5:1 text and 3:1 canvas contrast; kanagawa-lotus darkens muted from lotusGray2 #716E61 to #6B695C for 4.5:1 text on #F2ECBC, and online/nas/remote from lotusGreen #6F894E to #677F49, computer/infra from lotusTeal1 #4E8CA2 to #477F94, and printer/data from lotusOrange #CC6D00 to #B66200 for 3:1 on canvasBottom #E4D794 at the same hues"
+        "note": "muted, history, device, and other lightened from #727169 to #9E9B82 for 4.5:1 text and 3:1 canvas contrast; kanagawa-lotus darkens muted from lotusGray2 #716E61 to #686659, the final #6B695C to #686659 step moves 39.0% to 37.8% lightness at the same 52 degree hue so muted clears 4.60:1 on canvasMiddle #EDE7B7, and online/nas/remote from lotusGreen #6F894E to #677F49, computer/infra from lotusTeal1 #4E8CA2 to #477F94, and printer/data from lotusOrange #CC6D00 to #B66200 for 3:1 on canvasBottom #E4D794 at the same hues"
       },
       "variants": [
         {
@@ -861,7 +861,7 @@ window.HearthlightThemes = {
           "palette": {
             "bg": "#F2ECBC",
             "ink": "#545464",
-            "muted": "#6B695C",
+            "muted": "#686659",
             "accent": "#4D699B",
             "line": "rgba(84, 84, 100, 0.18)",
             "glass": "rgba(242, 236, 188, 0.82)",
