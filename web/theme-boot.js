@@ -8,11 +8,19 @@
   const MODES = new Set(["dark", "light"]);
   const QUERY_MODES = new Set(["dark", "light", "auto"]);
 
+  const FORBIDDEN_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+  const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;
+  const MAX_ID_LENGTH = 64;
+  const MAX_NAME_LENGTH = 64;
+
   const root = document.documentElement;
   const lightQuery = window.matchMedia("(prefers-color-scheme: light)");
   const contrastQuery = window.matchMedia("(prefers-contrast: more)");
   const catalog = window.HearthlightThemes;
-  const families = catalog && Array.isArray(catalog.families) ? catalog.families : [];
+  const builtinFamilies = catalog && Array.isArray(catalog.families)
+    ? catalog.families.slice()
+    : [];
+  let families = builtinFamilies.slice();
   const appliedTokens = new Set();
 
   const kebabCase = (name) => name.replace(/[A-Z]/g, (letter) => "-" + letter.toLowerCase());
@@ -197,6 +205,165 @@
     return theme;
   };
 
+  const isPlainObject = (value) =>
+    value !== null && typeof value === "object" && !Array.isArray(value);
+
+  const hasForbiddenKeys = (value) => {
+    if (Array.isArray(value)) return value.some(hasForbiddenKeys);
+    if (!isPlainObject(value)) return false;
+    for (const key of Object.keys(value)) {
+      if (FORBIDDEN_KEYS.has(key) || hasForbiddenKeys(value[key])) return true;
+    }
+    return false;
+  };
+
+  const copyStringMap = (value) => {
+    if (!isPlainObject(value)) return null;
+    const copy = Object.create(null);
+    for (const key of Object.keys(value)) {
+      if (FORBIDDEN_KEYS.has(key) || typeof value[key] !== "string") return null;
+      copy[key] = value[key];
+    }
+    return copy;
+  };
+
+  const copyKinds = (value) => {
+    if (value === undefined || value === null) return null;
+    if (!isPlainObject(value)) return null;
+    const copy = Object.create(null);
+    for (const key of Object.keys(value)) {
+      if (FORBIDDEN_KEYS.has(key)) return null;
+      const kind = value[key];
+      if (!isPlainObject(kind)) return null;
+      if (typeof kind.label !== "string" || typeof kind.color !== "string") return null;
+      copy[key] = { label: kind.label, color: kind.color };
+    }
+    return copy;
+  };
+
+  const copyEffects = (value) => {
+    if (value === undefined || value === null) return null;
+    if (!isPlainObject(value)) return null;
+    const copy = {};
+    for (const key of Object.keys(value)) {
+      if (FORBIDDEN_KEYS.has(key)) return null;
+      const item = value[key];
+      if (typeof item !== "number" && typeof item !== "string") return null;
+      copy[key] = item;
+    }
+    return copy;
+  };
+
+  const copySource = (value) => {
+    if (typeof value === "string" && value.trim()) return { name: value.trim() };
+    if (!isPlainObject(value)) return null;
+    const copy = {};
+    if (typeof value.name === "string" && value.name.trim()) copy.name = value.name.trim();
+    if (typeof value.url === "string" && value.url.trim()) copy.url = value.url.trim();
+    return Object.keys(copy).length ? copy : null;
+  };
+
+  const cleanName = (value) => {
+    if (typeof value !== "string") return null;
+    const name = value.trim();
+    if (!name || Array.from(name).length > MAX_NAME_LENGTH) return null;
+    if (/[\u0000-\u001f\u007f]/.test(name)) return null;
+    return name;
+  };
+
+  const cleanID = (value) => {
+    if (typeof value !== "string") return null;
+    const id = value.trim();
+    if (!id || id.length > MAX_ID_LENGTH || !ID_PATTERN.test(id)) return null;
+    return id;
+  };
+
+  const copyVariant = (variant) => {
+    if (!isPlainObject(variant) || hasForbiddenKeys(variant)) return null;
+    const id = cleanID(variant.id);
+    const name = cleanName(variant.name);
+    const mode = variant.mode === "dark" || variant.mode === "light" ? variant.mode : null;
+    const palette = copyStringMap(variant.palette);
+    if (!id || !name || !mode || !palette || !Object.keys(palette).length) return null;
+    const result = { id, name, mode, palette };
+    const kinds = copyKinds(variant.kinds);
+    if (kinds) result.kinds = kinds;
+    const categories = copyStringMap(variant.categories);
+    if (categories) result.categories = categories;
+    const effects = copyEffects(variant.effects);
+    if (effects) result.effects = effects;
+    return result;
+  };
+
+  const copyFamily = (family) => {
+    if (!isPlainObject(family) || hasForbiddenKeys(family)) return null;
+    const id = cleanID(family.id);
+    const name = cleanName(family.name);
+    if (!id || !name || !Array.isArray(family.variants) || !family.variants.length) return null;
+    const variants = [];
+    for (const rawVariant of family.variants) {
+      const variant = copyVariant(rawVariant);
+      if (!variant) return null;
+      variants.push(variant);
+    }
+    const result = { id, name, custom: true, variants };
+    const source = copySource(family.source);
+    if (source) result.source = source;
+    return result;
+  };
+
+  // Replaces the custom family set. Built-ins always stay in the catalog, and
+  // a family that reuses a built-in or custom ID is rejected instead of merged.
+  const registerFamilies = (input) => {
+    const familyIDs = new Set(builtinFamilies.map((family) => family && family.id).filter(Boolean));
+    const variantIDs = new Set();
+    for (const family of builtinFamilies) {
+      if (!family || !Array.isArray(family.variants)) continue;
+      for (const variant of family.variants) {
+        if (variant && variant.id) variantIDs.add(variant.id);
+      }
+    }
+    const custom = [];
+    const rejected = [];
+    const list = Array.isArray(input) ? input : [];
+    for (const rawFamily of list) {
+      const family = copyFamily(rawFamily);
+      if (!family) {
+        rejected.push({ id: rawFamily && rawFamily.id, reason: "invalid family shape" });
+        continue;
+      }
+      if (familyIDs.has(family.id)) {
+        rejected.push({ id: family.id, reason: "family id is already in use" });
+        continue;
+      }
+      const pendingVariants = new Set();
+      const pendingModes = new Set();
+      let conflict = "";
+      for (const variant of family.variants) {
+        if (variantIDs.has(variant.id) || pendingVariants.has(variant.id)) {
+          conflict = "variant id " + variant.id + " is already in use";
+          break;
+        }
+        if (pendingModes.has(variant.mode)) {
+          conflict = "mode " + variant.mode + " appears twice";
+          break;
+        }
+        pendingVariants.add(variant.id);
+        pendingModes.add(variant.mode);
+      }
+      if (conflict) {
+        rejected.push({ id: family.id, reason: conflict });
+        continue;
+      }
+      familyIDs.add(family.id);
+      for (const variant of family.variants) variantIDs.add(variant.id);
+      custom.push(family);
+    }
+    families = builtinFamilies.slice().concat(custom);
+    update(initialPreference());
+    return { families: custom.slice(), rejected };
+  };
+
   const persist = (preference) => {
     const normalized = normalizePreference(preference);
     try {
@@ -270,5 +437,7 @@
     resolve,
     apply,
     persist,
+    families: () => families.slice(),
+    registerFamilies,
   });
 })();
