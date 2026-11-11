@@ -1220,8 +1220,8 @@ func TestCatppuccinMochaVariant(t *testing.T) {
 	if !strings.HasPrefix(family.Source.URL, "https://") {
 		t.Errorf("source url = %q, want an https:// URL", family.Source.URL)
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
 	variant := family.Variants[0]
 	if variant.ID != "catppuccin-mocha" || variant.Name != "Catppuccin Mocha" || variant.Mode != "dark" {
@@ -1253,8 +1253,8 @@ func TestTokyoNightVariant(t *testing.T) {
 	if family.Source.URL != "https://github.com/folke/tokyonight.nvim" {
 		t.Errorf("source url = %q, want the Tokyo Night project URL", family.Source.URL)
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
 	variant := family.Variants[0]
 	if variant.ID != "tokyo-night" || variant.Name != "Tokyo Night" || variant.Mode != "dark" {
@@ -1286,8 +1286,8 @@ func TestRosePineMoonVariant(t *testing.T) {
 	if family.Source.URL != "https://github.com/rose-pine/rose-pine" {
 		t.Errorf("source url = %q, want the Rosé Pine project URL", family.Source.URL)
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
 	variant := family.Variants[0]
 	if variant.ID != "rose-pine-moon" || variant.Name != "Rosé Pine Moon" || variant.Mode != "dark" {
@@ -1667,8 +1667,8 @@ func TestGruvboxVariant(t *testing.T) {
 	if strings.TrimSpace(family.Source.Note) == "" {
 		t.Error("source note is empty, want the separation-driven shifts documented")
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
 	variant := family.Variants[0]
 	if variant.ID != "gruvbox-dark" || variant.Name != "Gruvbox Dark" || variant.Mode != "dark" {
@@ -1703,8 +1703,8 @@ func TestNordVariant(t *testing.T) {
 	if strings.TrimSpace(family.Source.Note) == "" {
 		t.Error("source note is empty, want the separation-driven shifts documented")
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
 	variant := family.Variants[0]
 	if variant.ID != "nord-dark" || variant.Name != "Nord Dark" || variant.Mode != "dark" {
@@ -2386,5 +2386,364 @@ func TestThemeFilesAreEmbedded(t *testing.T) {
 		if string(embedded) != string(onDisk) {
 			t.Fatalf("embedded %s does not match the checked-in file", name)
 		}
+	}
+}
+
+// Light variants use multiply blending and reduced glow so a pale canvas does
+// not bloom; all batch-A light variants share these values.
+var wantLightEffects = map[string]any{
+	"vignette":       0.3,
+	"deviceGlow":     0.14,
+	"devicePulse":    0.22,
+	"serviceGlow":    0.08,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "multiply",
+	"territoryAlpha": 0.72,
+	"glowStrength":   0.6,
+	"labelHalo":      0.9,
+	"shadowStrength": 0.5,
+}
+
+var wantGruvboxLightPalette = map[string]string{
+	"bg":           "#fbf1c7",
+	"ink":          "#3c3836",
+	"muted":        "#665c54",
+	"accent":       "#076678",
+	"line":         "rgba(60, 56, 54, 0.16)",
+	"glass":        "rgba(251, 241, 199, 0.82)",
+	"canvasTop":    "#fdf6d8",
+	"canvasMiddle": "#fbf1c7",
+	"canvasBottom": "#f5eac0",
+	"grid":         "rgba(7, 102, 120, 0.07)",
+	"ambientGlow":  "rgba(7, 102, 120, 0.12)",
+	"online":       "#79740e",
+	"warning":      "#b57614",
+	"danger":       "#9d0006",
+	"history":      "#928374",
+	"vignette":     "rgba(213, 196, 161, 0.55)",
+	"labelHalo":    "#fffdf2",
+	"bubble":       "rgba(255, 251, 235, 0.92)",
+	"panel":        "rgba(253, 246, 221, 0.97)",
+}
+
+var wantGruvboxLightKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#b57614"},
+	"server":   {Label: "Server", Color: "#076678"},
+	"computer": {Label: "Computer", Color: "#427b58"},
+	"phone":    {Label: "Phone", Color: "#8f3f71"},
+	"nas":      {Label: "NAS", Color: "#79740e"},
+	"media":    {Label: "Media", Color: "#7a4a9e"},
+	"iot":      {Label: "IoT", Color: "#2f6f5a"},
+	"printer":  {Label: "Printer", Color: "#af3a03"},
+	"device":   {Label: "Device", Color: "#928374"},
+}
+
+var wantGruvboxLightCategories = map[string]string{
+	"web":    "#076678",
+	"media":  "#7a4a9e",
+	"data":   "#af3a03",
+	"remote": "#79740e",
+	"infra":  "#427b58",
+	"iot":    "#8f3f71",
+	"other":  "#928374",
+}
+
+var wantNordLightPalette = map[string]string{
+	"bg":           "#eceff4",
+	"ink":          "#2e3440",
+	"muted":        "#4c566a",
+	"accent":       "#5e81ac",
+	"line":         "rgba(46, 52, 64, 0.16)",
+	"glass":        "rgba(236, 239, 244, 0.82)",
+	"canvasTop":    "#f4f6f9",
+	"canvasMiddle": "#eceff4",
+	"canvasBottom": "#e0e4eb",
+	"grid":         "rgba(94, 129, 172, 0.07)",
+	"ambientGlow":  "rgba(136, 192, 208, 0.14)",
+	"online":       "#4c7a2a",
+	"warning":      "#8a6a1f",
+	"danger":       "#bf616a",
+	"history":      "#5f6b7d",
+	"vignette":     "rgba(216, 222, 233, 0.55)",
+	"labelHalo":    "#fbfcfd",
+	"bubble":       "rgba(250, 252, 254, 0.92)",
+	"panel":        "rgba(244, 246, 249, 0.97)",
+}
+
+var wantNordLightKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#8a6a1f"},
+	"server":   {Label: "Server", Color: "#5e81ac"},
+	"computer": {Label: "Computer", Color: "#3f6f8f"},
+	"phone":    {Label: "Phone", Color: "#8a5f86"},
+	"nas":      {Label: "NAS", Color: "#4c7a2a"},
+	"media":    {Label: "Media", Color: "#6f5a8a"},
+	"iot":      {Label: "IoT", Color: "#2f736f"},
+	"printer":  {Label: "Printer", Color: "#a35a3d"},
+	"device":   {Label: "Device", Color: "#5f6b7d"},
+}
+
+var wantNordLightCategories = map[string]string{
+	"web":    "#2f736f",
+	"media":  "#6f5a8a",
+	"data":   "#a35a3d",
+	"remote": "#4c7a2a",
+	"infra":  "#5e81ac",
+	"iot":    "#4d817c",
+	"other":  "#5f6b7d",
+}
+
+var wantCatppuccinLattePalette = map[string]string{
+	"bg":           "#eff1f5",
+	"ink":          "#4c4f69",
+	"muted":        "#5c5f77",
+	"accent":       "#1e66f5",
+	"line":         "rgba(76, 79, 105, 0.16)",
+	"glass":        "rgba(239, 241, 245, 0.82)",
+	"canvasTop":    "#f7f8fb",
+	"canvasMiddle": "#eff1f5",
+	"canvasBottom": "#e6e9ef",
+	"grid":         "rgba(30, 102, 245, 0.07)",
+	"ambientGlow":  "rgba(114, 135, 253, 0.14)",
+	"online":       "#2f7d20",
+	"warning":      "#9a6400",
+	"danger":       "#d20f39",
+	"history":      "#7c7f93",
+	"vignette":     "rgba(220, 224, 232, 0.55)",
+	"labelHalo":    "#fbfcfe",
+	"bubble":       "rgba(255, 255, 255, 0.92)",
+	"panel":        "rgba(248, 249, 252, 0.97)",
+}
+
+var wantCatppuccinLatteKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#9a6400"},
+	"server":   {Label: "Server", Color: "#179299"},
+	"computer": {Label: "Computer", Color: "#1e66f5"},
+	"phone":    {Label: "Phone", Color: "#c0266b"},
+	"nas":      {Label: "NAS", Color: "#2f7d20"},
+	"media":    {Label: "Media", Color: "#8839ef"},
+	"iot":      {Label: "IoT", Color: "#1a7f6e"},
+	"printer":  {Label: "Printer", Color: "#b34a00"},
+	"device":   {Label: "Device", Color: "#6c6f85"},
+}
+
+var wantCatppuccinLatteCategories = map[string]string{
+	"web":    "#179299",
+	"media":  "#8839ef",
+	"data":   "#b34a00",
+	"remote": "#2f7d20",
+	"infra":  "#1e66f5",
+	"iot":    "#1a7f6e",
+	"other":  "#6c6f85",
+}
+
+var wantTokyoNightDayPalette = map[string]string{
+	"bg":           "#e1e2e7",
+	"ink":          "#3760bf",
+	"muted":        "#4e5c8f",
+	"accent":       "#2e7de9",
+	"line":         "rgba(55, 96, 191, 0.16)",
+	"glass":        "rgba(225, 226, 231, 0.82)",
+	"canvasTop":    "#eff0f4",
+	"canvasMiddle": "#e1e2e7",
+	"canvasBottom": "#e0e2e9",
+	"grid":         "rgba(46, 125, 233, 0.07)",
+	"ambientGlow":  "rgba(46, 125, 233, 0.12)",
+	"online":       "#587539",
+	"warning":      "#b15c00",
+	"danger":       "#ef245f",
+	"history":      "#5f6685",
+	"vignette":     "rgba(208, 213, 227, 0.55)",
+	"labelHalo":    "#fafbfd",
+	"bubble":       "rgba(248, 249, 252, 0.92)",
+	"panel":        "rgba(236, 237, 242, 0.97)",
+}
+
+var wantTokyoNightDayKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#8c6c3e"},
+	"server":   {Label: "Server", Color: "#007197"},
+	"computer": {Label: "Computer", Color: "#2e7de9"},
+	"phone":    {Label: "Phone", Color: "#9854f1"},
+	"nas":      {Label: "NAS", Color: "#587539"},
+	"media":    {Label: "Media", Color: "#7847bd"},
+	"iot":      {Label: "IoT", Color: "#118c74"},
+	"printer":  {Label: "Printer", Color: "#b15c00"},
+	"device":   {Label: "Device", Color: "#5f6685"},
+}
+
+var wantTokyoNightDayCategories = map[string]string{
+	"web":    "#007197",
+	"media":  "#7847bd",
+	"data":   "#b15c00",
+	"remote": "#587539",
+	"infra":  "#2e7de9",
+	"iot":    "#118c74",
+	"other":  "#5f6685",
+}
+
+var wantRosePineDawnPalette = map[string]string{
+	"bg":           "#faf4ed",
+	"ink":          "#575279",
+	"muted":        "#6e6a86",
+	"accent":       "#286983",
+	"line":         "rgba(87, 82, 121, 0.16)",
+	"glass":        "rgba(250, 244, 237, 0.82)",
+	"canvasTop":    "#fffaf3",
+	"canvasMiddle": "#faf4ed",
+	"canvasBottom": "#f7efe8",
+	"grid":         "rgba(40, 105, 131, 0.07)",
+	"ambientGlow":  "rgba(86, 148, 159, 0.14)",
+	"online":       "#2f7a4a",
+	"warning":      "#a36500",
+	"danger":       "#b4637a",
+	"history":      "#797593",
+	"vignette":     "rgba(242, 233, 225, 0.55)",
+	"labelHalo":    "#fffcf7",
+	"bubble":       "rgba(255, 255, 255, 0.92)",
+	"panel":        "rgba(255, 250, 243, 0.97)",
+}
+
+var wantRosePineDawnKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#a36500"},
+	"server":   {Label: "Server", Color: "#286983"},
+	"computer": {Label: "Computer", Color: "#3e6f9e"},
+	"phone":    {Label: "Phone", Color: "#b4637a"},
+	"nas":      {Label: "NAS", Color: "#2f7a4a"},
+	"media":    {Label: "Media", Color: "#907aa9"},
+	"iot":      {Label: "IoT", Color: "#56949f"},
+	"printer":  {Label: "Printer", Color: "#a35d43"},
+	"device":   {Label: "Device", Color: "#6e6a86"},
+}
+
+var wantRosePineDawnCategories = map[string]string{
+	"web":    "#357f8c",
+	"media":  "#907aa9",
+	"data":   "#a36500",
+	"remote": "#2f7a4a",
+	"infra":  "#286983",
+	"iot":    "#56949f",
+	"other":  "#6e6a86",
+}
+
+func TestGruvboxLightVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "gruvbox")
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
+	}
+	variant := family.Variants[1]
+	if variant.ID != "gruvbox-light" || variant.Name != "Gruvbox Light" || variant.Mode != "light" {
+		t.Fatalf("variant = %+v, want Gruvbox Light light", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantGruvboxLightPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantGruvboxLightPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantGruvboxLightKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantGruvboxLightKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantGruvboxLightCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantGruvboxLightCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantLightEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantLightEffects)
+	}
+}
+
+func TestNordLightVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "nord")
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
+	}
+	variant := family.Variants[1]
+	if variant.ID != "nord-light" || variant.Name != "Nord Light" || variant.Mode != "light" {
+		t.Fatalf("variant = %+v, want Nord Light light", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantNordLightPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantNordLightPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantNordLightKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantNordLightKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantNordLightCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantNordLightCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantLightEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantLightEffects)
+	}
+}
+
+func TestCatppuccinLatteVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "catppuccin")
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
+	}
+	variant := family.Variants[1]
+	if variant.ID != "catppuccin-latte" || variant.Name != "Catppuccin Latte" || variant.Mode != "light" {
+		t.Fatalf("variant = %+v, want Catppuccin Latte light", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantCatppuccinLattePalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantCatppuccinLattePalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantCatppuccinLatteKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantCatppuccinLatteKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantCatppuccinLatteCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantCatppuccinLatteCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantLightEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantLightEffects)
+	}
+}
+
+func TestTokyoNightDayVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "tokyo-night")
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
+	}
+	variant := family.Variants[1]
+	if variant.ID != "tokyo-night-day" || variant.Name != "Tokyo Night Day" || variant.Mode != "light" {
+		t.Fatalf("variant = %+v, want Tokyo Night Day light", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantTokyoNightDayPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantTokyoNightDayPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantTokyoNightDayKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantTokyoNightDayKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantTokyoNightDayCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantTokyoNightDayCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantLightEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantLightEffects)
+	}
+}
+
+func TestRosePineDawnVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "rose-pine")
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
+	}
+	variant := family.Variants[1]
+	if variant.ID != "rose-pine-dawn" || variant.Name != "Rosé Pine Dawn" || variant.Mode != "light" {
+		t.Fatalf("variant = %+v, want Rosé Pine Dawn light", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantRosePineDawnPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantRosePineDawnPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantRosePineDawnKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantRosePineDawnKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantRosePineDawnCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantRosePineDawnCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantLightEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantLightEffects)
 	}
 }
