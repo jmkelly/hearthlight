@@ -17,24 +17,42 @@ from the README or the repository docs.
 <!-- BEGIN THEME TABLE -->
 | Variant | ID | Family | Mode | Source | Omarchy stock | Preview |
 | --- | --- | --- | --- | --- | --- | --- |
-| Hearthlight Dark | `hearthlight-dark` | Hearthlight | dark | Hearthlight original | No, Hearthlight original. | [Preview](themes/hearthlight-dark.png) |
-| Hearthlight Light | `hearthlight-light` | Hearthlight | light | Hearthlight original | No, Hearthlight original. | [Preview](themes/hearthlight-light.png) |
+| Hearthlight Dark | `hearthlight-dark` | Hearthlight | dark | [Hearthlight](https://github.com/jmkelly/hearthlight) | No, Hearthlight original. | [Preview](themes/hearthlight-dark.png) |
+| Hearthlight Light | `hearthlight-light` | Hearthlight | light | [Hearthlight](https://github.com/jmkelly/hearthlight) | No, Hearthlight original. | [Preview](themes/hearthlight-light.png) |
 | Catppuccin Mocha | `catppuccin-mocha` | Catppuccin | dark | [Catppuccin](https://github.com/catppuccin/catppuccin) | Yes. Omarchy `catppuccin`. | [Preview](themes/catppuccin-mocha.png) |
 | Tokyo Night | `tokyo-night` | Tokyo Night | dark | [Tokyo Night](https://github.com/folke/tokyonight.nvim) | Yes. Omarchy `tokyo-night`. | [Preview](themes/tokyo-night.png) |
 | Rosé Pine Moon | `rose-pine-moon` | Rosé Pine | dark | [Rosé Pine](https://rosepinetheme.com/) | No. Omarchy stock `rose-pine` is the light Dawn palette. | [Preview](themes/rose-pine-moon.png) |
 | Kanagawa Wave | `kanagawa-wave` | Kanagawa | dark | [Kanagawa](https://github.com/rebelot/kanagawa.nvim) | Yes. Omarchy `kanagawa`. | [Preview](themes/kanagawa-wave.png) |
+| Kanagawa Lotus | `kanagawa-lotus` | Kanagawa | light | [Kanagawa](https://github.com/rebelot/kanagawa.nvim) | No. Omarchy stock `kanagawa` is the dark Wave palette. | [Preview](themes/kanagawa-lotus.png) |
+| Everforest Dark | `everforest-dark` | Everforest | dark | [Everforest](https://github.com/sainnhe/everforest) | Yes. Omarchy `everforest`. | [Preview](themes/everforest-dark.png) |
+| Everforest Light | `everforest-light` | Everforest | light | [Everforest](https://github.com/sainnhe/everforest) | No. Omarchy stock `everforest` is dark only. | [Preview](themes/everforest-light.png) |
+| Dracula | `dracula` | Dracula | dark | [Dracula](https://github.com/dracula/dracula-theme) | No. Not an Omarchy stock theme. | [Preview](themes/dracula.png) |
+| Dracula Alucard | `dracula-alucard` | Dracula | light | [Dracula](https://github.com/dracula/dracula-theme) | No. Not an Omarchy stock theme. | [Preview](themes/dracula-alucard.png) |
+| One Dark | `one-dark` | One | dark | [Atom One Dark](https://github.com/atom/one-dark-syntax) | No. Not an Omarchy stock theme. | [Preview](themes/one-dark.png) |
+| One Light | `one-light` | One | light | [Atom One Dark](https://github.com/atom/one-dark-syntax) | No. Not an Omarchy stock theme. | [Preview](themes/one-light.png) |
+| Solarized Dark | `solarized-dark` | Solarized | dark | [Solarized](https://github.com/altercation/solarized) | No. Not an Omarchy stock theme. | [Preview](themes/solarized-dark.png) |
+| Solarized Light | `solarized-light` | Solarized | light | [Solarized](https://github.com/altercation/solarized) | No. Not an Omarchy stock theme. | [Preview](themes/solarized-light.png) |
+| Gruvbox Dark | `gruvbox-dark` | Gruvbox | dark | [Gruvbox](https://github.com/morhetz/gruvbox) | Yes. Omarchy `gruvbox`. | [Preview](themes/gruvbox-dark.png) |
+| Nord Dark | `nord-dark` | Nord | dark | [Nord](https://github.com/nordtheme/nord) | Yes. Omarchy `nord`. | [Preview](themes/nord-dark.png) |
 <!-- END THEME TABLE -->
 
-`Omarchy stock` describes the stock Omarchy theme that the variant is intended
-to match. The mapping itself is still tracked in
-[#22](https://github.com/jmkelly/hearthlight/issues/22) and is not served by this
-build. Omarchy's `rose-pine` theme is the light Dawn palette. Hearthlight ships
-Rosé Pine Moon, a dark palette, so it is not the stock mapping.
+`Omarchy stock` marks the variant Hearthlight intends to match to a stock
+Omarchy theme. The stock name mapping is still tracked in
+[#22](https://github.com/jmkelly/hearthlight/issues/22). This repository does not
+ship `web/omarchy.json`, so Hearthlight does not map stock names on its own. The
+Omarchy plugin writes a `themeId` for the stock names in its table; Hearthlight
+uses that variant when it exists and otherwise synthesizes a palette from the
+raw colours.
+
+Omarchy's `rose-pine` theme is the light Dawn palette. Hearthlight ships Rosé
+Pine Moon, a dark palette, so it is not the stock mapping. Omarchy's `kanagawa`
+is the dark Wave palette, not the light Lotus variant. `dracula`, `one` and
+`solarized` are not in Omarchy's stock set.
 
 ## Gallery
 
 Every image uses demo mode at a 1440x900 viewport with reduced motion enabled.
-Transient traffic edges are disabled so the map is comparable between runs.
+Traffic edges are disabled so the map is comparable between runs.
 
 <!-- BEGIN THEME GALLERY -->
 ### Hearthlight
@@ -70,6 +88,62 @@ Transient traffic edges are disabled so the map is comparable between runs.
 #### Kanagawa Wave
 
 ![Kanagawa Wave map](themes/kanagawa-wave.png)
+
+#### Kanagawa Lotus
+
+![Kanagawa Lotus map](themes/kanagawa-lotus.png)
+
+### Everforest
+
+#### Everforest Dark
+
+![Everforest Dark map](themes/everforest-dark.png)
+
+#### Everforest Light
+
+![Everforest Light map](themes/everforest-light.png)
+
+### Dracula
+
+#### Dracula
+
+![Dracula map](themes/dracula.png)
+
+#### Dracula Alucard
+
+![Dracula Alucard map](themes/dracula-alucard.png)
+
+### One
+
+#### One Dark
+
+![One Dark map](themes/one-dark.png)
+
+#### One Light
+
+![One Light map](themes/one-light.png)
+
+### Solarized
+
+#### Solarized Dark
+
+![Solarized Dark map](themes/solarized-dark.png)
+
+#### Solarized Light
+
+![Solarized Light map](themes/solarized-light.png)
+
+### Gruvbox
+
+#### Gruvbox Dark
+
+![Gruvbox Dark map](themes/gruvbox-dark.png)
+
+### Nord
+
+#### Nord Dark
+
+![Nord Dark map](themes/nord-dark.png)
 <!-- END THEME GALLERY -->
 
 ## Hearthlight-authored interpretations
@@ -77,11 +151,31 @@ Transient traffic edges are disabled so the map is comparable between runs.
 Hearthlight Dark and Hearthlight Light are original Hearthlight palettes.
 
 The third-party families are Hearthlight-authored interpretations of published
-palettes, not official ports. Catppuccin Mocha, Tokyo Night, Rosé Pine Moon and
-Kanagawa Wave use colours from their upstream projects, then assign Hearthlight's
-semantic tokens, device kinds, service categories and effect values. Upstream
-projects may ship other variants, different defaults or later palette changes.
-The source link in the table points at the project Hearthlight interpreted.
+palettes, not official ports. Catppuccin, Tokyo Night, Rosé Pine, Kanagawa,
+Everforest, Dracula, One, Solarized, Gruvbox and Nord use colours from their
+upstream projects, then assign Hearthlight's semantic tokens, device kinds,
+service categories and effect values. Upstream projects may ship other variants,
+different defaults or later palette changes. The source link in the table points
+at the project Hearthlight interpreted.
+
+The light variants use each project's light palette where one exists. Kanagawa
+Lotus, Everforest Light, Dracula Alucard, One Light and Solarized Light are the
+light companions to their dark variants.
+
+Several palettes needed small contrast adjustments. The catalog records each one
+in the family's `source.note`:
+
+- Tokyo Night lightens `history` for canvas contrast.
+- Rosé Pine lightens `muted` and `history`.
+- Kanagawa lightens `muted`, `history`, `device` and `other`.
+- Everforest lightens `muted`.
+- Dracula lightens `muted`, `history`, `device` and `other`.
+- One lightens `muted` and `history`.
+- Solarized lightens `muted`, `history` and several graphical hues.
+- Gruvbox shifts `accent` and `media` into the cool band so tailnet, computer
+  and media stay distinct, and uses `fg3` for `muted`.
+- Nord lightens `muted`, `history` and `device`, shifts `media` into the cool
+  band, and darkens `canvasBottom` because Nord defines no darker base.
 
 Rosé Pine Moon is not the Omarchy stock Rosé Pine variant. Omarchy currently
 maps its `rose-pine` theme to the light Dawn palette, which Hearthlight does not
@@ -91,9 +185,9 @@ ship yet.
 
 `web/themes.json` is the canonical catalog. It has `schemaVersion: 1` and a
 `families` array. Each family has an `id`, a `name`, an optional `source` object
-with `name` and `url`, and a `variants` array. Each variant has an `id`, a
-`name`, a `mode` of `dark` or `light`, and the palette, kind, category and effect
-data.
+with `name`, `url` and an optional `note`, and a `variants` array. Each variant
+has an `id`, a `name`, a `mode` of `dark` or `light`, and the palette, kind,
+category and effect data.
 
 `web/themes.js` is generated from `web/themes.json`:
 
@@ -123,6 +217,10 @@ The stored preference is the JSON object under `hearthlight.theme.v1`:
 If a family has no variant for the resolved mode, the boot script falls back to
 the family's dark variant or its first variant and marks the result as a
 fallback. Settings shows a note when that happens.
+
+Settings also has a **High contrast** toggle. It stores the choice under
+`hearthlight.contrast.v1`, respects `prefers-contrast: more` until the user picks
+a value, and strengthens labels and outlines without changing the palette.
 
 The read-only catalog is also available at `GET /api/themes`.
 
@@ -208,15 +306,17 @@ All effect values except `territoryBlend` are finite, non-negative numbers.
    ```
 
    Credit the project you interpreted. If you adjust a colour for contrast,
-   record that in the source name or in your pull request description. Do not
+   record that in the `source.note` or in your pull request description. Do not
    call an interpretation an official port.
 4. Define every palette token, every kind, every category and every effect
    listed above. Copying a variant and replacing the palette is the normal path.
 5. Run `make themes` to regenerate `web/themes.js`.
 6. Run `make check`. It checks formatting, vet and tests. The theme tests validate
    the schema, required tokens and effects, kebab-case IDs, distinct kind and
-   category colours for dark variants, light-mode text contrast, freshness of
-   `web/themes.js` and that the embedded files match the checkout.
+   category colours, WCAG contrast for text and graphical marks, freshness of
+   `web/themes.js` and that the embedded files match the checkout. If a graphical
+   pair needs an exception, the variant must name the pair and give a reason in
+   `contrastExceptions`. Text pairs cannot be exempt.
 7. Capture the new variant and refresh this page:
 
    ```bash
@@ -228,67 +328,79 @@ All effect values except `territoryBlend` are finite, non-negative numbers.
    available, and optimises the images under `docs/themes/`. It needs Go and
    Python 3. ImageMagick's `magick` or `convert` optimises the PNGs; without it
    the screenshots stay uncompressed. Set `BROWSER` to choose a specific
-   Chromium or Chrome executable.
+   Chromium or Chrome executable. Use `./scripts/theme-gallery.sh --docs-only`
+   to refresh the table and gallery without capturing screenshots.
 
 ### Contrast targets
 
-Use WCAG 2.2 relative luminance and contrast ratio. The full automated guard is
-tracked in [#24](https://github.com/jmkelly/hearthlight/issues/24); the current
-test suite enforces the required tokens, distinct map colours and a 7:1
-light-mode `ink` contrast for Hearthlight Light.
+Use WCAG 2.2 relative luminance and contrast ratio. `make check` enforces the
+targets below for every shipped variant.
 
 | Pair | Minimum |
 | --- | --- |
-| Body text (`ink`) on `bg`, `bubble` or `panel` | 4.5:1 |
-| Labels over the canvas (`ink` on `labelHalo`) | 4.5:1 |
+| Body text (`ink` and `muted`) on `bg`, `panel`, bubble surfaces and label halos | 4.5:1 |
 | Focus ring (`accent`) against the adjacent background | 3:1 |
 | Device and service marks, territory boundaries, traffic edges, reach badges | 3:1 |
 | Status colours (`online`, `history`) against the canvas | 3:1 |
 | Category and kind dots against `bubble` or the canvas | 3:1 |
 
 Canonical palettes sometimes miss these values. Adjust lightness or chroma while
-keeping the palette's character, then note the adjustment. Do not lower the
-target.
+keeping the palette's character, then note the adjustment in `source.note`. Do
+not lower the target. A graphical exception is a last resort and needs a reason.
 
 ## Omarchy
 
-**Status.** The Omarchy plugin and stock mapping are not shipped in this build.
-This section documents the intended integration from
-[#22](https://github.com/jmkelly/hearthlight/issues/22) and
-[#23](https://github.com/jmkelly/hearthlight/issues/23) so the gallery does not
-pretend otherwise. There is no `-omarchy-theme` flag in this build.
+**Status.** The Omarchy theme source and plugin are shipped. Start Hearthlight
+with `-omarchy-theme` to follow the active Omarchy theme from the normalized
+palette file, then turn on **Follow Omarchy theme** in Settings, Appearance. The
+stock name mapping is still pending in
+[#22](https://github.com/jmkelly/hearthlight/issues/22).
+
+The server side is documented in [Omarchy theme source](omarchy.md). The plugin
+lives at `integrations/omarchy-hearthlight-theme` and has its own
+[README](../integrations/omarchy-hearthlight-theme/README.md).
 
 ### Stock mapping
 
-The planned mapping lives in `web/omarchy.json` and maps Omarchy theme names to
-Hearthlight variant IDs. The canonical stock list is the `themes/*/colors.toml`
+The mapping tracked in #22 will live in `web/omarchy.json` and map Omarchy theme
+names to Hearthlight variant IDs. The canonical stock list is the `themes/*/colors.toml`
 tree in the [Omarchy repository](https://github.com/omacom/omarchy/tree/quattro/themes).
-The current catalog already covers these stock names:
+The current catalog covers these stock names:
 
 | Omarchy theme | Hearthlight variant | Status |
 | --- | --- | --- |
-| `catppuccin` | `catppuccin-mocha` | Shipped variant, mapping pending. |
-| `kanagawa` | `kanagawa-wave` | Shipped variant, mapping pending. |
-| `tokyo-night` | `tokyo-night` | Shipped variant, mapping pending. |
-| `rose-pine` | `rose-pine-dawn` | Not shipped. Omarchy's stock `rose-pine` is the light Dawn palette. |
+| `catppuccin` | `catppuccin-mocha` | Shipped variant, mapping pending #22. |
+| `everforest` | `everforest-dark` | Shipped variant, mapping pending #22. |
+| `gruvbox` | `gruvbox-dark` | Shipped variant, mapping pending #22. |
+| `kanagawa` | `kanagawa-wave` | Shipped variant, mapping pending #22. |
+| `nord` | `nord-dark` | Shipped variant, mapping pending #22. |
+| `tokyo-night` | `tokyo-night` | Shipped variant, mapping pending #22. |
+| `rose-pine` | None shipped | Omarchy's stock `rose-pine` is the light Dawn palette; Hearthlight ships Rosé Pine Moon, a dark interpretation. |
 
 The other stock Omarchy names need new palettes before they can map. Track that
 work in #22. Do not infer a variant from a family name, because Omarchy's
-`rose-pine` is light while Hearthlight's Rosé Pine family is dark.
+`rose-pine` is light while Hearthlight's Rosé Pine family is dark, and Omarchy's
+`kanagawa` is Wave while Hearthlight also ships Lotus.
 
 ### Plugin install
 
-Once the plugin repository is published, install it with the normal Omarchy
-plugin command:
+The plugin directory is `integrations/omarchy-hearthlight-theme`. Until it is
+published as its own repository, copy it into the Omarchy plugin directory:
 
 ```bash
-omarchy plugin add jmkelly/omarchy-hearthlight-theme --enable
+install_dir="$HOME/.config/omarchy/plugins/jmkelly.hearthlight-theme"
+mkdir -p "$HOME/.config/omarchy/plugins"
+rm -rf "$install_dir"
+cp -r integrations/omarchy-hearthlight-theme "$install_dir"
+omarchy-shell shell rescanPlugins
+omarchy plugin enable jmkelly.hearthlight-theme
 ```
 
-The plugin has its own `README.md` for install, update, uninstall and security
-notes. It is a service plugin, not a standalone daemon.
+Once the standalone repository is published, the normal command is:
 
-### Files
+```bash
+omarchy plugin add https://github.com/jmkelly/omarchy-hearthlight-theme --enable
+```
 
 The plugin watches the active Omarchy theme:
 
@@ -302,10 +414,9 @@ It writes a normalized palette atomically to:
 ~/.config/hearthlight/omarchy-theme.json
 ```
 
-The file is written with mode `0600`. The planned Hearthlight side watches that
-file and exposes it as a read-only theme source. The plugin never fails an
-Omarchy theme switch when Hearthlight is down; it logs once and keeps the last
-good file.
+The file is written with mode `0600`. Hearthlight watches that file and exposes
+it at `GET /api/theme/omarchy`. The plugin never fails an Omarchy theme switch
+when Hearthlight is down; it logs once and keeps the last good file.
 
 For a non-plugin setup, the same file can be written from an Omarchy theme hook
 under `~/.config/omarchy/hooks/theme-set.d/`. Both paths use the same schema.
@@ -313,14 +424,9 @@ under `~/.config/omarchy/hooks/theme-set.d/`. Both paths use the same schema.
 ### Unsandboxed caveat
 
 Omarchy plugins run unsandboxed inside the long-lived shell process. Keep the
-service small, avoid shelling out for every read, and limit it to the files
-listed above. The planned Hearthlight side only reads the normalized file. It
-does not add an unauthenticated write endpoint to the HTTP API. Remote live sync
-is a follow-up.
-
-Until the integration ships, pick the closest family manually in Settings.
-Catppuccin, Kanagawa and Tokyo Night match their stock Omarchy themes. Rosé Pine
-Moon is a dark interpretation, not Omarchy's Dawn palette.
+plugin small, avoid shelling out for every read, and limit it to the files listed
+above. Hearthlight only reads the normalized file. It does not add an
+unauthenticated write endpoint to the HTTP API. Remote live sync is a follow-up.
 
 ## Troubleshooting
 
@@ -357,8 +463,10 @@ flash after first paint.
 ### Light or Auto shows a dark palette
 
 Some families ship only a dark variant. Light and Auto fall back to the available
-palette, and Settings shows a note. That is intentional. Use Hearthlight Light or
-another family with a light variant when you need a light map.
+palette, and Settings shows a note. That is intentional. Use a family with a
+light variant when you need a light map. Hearthlight Light, Kanagawa Lotus,
+Everforest Light, Dracula Alucard, One Light and Solarized Light all render
+light.
 
 ### `?theme=` is ignored
 
@@ -369,16 +477,24 @@ not saved.
 
 ### Omarchy theme not detected
 
-Omarchy support is not part of this build, so no theme will be detected yet.
-Once the plugin and server support land, check the following in order:
+Check the following in order:
 
-1. The plugin is enabled with `omarchy plugin list`.
-2. The active theme is readable with `omarchy theme current` and
+1. Hearthlight was started with `-omarchy-theme` or
+   `HEARTHLIGHT_OMARCHY_THEME=1`, and `-omarchy-theme-file` points at the file
+   the plugin writes. On NixOS, set `services.hearthlight.omarchyTheme` and
+   `omarchyThemeFile`.
+2. The plugin is enabled with `omarchy plugin list`.
+3. The active theme is readable with `omarchy theme current` and
    `cat ~/.local/state/omarchy/current/theme.name`.
-3. The plugin wrote `~/.config/hearthlight/omarchy-theme.json` with mode `0600`.
-4. Hearthlight runs as the same user that owns the Omarchy state and config
-   files. A service user with a different home directory will not see them.
-5. Hearthlight was started with the Omarchy theme options for that build.
+4. The plugin wrote `~/.config/hearthlight/omarchy-theme.json` with mode `0600`.
+5. Hearthlight runs as the same user that owns the Omarchy state and config
+   files, or the configured file is readable by the Hearthlight user. A service
+   user with a different home directory will not see the default path.
+6. `curl -s http://127.0.0.1:8090/api/theme/omarchy` returns `"available": true`.
+   If it returns `{"available":false}`, the file is missing, unreadable,
+   oversized or malformed.
 
-If the file disappears or is malformed, Hearthlight keeps the last applied theme
-and shows an unavailable note. It does not reset the manual selection.
+If the file disappears or is malformed, the browser keeps the last applied theme
+and Settings shows an unavailable note. It does not reset the stored manual
+selection. Turning **Follow Omarchy theme** off restores the normal theme
+selection.

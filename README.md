@@ -44,11 +44,40 @@ so different browsers and devices can use different themes.
 
 Dark and Light pin a mode. Auto follows the operating system's
 `prefers-color-scheme` and updates when it changes. Families without a light
-variant keep their available palette and Settings says so.
+variant keep their available palette and Settings says so. **High contrast** in
+the same section strengthens labels and outlines without changing the palette.
 
-Browse the [theme gallery and authoring guide](docs/themes.md), including the
-[Omarchy integration notes](docs/themes.md#omarchy). The Omarchy plugin and its
-stock mapping are not part of this build yet.
+Browse the [theme gallery and authoring guide](docs/themes.md). The catalog ships
+Hearthlight plus Catppuccin, Tokyo Night, Rosé Pine, Kanagawa, Everforest,
+Dracula, One, Solarized, Gruvbox and Nord.
+
+### Omarchy
+
+Hearthlight can follow the active Omarchy desktop theme. The plugin in
+[`integrations/omarchy-hearthlight-theme`](integrations/omarchy-hearthlight-theme/README.md)
+watches the current Omarchy theme and writes a normalized palette to
+`~/.config/hearthlight/omarchy-theme.json`. Hearthlight then exposes it at
+`GET /api/theme/omarchy`, and **Settings → Appearance → Follow Omarchy theme**
+applies it live. The toggle only appears when the endpoint reports an available
+theme.
+
+Start Hearthlight with the source enabled:
+
+```bash
+hearthlight -omarchy-theme
+```
+
+`-omarchy-theme-file` points at a different palette file. The environment
+variables `HEARTHLIGHT_OMARCHY_THEME` and `HEARTHLIGHT_OMARCHY_THEME_FILE` do the
+same. The stock Omarchy name mapping is still pending in
+[#22](https://github.com/jmkelly/hearthlight/issues/22); until it lands, the
+plugin supplies a matching shipped variant where it can, and Hearthlight
+synthesizes a palette for other names.
+
+See [Omarchy theme source](docs/omarchy.md) for the file schema, API, NixOS
+options and service-user notes, and the
+[plugin README](integrations/omarchy-hearthlight-theme/README.md) for install,
+update, uninstall and security details.
 
 For screenshots or embedding, set the variant with a URL parameter. The override
 applies to that page load and does not overwrite the stored choice:
@@ -182,6 +211,12 @@ journalctl -u hearthlight -f
 The service stores its inventory at `/var/lib/hearthlight/state.json` with mode
 `0600`. Delete that file to forget all history.
 
+To follow an Omarchy desktop theme, enable `omarchyTheme` and point
+`omarchyThemeFile` at the plugin output. The default service runs as a
+`DynamicUser` with `ProtectHome`, so it cannot read a file under your home by
+default. See [Omarchy theme source](docs/omarchy.md) for the readable-path and
+fixed-user options.
+
 ### Module options
 
 | Option | Default | Meaning |
@@ -198,6 +233,8 @@ The service stores its inventory at `/var/lib/hearthlight/state.json` with mode
 | `cidrs` | `[]` | Explicit IPv4 ranges. Empty means auto-detect. |
 | `extraPorts` | `[]` | Extra TCP ports to probe. |
 | `tailnet` | `true` | Discover Tailscale peers and put `tailscale` on the service `PATH`. |
+| `omarchyTheme` | `false` | Follow the active Omarchy desktop theme from a normalized palette file. |
+| `omarchyThemeFile` | `/var/lib/hearthlight/omarchy-theme.json` | Normalized Omarchy palette file to watch. |
 
 ### Standalone package check
 
@@ -220,6 +257,8 @@ nix build .#hearthlight
 | `-demo` | `false` | Serve sample data without scanning. |
 | `-tailscale` | `true` | Discover Tailscale peers via `tailscale status --json`. |
 | `-traffic` | `true` | Sample live traffic between this host and mapped devices every 2s. |
+| `-omarchy-theme` | `false` | Follow the Omarchy desktop theme from a normalized palette file. |
+| `-omarchy-theme-file` | `~/.config/hearthlight/omarchy-theme.json` | Normalized Omarchy palette file to watch. |
 | `-hosts` | | Extra hostnames accepted in the HTTP `Host` header, comma-separated. |
 | `-token` | | Shared token required for the API. Empty disables it. |
 | `-version` | | Print the version and exit. |
@@ -228,6 +267,9 @@ Environment variables `HEARTHLIGHT_LISTEN`, `HEARTHLIGHT_DATA`,
 `HEARTHLIGHT_HOSTS` and `HEARTHLIGHT_TOKEN` set the listen address, state path,
 allowed hostnames and API token when the corresponding flag is not provided.
 `HEARTHLIGHT_TAILSCALE` overrides the path or name of the `tailscale` binary.
+`HEARTHLIGHT_OMARCHY_THEME` and `HEARTHLIGHT_OMARCHY_THEME_FILE` set the Omarchy
+source and palette path. Boolean environment values accept `1`, `true`, `yes`
+and `on` for true, and `0`, `false`, `no` and `off` for false.
 
 ## How discovery works
 
