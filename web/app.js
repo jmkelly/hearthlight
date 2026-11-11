@@ -1987,6 +1987,7 @@
       }
     }
     renderCustomThemeFamilies();
+    syncOmarchyBadges();
     syncThemeFamilies(view.theme);
     syncOmarchyControls();
   }
@@ -2030,6 +2031,27 @@
     themeFamilyButtons.push(...buttons);
     for (const button of buttons) {
       button.addEventListener("click", () => setThemeFamily(button.dataset.family));
+    }
+  }
+
+  function syncOmarchyBadges() {
+    if (!themeFamilyButtons.length) return;
+    const mapping = omarchyState.mapping;
+    const mapped = new Set(mapping ? Object.values(mapping) : []);
+    const families = new Map(currentThemeFamilies().map((family) => [family.id, family]));
+    for (const button of themeFamilyButtons) {
+      const family = families.get(button.dataset.family);
+      const variants = family && Array.isArray(family.variants) ? family.variants : [];
+      const isMapped = variants.some((variant) => variant && mapped.has(variant.id));
+      let badge = button.querySelector(".theme-source-badge");
+      if (isMapped && !badge) {
+        badge = document.createElement("span");
+        badge.className = "theme-source-badge";
+        badge.textContent = "Omarchy";
+        button.appendChild(badge);
+      } else if (!isMapped && badge) {
+        badge.remove();
+      }
     }
   }
 
@@ -2921,6 +2943,7 @@
       const mapping = omarchyMappingFrom(candidate);
       if (mapping) {
         omarchyState.mapping = mapping;
+        syncOmarchyBadges();
         return;
       }
     }
