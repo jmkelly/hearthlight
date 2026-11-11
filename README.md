@@ -33,6 +33,34 @@ at overview zoom. Service bubbles and labels appear as you zoom in.
 - Live updates over Server-Sent Events.
 - Live traffic edges between this host and the devices it talks to.
 - A Nix flake and a NixOS module.
+- A theme catalog with dark, light and auto modes, stored per browser.
+
+## Themes
+
+Hearthlight Dark stays the default. Open **Settings → Appearance** (the gear
+button, or press `s`) to pick a theme family and mode. The choice is stored in
+this browser's `localStorage` under `hearthlight.theme.v1`, not on the server,
+so different browsers and devices can use different themes.
+
+Dark and Light pin a mode. Auto follows the operating system's
+`prefers-color-scheme` and updates when it changes. Families without a light
+variant keep their available palette and Settings says so.
+
+Browse the [theme gallery and authoring guide](docs/themes.md), including the
+[Omarchy integration notes](docs/themes.md#omarchy). The Omarchy plugin and its
+stock mapping are not part of this build yet.
+
+For screenshots or embedding, set the variant with a URL parameter. The override
+applies to that page load and does not overwrite the stored choice:
+
+```text
+http://127.0.0.1:8090/?theme=hearthlight-light
+http://127.0.0.1:8090/?theme=kanagawa-wave&mode=auto
+http://127.0.0.1:8090/?mode=light
+```
+
+`theme` takes a variant ID from the gallery. `mode` takes `dark`, `light` or
+`auto` and keeps the current family.
 
 ## Quick start
 
