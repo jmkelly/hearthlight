@@ -494,6 +494,78 @@ window.HearthlightThemes = {
           }
         }
       ]
+    },
+    {
+      "id": "dracula",
+      "name": "Dracula",
+      "source": {
+        "name": "Dracula",
+        "url": "https://github.com/dracula/dracula-theme"
+      },
+      "variants": [
+        {
+          "id": "dracula",
+          "name": "Dracula",
+          "mode": "dark",
+          "palette": {
+            "bg": "#282a36",
+            "ink": "#f8f8f2",
+            "muted": "#6272a4",
+            "accent": "#8be9fd",
+            "line": "rgba(248, 248, 242, 0.14)",
+            "glass": "rgba(40, 42, 54, 0.74)",
+            "canvasTop": "#343746",
+            "canvasMiddle": "#282a36",
+            "canvasBottom": "#1e1f29",
+            "grid": "rgba(139, 233, 253, 0.06)",
+            "ambientGlow": "rgba(139, 233, 253, 0.12)",
+            "online": "#50fa7b",
+            "warning": "#f1fa8c",
+            "danger": "#ff5555",
+            "history": "#6272a4",
+            "vignette": "rgba(30, 31, 41, 0.55)",
+            "labelHalo": "rgba(30, 31, 41, 0.88)",
+            "bubble": "rgba(40, 42, 54, 0.94)",
+            "panel": "rgba(40, 42, 54, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#f1fa8c" },
+            "server": { "label": "Server", "color": "#8be9fd" },
+            "computer": { "label": "Computer", "color": "#8fa1e8" },
+            "phone": { "label": "Phone", "color": "#ff79c6" },
+            "nas": { "label": "NAS", "color": "#50fa7b" },
+            "media": { "label": "Media", "color": "#bd93f9" },
+            "iot": { "label": "IoT", "color": "#4ee6c4" },
+            "printer": { "label": "Printer", "color": "#ffb86c" },
+            "device": { "label": "Device", "color": "#6272a4" }
+          },
+          "categories": {
+            "web": "#8be9fd",
+            "media": "#bd93f9",
+            "data": "#ffb86c",
+            "remote": "#50fa7b",
+            "infra": "#8fa1e8",
+            "iot": "#4ee6c4",
+            "other": "#6272a4"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
     }
   ]
 }

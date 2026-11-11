@@ -292,6 +292,9 @@
   const themeModeLight = document.getElementById("themeModeLight");
   const themeModeAuto = document.getElementById("themeModeAuto");
   const themeReset = document.getElementById("themeReset");
+  const omarchyFollowBtn = document.getElementById("omarchyFollowBtn");
+  const omarchyFollowHint = document.getElementById("omarchyFollowHint");
+  const omarchyNote = document.getElementById("omarchyNote");
   let themeFamilyButtons = [];
   let themeDefaultBadge = null;
   const themeFallbackNote = document.getElementById("themeFallbackNote");
@@ -350,6 +353,15 @@
     // Live traffic edges keyed by "deviceId|via". Entries fade out rather
     // than vanish when a flow stops.
     traffic: new Map(),
+  };
+
+  const OMARCHY_STORAGE_KEY = "hearthlight.theme.omarchy.v1";
+  const OMARCHY_MAPPING_URL = "/omarchy.json";
+  const omarchyState = {
+    available: false,
+    enabled: readOmarchyFollowPreference(),
+    theme: null,
+    mapping: null,
   };
 
   const themeColor = (name) => {
@@ -1811,6 +1823,7 @@
     for (const button of themeFamilyButtons) {
       button.addEventListener("click", () => setThemeFamily(button.dataset.family));
     }
+    syncOmarchyControls();
   }
 
   function themeFamilyName(id) {
@@ -1892,6 +1905,7 @@
         themeFallbackNote.textContent = `${themeModeLabel(resolved.resolvedMode)} isn't available in this theme family; showing the available palette.`;
       }
     }
+    syncOmarchyControls();
   }
 
   function setThemeMode(mode) {
@@ -1917,6 +1931,350 @@
     if (!control) return;
     applyTheme(control.persist(control.DEFAULT_THEME));
     showToast("Theme reset");
+  }
+
+  function readOmarchyFollowPreference() {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(OMARCHY_STORAGE_KEY) || "null");
+      if (stored && typeof stored === "object") return stored.enabled === true;
+      return stored === true;
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function persistOmarchyFollowPreference(enabled) {
+    try {
+      window.localStorage.setItem(OMARCHY_STORAGE_KEY, JSON.stringify({ enabled: Boolean(enabled) }));
+    } catch (_error) {
+      // Private browsing can disable localStorage; the live theme still applies.
+    }
+  }
+
+  const hexToRGB = (value) => {
+    if (typeof value !== "string") return null;
+    const match = value.trim().match(/^#([0-9a-f]{3,8})$/i);
+    if (!match) return null;
+    let hex = match[1];
+    if (hex.length === 3 || hex.length === 4) {
+      hex = hex.split("").map((digit) => digit + digit).join("");
+    }
+    if (hex.length !== 6 && hex.length !== 8) return null;
+    return [
+      parseInt(hex.slice(0, 2), 16),
+      parseInt(hex.slice(2, 4), 16),
+      parseInt(hex.slice(4, 6), 16),
+    ];
+  };
+
+  const rgbToHex = (rgb) =>
+    "#" + rgb
+      .map((value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, "0"))
+      .join("");
+
+  const mixColor = (from, to, weight) => {
+    const start = hexToRGB(from);
+    const end = hexToRGB(to);
+    if (!start) return to;
+    if (!end) return from;
+    return rgbToHex(start.map((value, index) => value + (end[index] - value) * weight));
+  };
+
+  const lighten = (color, amount) => mixColor(color, "#ffffff", amount);
+  const darken = (color, amount) => mixColor(color, "#000000", amount);
+
+  const relativeLuminance = (color) => {
+    const rgb = hexToRGB(color);
+    if (!rgb) return 0;
+    const [red, green, blue] = rgb.map((value) => {
+      const channel = value / 255;
+      return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  };
+
+  const omarchyColor = (theme, ...names) => {
+    const colors = theme && theme.colors && typeof theme.colors === "object" ? theme.colors : {};
+    for (const name of names) {
+      const value = colors[name];
+      if (typeof value === "string" && hexToRGB(value)) return value;
+    }
+    return "";
+  };
+
+  const omarchyMode = (theme) => {
+    if (theme && (theme.mode === "light" || theme.mode === "dark")) return theme.mode;
+    const background = omarchyColor(theme, "background", "dark_background");
+    return background && relativeLuminance(background) > 0.55 ? "light" : "dark";
+  };
+
+  function synthesizeOmarchyTheme(theme) {
+    const mode = omarchyMode(theme);
+    const light = mode === "light";
+    const background =
+      omarchyColor(theme, "background", "dark_background") || (light ? "#f7f7f7" : "#101014");
+    const foreground =
+      omarchyColor(theme, "foreground", "bright_foreground", "light_foreground") ||
+      (light ? "#1b1b1b" : "#e8e8e8");
+    const accent = omarchyColor(theme, "accent", "blue", "cyan", "selection") || foreground;
+    const muted =
+      omarchyColor(theme, "muted", "bright_black", "dark_foreground") ||
+      mixColor(foreground, background, 0.45);
+    const red = omarchyColor(theme, "red", "bright_red") || accent;
+    const yellow = omarchyColor(theme, "yellow", "bright_yellow") || accent;
+    const orange = omarchyColor(theme, "orange", "bright_orange", "yellow") || yellow;
+    const green = omarchyColor(theme, "green", "bright_green") || accent;
+    const cyan = omarchyColor(theme, "cyan", "bright_cyan") || accent;
+    const blue = omarchyColor(theme, "blue", "bright_blue") || accent;
+    const magenta = omarchyColor(theme, "magenta", "bright_magenta", "purple") || accent;
+    const history = omarchyColor(theme, "muted", "bright_black") || mixColor(foreground, background, 0.55);
+    const canvasTop = omarchyColor(theme, "lighter_background") || lighten(background, light ? 0.03 : 0.1);
+    const canvasBottom =
+      omarchyColor(theme, "darker_background", "dark_background") || darken(background, light ? 0.06 : 0.25);
+
+    const palette = {
+      bg: background,
+      ink: foreground,
+      muted,
+      accent,
+      line: rgba(foreground, 0.14),
+      glass: rgba(background, 0.74),
+      canvasTop,
+      canvasMiddle: background,
+      canvasBottom,
+      grid: rgba(accent, light ? 0.07 : 0.06),
+      ambientGlow: rgba(accent, light ? 0.16 : 0.12),
+      online: green,
+      warning: yellow,
+      danger: red,
+      history,
+      vignette: rgba(canvasBottom, light ? 0.35 : 0.55),
+      labelHalo: rgba(background, 0.88),
+      bubble: rgba(background, 0.94),
+      panel: rgba(background, 0.95),
+    };
+
+    const kinds = {
+      router: { label: "Router", color: yellow },
+      server: { label: "Server", color: cyan },
+      computer: { label: "Computer", color: blue },
+      phone: { label: "Phone", color: magenta },
+      nas: { label: "NAS", color: green },
+      media: { label: "Media", color: magenta },
+      iot: { label: "IoT", color: cyan },
+      printer: { label: "Printer", color: orange },
+      device: { label: "Device", color: muted },
+    };
+
+    const categories = {
+      web: cyan,
+      media: magenta,
+      data: orange,
+      remote: green,
+      infra: blue,
+      iot: cyan,
+      other: muted,
+    };
+
+    const effects = light
+      ? {
+          vignette: 0.3,
+          deviceGlow: 0.14,
+          devicePulse: 0.22,
+          serviceGlow: 0.08,
+          territoryBlur: 26,
+          ribbonBlur: 16,
+          lensBlur: 14,
+          glassBlur: 16,
+          panelBlur: 22,
+          territoryBlend: "multiply",
+          territoryAlpha: 0.72,
+          glowStrength: 0.6,
+          labelHalo: 0.9,
+          shadowStrength: 0.5,
+        }
+      : {
+          vignette: 0.55,
+          deviceGlow: 0.22,
+          devicePulse: 0.3,
+          serviceGlow: 0.16,
+          territoryBlur: 26,
+          ribbonBlur: 16,
+          lensBlur: 14,
+          glassBlur: 16,
+          panelBlur: 22,
+          territoryBlend: "screen",
+          territoryAlpha: 1,
+          glowStrength: 1,
+          labelHalo: 1,
+          shadowStrength: 1,
+        };
+
+    return { mode, palette, kinds, categories, effects };
+  }
+
+  function findCatalogVariant(id) {
+    const catalog = window.HearthlightThemes;
+    const families = catalog && Array.isArray(catalog.families) ? catalog.families : [];
+    for (const family of families) {
+      if (!family || !Array.isArray(family.variants)) continue;
+      const variant = family.variants.find((candidate) => candidate && candidate.id === id);
+      if (variant) return { family, variant };
+    }
+    return null;
+  }
+
+  function omarchyThemeId(theme) {
+    if (theme && typeof theme.themeId === "string" && theme.themeId) return theme.themeId;
+    const mapping = omarchyState.mapping;
+    const name = theme && typeof theme.name === "string" ? theme.name : "";
+    if (mapping && name && typeof mapping[name] === "string") return mapping[name];
+    return "";
+  }
+
+  function omarchyLabel(theme) {
+    if (!theme) return "Omarchy theme";
+    if (typeof theme.displayName === "string" && theme.displayName) return theme.displayName;
+    if (typeof theme.name === "string" && theme.name) return theme.name;
+    return "Omarchy theme";
+  }
+
+  function applyOmarchyTheme() {
+    const control = window.HearthlightTheme;
+    const omarchy = omarchyState.theme;
+    if (!control || !omarchy) return;
+    const mapped = findCatalogVariant(omarchyThemeId(omarchy));
+    let resolved;
+    if (mapped) {
+      resolved = control.resolve({
+        family: mapped.family.id,
+        variant: mapped.variant.id,
+        mode: mapped.variant.mode,
+      });
+    } else {
+      const synthesized = synthesizeOmarchyTheme(omarchy);
+      resolved = {
+        family: "omarchy",
+        variant: `omarchy-${omarchy.name || "theme"}`,
+        requestedMode: synthesized.mode,
+        resolvedMode: synthesized.mode,
+        fallback: false,
+        palette: synthesized.palette,
+        kinds: synthesized.kinds,
+        categories: synthesized.categories,
+        effects: synthesized.effects,
+      };
+    }
+    applyTheme(resolved);
+  }
+
+  function syncOmarchyControls() {
+    if (!omarchyFollowBtn) return;
+    omarchyFollowBtn.hidden = !(omarchyState.available || omarchyState.enabled);
+    omarchyFollowBtn.setAttribute("aria-checked", String(omarchyState.enabled));
+    const state = omarchyFollowBtn.querySelector(".settings-toggle-state");
+    if (state) state.textContent = omarchyState.enabled ? "on" : "off";
+    const locked = omarchyState.enabled;
+    for (const button of themeFamilyButtons) button.disabled = locked;
+    for (const button of [themeModeDark, themeModeLight, themeModeAuto, themeReset]) {
+      if (button) button.disabled = locked;
+    }
+    if (omarchyFollowHint) {
+      omarchyFollowHint.textContent =
+        omarchyState.enabled && omarchyState.theme
+          ? `Following ${omarchyLabel(omarchyState.theme)}`
+          : "Match the active Omarchy desktop theme";
+    }
+    if (omarchyNote) {
+      if (omarchyState.enabled && !omarchyState.available) {
+        omarchyNote.hidden = false;
+        omarchyNote.textContent = "Omarchy theme unavailable; keeping the last applied theme.";
+      } else if (omarchyState.enabled && omarchyState.theme) {
+        omarchyNote.hidden = false;
+        omarchyNote.textContent = `Following ${omarchyLabel(omarchyState.theme)}.`;
+      } else {
+        omarchyNote.hidden = true;
+        omarchyNote.textContent = "";
+      }
+    }
+  }
+
+  function handleOmarchyTheme(payload) {
+    if (!payload || payload.available !== true) {
+      omarchyState.available = false;
+      syncOmarchyControls();
+      return;
+    }
+    omarchyState.available = true;
+    omarchyState.theme = payload;
+    if (omarchyState.enabled) applyOmarchyTheme();
+    syncOmarchyControls();
+  }
+
+  function setOmarchyFollow(enabled) {
+    if (enabled && !omarchyState.available) return;
+    omarchyState.enabled = Boolean(enabled);
+    persistOmarchyFollowPreference(omarchyState.enabled);
+    if (omarchyState.enabled) {
+      if (omarchyState.theme) applyOmarchyTheme();
+    } else {
+      applyTheme();
+    }
+    syncOmarchyControls();
+    showToast(omarchyState.enabled ? "Following Omarchy theme" : "Omarchy theme off");
+  }
+
+  function omarchyMappingFrom(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    if (value.themes && typeof value.themes === "object") return omarchyMappingFrom(value.themes);
+    if (value.mapping && typeof value.mapping === "object") return omarchyMappingFrom(value.mapping);
+    const mapping = {};
+    for (const [name, id] of Object.entries(value)) {
+      if (typeof id === "string" && id) mapping[name] = id;
+    }
+    return Object.keys(mapping).length ? mapping : null;
+  }
+
+  function applyOmarchyMapping(catalog) {
+    const candidates = [
+      catalog && catalog.omarchy,
+      catalog && catalog.mapping,
+      catalog && catalog.themes,
+      catalog,
+    ];
+    for (const candidate of candidates) {
+      const mapping = omarchyMappingFrom(candidate);
+      if (mapping) {
+        omarchyState.mapping = mapping;
+        return;
+      }
+    }
+  }
+
+  async function loadOmarchyMapping() {
+    applyOmarchyMapping(window.HearthlightThemes);
+    try {
+      const response = await fetch(OMARCHY_MAPPING_URL, { cache: "no-store" });
+      if (!response.ok) return;
+      applyOmarchyMapping(await response.json());
+    } catch (_error) {
+      // The mapping is optional; synthesis covers themes that are not mapped.
+    }
+  }
+
+  async function loadOmarchyTheme() {
+    try {
+      const response = await fetch("/api/theme/omarchy", { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      handleOmarchyTheme(await response.json());
+    } catch (_error) {
+      handleOmarchyTheme({ available: false });
+    }
+  }
+
+  async function loadOmarchy() {
+    await loadOmarchyMapping();
+    await loadOmarchyTheme();
   }
 
   function syncChrome() {
@@ -3722,6 +4080,9 @@
   if (themeFamilies) {
     themeFamilies.addEventListener("keydown", onThemeFamilyKeydown);
   }
+  if (omarchyFollowBtn) {
+    omarchyFollowBtn.addEventListener("click", () => setOmarchyFollow(!omarchyState.enabled));
+  }
   settingsDialog.addEventListener("cancel", (event) => {
     event.preventDefault();
     closeSettings();
@@ -3826,6 +4187,13 @@
         console.error("bad traffic sample", error);
       }
     });
+    eventSource.addEventListener("omarchy", (event) => {
+      try {
+        handleOmarchyTheme(JSON.parse(event.data));
+      } catch (error) {
+        console.error("bad omarchy theme", error);
+      }
+    });
   }
 
   async function loadState() {
@@ -3868,6 +4236,7 @@
   renderThemeFamilies();
   resize();
   applyTheme();
+  loadOmarchy();
   setConnection("connecting");
   loadState();
   connectEvents();
