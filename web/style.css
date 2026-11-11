@@ -980,7 +980,7 @@ button {
   background: var(--theme-accent-faint);
 }
 
-.theme-card[aria-pressed="true"] {
+.theme-card[aria-checked="true"] {
   border-color: var(--theme-accent-edge);
   background: var(--theme-accent-wash);
   box-shadow: inset 0 0 0 1px var(--theme-accent-edge);
@@ -2272,7 +2272,7 @@ button {
   }
 
   .settings-toggle[aria-checked="true"],
-  .theme-card[aria-pressed="true"],
+  .theme-card[aria-checked="true"],
   .theme-mode[aria-pressed="true"] {
     border-color: Highlight;
     outline: 2px solid Highlight;

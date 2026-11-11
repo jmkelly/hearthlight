@@ -1968,7 +1968,7 @@
           ? '<span id="themeDefaultBadge" class="theme-default-badge">Default</span>'
           : "";
         return `
-        <button type="button" class="theme-card theme-family" data-family="${escapeHTML(family.id)}" aria-pressed="false" tabindex="-1">
+        <button type="button" class="theme-card theme-family" role="radio" data-family="${escapeHTML(family.id)}" aria-checked="false" tabindex="-1">
           <span class="theme-card-swatches" aria-hidden="true">
             <span class="theme-swatch theme-swatch-dark" style="${swatches}"></span>
             <span class="theme-swatch theme-swatch-light" style="${swatches}"></span>
@@ -2009,7 +2009,7 @@
         : "custom";
       return `
         <div class="theme-custom-item" data-custom-family="${escapeHTML(family.id)}">
-          <button type="button" class="theme-card theme-family" data-family="${escapeHTML(family.id)}" aria-pressed="false" tabindex="-1">
+          <button type="button" class="theme-card theme-family" role="radio" data-family="${escapeHTML(family.id)}" aria-checked="false" tabindex="-1">
             <span class="theme-card-swatches" aria-hidden="true">
               <span class="theme-swatch theme-swatch-dark" style="${swatches}"></span>
               <span class="theme-swatch theme-swatch-light" style="${swatches}"></span>
@@ -2061,6 +2061,11 @@
     return family && typeof family.name === "string" && family.name ? family.name : "Theme";
   }
 
+  function themeFamilyButtonsInGroup(group) {
+    if (!group) return themeFamilyButtons;
+    return themeFamilyButtons.filter((button) => group.contains(button));
+  }
+
   function syncThemeFamilies(theme) {
     if (!themeFamilyButtons.length) return;
     const control = window.HearthlightTheme;
@@ -2068,11 +2073,14 @@
     const selected = theme && theme.family ? theme.family : defaultFamily;
     for (const button of themeFamilyButtons) {
       const on = button.dataset.family === selected;
-      button.setAttribute("aria-pressed", String(on));
+      button.setAttribute("aria-checked", String(on));
       button.tabIndex = on ? 0 : -1;
     }
-    if (!themeFamilyButtons.some((button) => button.tabIndex === 0)) {
-      themeFamilyButtons[0].tabIndex = 0;
+    for (const group of [themeFamilies, themeCustomFamilies]) {
+      const buttons = themeFamilyButtonsInGroup(group);
+      if (buttons.length && !buttons.some((button) => button.tabIndex === 0)) {
+        buttons[0].tabIndex = 0;
+      }
     }
   }
 
@@ -2080,22 +2088,23 @@
     if (!themeFamilyButtons.length) return;
     const current = event.target.closest(".theme-family");
     if (!current) return;
-    const index = themeFamilyButtons.indexOf(current);
+    const buttons = themeFamilyButtonsInGroup(current.closest('[role="radiogroup"]'));
+    const index = buttons.indexOf(current);
     if (index < 0) return;
     let next = -1;
     if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-      next = (index + 1) % themeFamilyButtons.length;
+      next = (index + 1) % buttons.length;
     } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-      next = (index - 1 + themeFamilyButtons.length) % themeFamilyButtons.length;
+      next = (index - 1 + buttons.length) % buttons.length;
     } else if (event.key === "Home") {
       next = 0;
     } else if (event.key === "End") {
-      next = themeFamilyButtons.length - 1;
+      next = buttons.length - 1;
     }
     if (next < 0) return;
     event.preventDefault();
-    const target = themeFamilyButtons[next];
-    for (const button of themeFamilyButtons) button.tabIndex = button === target ? 0 : -1;
+    const target = buttons[next];
+    for (const button of buttons) button.tabIndex = button === target ? 0 : -1;
     target.focus();
     setThemeFamily(target.dataset.family, false);
   }

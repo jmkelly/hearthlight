@@ -130,7 +130,7 @@ func TestSettingsAppearanceMarkup(t *testing.T) {
 		`<h3 id="settingsAppearanceHeading">Appearance</h3>`,
 		`id="themeFamilies"`,
 		`class="theme-families"`,
-		`role="group"`,
+		`role="radiogroup"`,
 		`aria-label="Theme family"`,
 		`aria-label="Theme mode"`,
 		`id="themeModeDark"`,
@@ -147,6 +147,23 @@ func TestSettingsAppearanceMarkup(t *testing.T) {
 	if count := strings.Count(appearance, `aria-pressed=`); count != 3 {
 		t.Errorf("appearance segmented control has %d aria-pressed buttons, want 3", count)
 	}
+}
+
+func TestThemeFamilyMarkupUsesRadioGroups(t *testing.T) {
+	html := readAccessibilityFile(t, "index.html")
+	families := markupBetween(t, html, `<div id="themeFamilies"`, `</div>`)
+	requireContains(t, families,
+		`role="radiogroup"`,
+		`aria-label="Theme family"`,
+	)
+	if strings.Contains(families, `role="group"`) {
+		t.Error("the theme family picker is still a plain group")
+	}
+	custom := markupBetween(t, html, `<div id="themeCustomFamilies"`, `</div>`)
+	requireContains(t, custom,
+		`role="radiogroup"`,
+		`aria-labelledby="themeCustomHeading"`,
+	)
 }
 
 func TestSettingsHighContrastMarkup(t *testing.T) {
@@ -270,8 +287,9 @@ func TestThemeFamilyCardsRenderFromCatalog(t *testing.T) {
 		"catalog.families.filter(",
 		"themeFamilyPreview(family)",
 		`<button type="button" class="theme-card theme-family"`,
+		`role="radio"`,
 		`data-family="${escapeHTML(family.id)}"`,
-		`aria-pressed="false"`,
+		`aria-checked="false"`,
 		`tabindex="-1"`,
 		`class="theme-swatch theme-swatch-dark"`,
 		`class="theme-swatch theme-swatch-light"`,
@@ -281,6 +299,9 @@ func TestThemeFamilyCardsRenderFromCatalog(t *testing.T) {
 		`querySelectorAll(".theme-family")`,
 		`button.addEventListener("click", () => setThemeFamily(button.dataset.family))`,
 	)
+	if strings.Contains(render, "aria-pressed") {
+		t.Error("theme family cards still render aria-pressed")
+	}
 }
 
 func TestThemeFamilyKeyboardNavigation(t *testing.T) {
@@ -290,6 +311,9 @@ func TestThemeFamilyKeyboardNavigation(t *testing.T) {
 	move := functionBody(t, js, "onThemeFamilyKeydown")
 	requireContains(t, move,
 		`event.target.closest(".theme-family")`,
+		`current.closest('[role="radiogroup"]')`,
+		"themeFamilyButtonsInGroup(",
+		"buttons.indexOf(current)",
 		`event.key === "ArrowRight"`,
 		`event.key === "ArrowDown"`,
 		`event.key === "ArrowLeft"`,
@@ -318,16 +342,20 @@ func TestThemeFamilySelectionPersists(t *testing.T) {
 	requireContains(t, sync,
 		"themeFamilyButtons",
 		`button.dataset.family === selected`,
-		`button.setAttribute("aria-pressed"`,
+		`button.setAttribute("aria-checked"`,
+		"themeFamilyButtonsInGroup(",
 		"button.tabIndex =",
 	)
+	if strings.Contains(sync, "aria-pressed") {
+		t.Error("theme family sync still sets aria-pressed")
+	}
 }
 
 func TestAppearanceStylingUsesThemeTokens(t *testing.T) {
 	css := readAccessibilityFile(t, "style.css")
 	for _, selector := range []string{
 		".theme-card {",
-		`.theme-card[aria-pressed="true"] {`,
+		`.theme-card[aria-checked="true"] {`,
 		".theme-swatch-dark {",
 		".theme-swatch-light {",
 		".theme-modes {",
@@ -852,6 +880,8 @@ func TestCustomThemePickerActions(t *testing.T) {
 	requireContains(t, render,
 		`customThemeFamilies()`,
 		`themeFamilyPreview(family)`,
+		`role="radio"`,
+		`aria-checked="false"`,
 		`data-custom-action="rename"`,
 		`data-custom-action="duplicate"`,
 		`data-custom-action="export"`,

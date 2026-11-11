@@ -179,7 +179,11 @@ func TestHighContrastAndForcedColourStyles(t *testing.T) {
 		"color: CanvasText;",
 		"outline: 3px solid Highlight;",
 		"border: 1px solid CanvasText;",
+		`.theme-card[aria-checked="true"],`,
 	)
+	if strings.Contains(css, `.theme-card[aria-pressed`) {
+		t.Error("selected theme cards still style aria-pressed")
+	}
 	focus := cssRule(t, css, ":is(button, a[href], input, select, textarea, summary, [tabindex]):focus-visible {")
 	requireContains(t, focus,
 		"outline: 3px solid var(--accent);",
