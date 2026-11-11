@@ -140,7 +140,8 @@
       "name": "Catppuccin",
       "source": {
         "name": "Catppuccin",
-        "url": "https://github.com/catppuccin/catppuccin"
+        "url": "https://github.com/catppuccin/catppuccin",
+        "note": "latte keeps canonical base #eff1f5, text #4c4f69, subtext1 #5c5f77, blue #1e66f5, teal #179299, mauve #8839ef and red #d20f39; green #40a02b shifts to #2f7d20, yellow #df8e1d to #9a6400, peach #fe640b to #b34a00 and pink #ea76cb to #c0266b, darkening lightness at the same hue for 3:1 graphics contrast."
       },
       "variants": [
         {
@@ -204,6 +205,68 @@
             "labelHalo": 1,
             "shadowStrength": 1
           }
+        },
+        {
+          "id": "catppuccin-latte",
+          "name": "Catppuccin Latte",
+          "mode": "light",
+          "palette": {
+            "bg": "#eff1f5",
+            "ink": "#4c4f69",
+            "muted": "#5c5f77",
+            "accent": "#1e66f5",
+            "line": "rgba(76, 79, 105, 0.16)",
+            "glass": "rgba(239, 241, 245, 0.82)",
+            "canvasTop": "#f7f8fb",
+            "canvasMiddle": "#eff1f5",
+            "canvasBottom": "#e6e9ef",
+            "grid": "rgba(30, 102, 245, 0.07)",
+            "ambientGlow": "rgba(114, 135, 253, 0.14)",
+            "online": "#2f7d20",
+            "warning": "#9a6400",
+            "danger": "#d20f39",
+            "history": "#7c7f93",
+            "vignette": "rgba(220, 224, 232, 0.55)",
+            "labelHalo": "#fbfcfe",
+            "bubble": "rgba(255, 255, 255, 0.92)",
+            "panel": "rgba(248, 249, 252, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#9a6400" },
+            "server": { "label": "Server", "color": "#179299" },
+            "computer": { "label": "Computer", "color": "#1e66f5" },
+            "phone": { "label": "Phone", "color": "#c0266b" },
+            "nas": { "label": "NAS", "color": "#2f7d20" },
+            "media": { "label": "Media", "color": "#8839ef" },
+            "iot": { "label": "IoT", "color": "#1a7f6e" },
+            "printer": { "label": "Printer", "color": "#b34a00" },
+            "device": { "label": "Device", "color": "#6c6f85" }
+          },
+          "categories": {
+            "web": "#179299",
+            "media": "#8839ef",
+            "data": "#b34a00",
+            "remote": "#2f7d20",
+            "infra": "#1e66f5",
+            "iot": "#1a7f6e",
+            "other": "#6c6f85"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
         }
       ]
     },
@@ -213,7 +276,7 @@
       "source": {
         "name": "Tokyo Night",
         "url": "https://github.com/folke/tokyonight.nvim",
-        "note": "history lightened from #565f89 to #707aa8 for 3:1 contrast on the canvas"
+        "note": "history lightened from #565f89 to #707aa8 for 3:1 contrast on the canvas. The day variant keeps canonical text #3760bf, blue #2e7de9, cyan #007197, green #587539, orange #b15c00, purple #9854f1, violet #7847bd and teal #118c74; muted uses #4e5c8f, darkened from comment #848cb5, for 4.5:1 text. Red darkens #f52a65 to #ef245f and history is #5f6685 for 3:1 graphics; canvasBottom is a light blend of bg and bg_dark."
       },
       "variants": [
         {
@@ -277,6 +340,68 @@
             "labelHalo": 1,
             "shadowStrength": 1
           }
+        },
+        {
+          "id": "tokyo-night-day",
+          "name": "Tokyo Night Day",
+          "mode": "light",
+          "palette": {
+            "bg": "#e1e2e7",
+            "ink": "#3760bf",
+            "muted": "#4e5c8f",
+            "accent": "#2e7de9",
+            "line": "rgba(55, 96, 191, 0.16)",
+            "glass": "rgba(225, 226, 231, 0.82)",
+            "canvasTop": "#eff0f4",
+            "canvasMiddle": "#e1e2e7",
+            "canvasBottom": "#e0e2e9",
+            "grid": "rgba(46, 125, 233, 0.07)",
+            "ambientGlow": "rgba(46, 125, 233, 0.12)",
+            "online": "#587539",
+            "warning": "#b15c00",
+            "danger": "#ef245f",
+            "history": "#5f6685",
+            "vignette": "rgba(208, 213, 227, 0.55)",
+            "labelHalo": "#fafbfd",
+            "bubble": "rgba(248, 249, 252, 0.92)",
+            "panel": "rgba(236, 237, 242, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#8c6c3e" },
+            "server": { "label": "Server", "color": "#007197" },
+            "computer": { "label": "Computer", "color": "#2e7de9" },
+            "phone": { "label": "Phone", "color": "#9854f1" },
+            "nas": { "label": "NAS", "color": "#587539" },
+            "media": { "label": "Media", "color": "#7847bd" },
+            "iot": { "label": "IoT", "color": "#118c74" },
+            "printer": { "label": "Printer", "color": "#b15c00" },
+            "device": { "label": "Device", "color": "#5f6685" }
+          },
+          "categories": {
+            "web": "#007197",
+            "media": "#7847bd",
+            "data": "#b15c00",
+            "remote": "#587539",
+            "infra": "#2e7de9",
+            "iot": "#118c74",
+            "other": "#5f6685"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
         }
       ]
     },
@@ -286,7 +411,7 @@
       "source": {
         "name": "Rosé Pine",
         "url": "https://github.com/rose-pine/rose-pine",
-        "note": "muted lightened from #908caa to #9591b2 for 4.5:1 text contrast and history from #6e6a86 to #908caa for 3:1 canvas contrast"
+        "note": "muted lightened from #908caa to #9591b2 for 4.5:1 text contrast and history from #6e6a86 to #908caa for 3:1 canvas contrast. The dawn variant keeps canonical base #faf4ed, text #575279, pine #286983, iris #907aa9, foam #56949f and love #b4637a; muted shifts subtle #797593 to #6e6a86 for 4.5:1 text, gold #ea9d34 to #a36500 and rose #d7827e to #a35d43 for 3:1 graphics, and online uses derived green #2f7a4a because Dawn has no green. History keeps subtle #797593 at low chroma."
       },
       "variants": [
         {
@@ -349,6 +474,68 @@
             "glowStrength": 1,
             "labelHalo": 1,
             "shadowStrength": 1
+          }
+        },
+        {
+          "id": "rose-pine-dawn",
+          "name": "Rosé Pine Dawn",
+          "mode": "light",
+          "palette": {
+            "bg": "#faf4ed",
+            "ink": "#575279",
+            "muted": "#6e6a86",
+            "accent": "#286983",
+            "line": "rgba(87, 82, 121, 0.16)",
+            "glass": "rgba(250, 244, 237, 0.82)",
+            "canvasTop": "#fffaf3",
+            "canvasMiddle": "#faf4ed",
+            "canvasBottom": "#f7efe8",
+            "grid": "rgba(40, 105, 131, 0.07)",
+            "ambientGlow": "rgba(86, 148, 159, 0.14)",
+            "online": "#2f7a4a",
+            "warning": "#a36500",
+            "danger": "#b4637a",
+            "history": "#797593",
+            "vignette": "rgba(242, 233, 225, 0.55)",
+            "labelHalo": "#fffcf7",
+            "bubble": "rgba(255, 255, 255, 0.92)",
+            "panel": "rgba(255, 250, 243, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#a36500" },
+            "server": { "label": "Server", "color": "#286983" },
+            "computer": { "label": "Computer", "color": "#3e6f9e" },
+            "phone": { "label": "Phone", "color": "#b4637a" },
+            "nas": { "label": "NAS", "color": "#2f7a4a" },
+            "media": { "label": "Media", "color": "#907aa9" },
+            "iot": { "label": "IoT", "color": "#56949f" },
+            "printer": { "label": "Printer", "color": "#a35d43" },
+            "device": { "label": "Device", "color": "#6e6a86" }
+          },
+          "categories": {
+            "web": "#357f8c",
+            "media": "#907aa9",
+            "data": "#a36500",
+            "remote": "#2f7a4a",
+            "infra": "#286983",
+            "iot": "#56949f",
+            "other": "#6e6a86"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
           }
         }
       ]
@@ -724,7 +911,7 @@
       "source": {
         "name": "Gruvbox",
         "url": "https://github.com/morhetz/gruvbox",
-        "note": "accent shifts canonical blue #83a598 (hue 157) to #7fb0b5 (hue 186) so tailnet sits inside the cool 180-290 degree band and stays distinct from the computer blue; media shifts canonical purple #d3869b (hue 344) to #b986d3 (hue 280) for the same cool band; muted uses fg3 #bdae93 instead of fg4 #a89984 for 4.5:1 text contrast"
+        "note": "accent shifts canonical blue #83a598 (hue 157) to #7fb0b5 (hue 186) so tailnet sits inside the cool 180-290 degree band and stays distinct from the computer blue; media shifts canonical purple #d3869b (hue 344) to #b986d3 (hue 280) for the same cool band; muted uses fg3 #bdae93 instead of fg4 #a89984 for 4.5:1 text contrast. The light variant keeps the canonical gruvbox light ramp and needs no contrast shifts. Media uses #7a4a9e, a darker stand-in for canonical purple #8f3f71, and iot uses #2f6f5a, a darker aqua, so phone/media and computer/iot stay distinct on the light canvas."
       },
       "variants": [
         {
@@ -788,6 +975,68 @@
             "labelHalo": 1,
             "shadowStrength": 1
           }
+        },
+        {
+          "id": "gruvbox-light",
+          "name": "Gruvbox Light",
+          "mode": "light",
+          "palette": {
+            "bg": "#fbf1c7",
+            "ink": "#3c3836",
+            "muted": "#665c54",
+            "accent": "#076678",
+            "line": "rgba(60, 56, 54, 0.16)",
+            "glass": "rgba(251, 241, 199, 0.82)",
+            "canvasTop": "#fdf6d8",
+            "canvasMiddle": "#fbf1c7",
+            "canvasBottom": "#f5eac0",
+            "grid": "rgba(7, 102, 120, 0.07)",
+            "ambientGlow": "rgba(7, 102, 120, 0.12)",
+            "online": "#79740e",
+            "warning": "#b57614",
+            "danger": "#9d0006",
+            "history": "#928374",
+            "vignette": "rgba(213, 196, 161, 0.55)",
+            "labelHalo": "#fffdf2",
+            "bubble": "rgba(255, 251, 235, 0.92)",
+            "panel": "rgba(253, 246, 221, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#b57614" },
+            "server": { "label": "Server", "color": "#076678" },
+            "computer": { "label": "Computer", "color": "#427b58" },
+            "phone": { "label": "Phone", "color": "#8f3f71" },
+            "nas": { "label": "NAS", "color": "#79740e" },
+            "media": { "label": "Media", "color": "#7a4a9e" },
+            "iot": { "label": "IoT", "color": "#2f6f5a" },
+            "printer": { "label": "Printer", "color": "#af3a03" },
+            "device": { "label": "Device", "color": "#928374" }
+          },
+          "categories": {
+            "web": "#076678",
+            "media": "#7a4a9e",
+            "data": "#af3a03",
+            "remote": "#79740e",
+            "infra": "#427b58",
+            "iot": "#8f3f71",
+            "other": "#928374"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
         }
       ]
     },
@@ -797,7 +1046,7 @@
       "source": {
         "name": "Nord",
         "url": "https://github.com/nordtheme/nord",
-        "note": "muted uses #a7b1c2, lightened from nord3 #4c566a for 4.5:1 text contrast; history and device use #8a96ab, lightened from nord3 for 3:1 canvas contrast; media shifts nord15 #b48ead (hue 311) to #a18eb4 (hue 270) so the category sits inside the cool 180-290 degree band; canvasBottom is #242933, nord0 darkened because Nord defines no darker base"
+        "note": "muted uses #a7b1c2, lightened from nord3 #4c566a for 4.5:1 text contrast; history and device use #8a96ab, lightened from nord3 for 3:1 canvas contrast; media shifts nord15 #b48ead (hue 311) to #a18eb4 (hue 270) so the category sits inside the cool 180-290 degree band; canvasBottom is #242933, nord0 darkened because Nord defines no darker base. The light variant is a Hearthlight-authored pairing derived from the Snow Storm ramp: bg #eceff4 (nord6), canvasBottom blends nord5 #e5e9f0 with nord4 #d8dee9, and ink is Polar Night #2e3440. Aurora and frost marks are darkened at the same hue for 3:1 graphics contrast: green #a3be8c to #4c7a2a, yellow #ebcb8b to #8a6a1f, orange #d08770 to #a35a3d, purple #b48ead to #8a5f86, frost teal #8fbcbb to #2f736f, and #81a1c1 to #3f6f8f. Media uses #6f5a8a and history #5f6b7d for low-chroma separation; accent keeps nord10 #5e81ac."
       },
       "variants": [
         {
@@ -860,6 +1109,68 @@
             "glowStrength": 1,
             "labelHalo": 1,
             "shadowStrength": 1
+          }
+        },
+        {
+          "id": "nord-light",
+          "name": "Nord Light",
+          "mode": "light",
+          "palette": {
+            "bg": "#eceff4",
+            "ink": "#2e3440",
+            "muted": "#4c566a",
+            "accent": "#5e81ac",
+            "line": "rgba(46, 52, 64, 0.16)",
+            "glass": "rgba(236, 239, 244, 0.82)",
+            "canvasTop": "#f4f6f9",
+            "canvasMiddle": "#eceff4",
+            "canvasBottom": "#e0e4eb",
+            "grid": "rgba(94, 129, 172, 0.07)",
+            "ambientGlow": "rgba(136, 192, 208, 0.14)",
+            "online": "#4c7a2a",
+            "warning": "#8a6a1f",
+            "danger": "#bf616a",
+            "history": "#5f6b7d",
+            "vignette": "rgba(216, 222, 233, 0.55)",
+            "labelHalo": "#fbfcfd",
+            "bubble": "rgba(250, 252, 254, 0.92)",
+            "panel": "rgba(244, 246, 249, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#8a6a1f" },
+            "server": { "label": "Server", "color": "#5e81ac" },
+            "computer": { "label": "Computer", "color": "#3f6f8f" },
+            "phone": { "label": "Phone", "color": "#8a5f86" },
+            "nas": { "label": "NAS", "color": "#4c7a2a" },
+            "media": { "label": "Media", "color": "#6f5a8a" },
+            "iot": { "label": "IoT", "color": "#2f736f" },
+            "printer": { "label": "Printer", "color": "#a35a3d" },
+            "device": { "label": "Device", "color": "#5f6b7d" }
+          },
+          "categories": {
+            "web": "#2f736f",
+            "media": "#6f5a8a",
+            "data": "#a35a3d",
+            "remote": "#4c7a2a",
+            "infra": "#5e81ac",
+            "iot": "#4d817c",
+            "other": "#5f6b7d"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
           }
         }
       ]
