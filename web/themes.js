@@ -35,15 +35,42 @@ window.HearthlightThemes = {
             "panel": "rgba(12, 21, 35, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#ffd166" },
-            "server": { "label": "Server", "color": "#5ee7ff" },
-            "computer": { "label": "Computer", "color": "#8fb3ff" },
-            "phone": { "label": "Phone", "color": "#ff9ec7" },
-            "nas": { "label": "NAS", "color": "#5ee0a5" },
-            "media": { "label": "Media", "color": "#b18cff" },
-            "iot": { "label": "IoT", "color": "#f08fc8" },
-            "printer": { "label": "Printer", "color": "#ffb86b" },
-            "device": { "label": "Device", "color": "#94a3b8" }
+            "router": {
+              "label": "Router",
+              "color": "#ffd166"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#5ee7ff"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#8fb3ff"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#ff9ec7"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#5ee0a5"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#b18cff"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#f08fc8"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#ffb86b"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#94a3b8"
+            }
           },
           "categories": {
             "web": "#5ee7ff",
@@ -97,15 +124,42 @@ window.HearthlightThemes = {
             "panel": "rgba(250, 252, 255, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#8a5a00" },
-            "server": { "label": "Server", "color": "#076b84" },
-            "computer": { "label": "Computer", "color": "#2d5cae" },
-            "phone": { "label": "Phone", "color": "#a8346c" },
-            "nas": { "label": "NAS", "color": "#0a7448" },
-            "media": { "label": "Media", "color": "#6840ad" },
-            "iot": { "label": "IoT", "color": "#a13b85" },
-            "printer": { "label": "Printer", "color": "#a15400" },
-            "device": { "label": "Device", "color": "#5a6878" }
+            "router": {
+              "label": "Router",
+              "color": "#8a5a00"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#076b84"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#2d5cae"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#a8346c"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#0a7448"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#6840ad"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#a13b85"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#a15400"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#5a6878"
+            }
           },
           "categories": {
             "web": "#076b84",
@@ -170,15 +224,42 @@ window.HearthlightThemes = {
             "panel": "rgba(30, 30, 46, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#f9e2af" },
-            "server": { "label": "Server", "color": "#89dceb" },
-            "computer": { "label": "Computer", "color": "#89b4fa" },
-            "phone": { "label": "Phone", "color": "#f5c2e7" },
-            "nas": { "label": "NAS", "color": "#a6e3a1" },
-            "media": { "label": "Media", "color": "#cba6f7" },
-            "iot": { "label": "IoT", "color": "#94e2d5" },
-            "printer": { "label": "Printer", "color": "#fab387" },
-            "device": { "label": "Device", "color": "#9399b2" }
+            "router": {
+              "label": "Router",
+              "color": "#f9e2af"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#89dceb"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#89b4fa"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#f5c2e7"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#a6e3a1"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#cba6f7"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#94e2d5"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#fab387"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#9399b2"
+            }
           },
           "categories": {
             "web": "#89dceb",
@@ -232,15 +313,42 @@ window.HearthlightThemes = {
             "panel": "rgba(248, 249, 252, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#9a6400" },
-            "server": { "label": "Server", "color": "#179299" },
-            "computer": { "label": "Computer", "color": "#1e66f5" },
-            "phone": { "label": "Phone", "color": "#c0266b" },
-            "nas": { "label": "NAS", "color": "#2f7d20" },
-            "media": { "label": "Media", "color": "#8839ef" },
-            "iot": { "label": "IoT", "color": "#1a7f6e" },
-            "printer": { "label": "Printer", "color": "#b34a00" },
-            "device": { "label": "Device", "color": "#6c6f85" }
+            "router": {
+              "label": "Router",
+              "color": "#9a6400"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#179299"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#1e66f5"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#c0266b"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#2f7d20"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#8839ef"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#1a7f6e"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#b34a00"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#6c6f85"
+            }
           },
           "categories": {
             "web": "#179299",
@@ -305,15 +413,42 @@ window.HearthlightThemes = {
             "panel": "rgba(26, 27, 38, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#e0af68" },
-            "server": { "label": "Server", "color": "#7dcfff" },
-            "computer": { "label": "Computer", "color": "#7aa2f7" },
-            "phone": { "label": "Phone", "color": "#ff007c" },
-            "nas": { "label": "NAS", "color": "#9ece6a" },
-            "media": { "label": "Media", "color": "#bb9af7" },
-            "iot": { "label": "IoT", "color": "#73daca" },
-            "printer": { "label": "Printer", "color": "#ff9e64" },
-            "device": { "label": "Device", "color": "#737aa2" }
+            "router": {
+              "label": "Router",
+              "color": "#e0af68"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7dcfff"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#7aa2f7"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#ff007c"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#9ece6a"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#bb9af7"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#73daca"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#ff9e64"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#737aa2"
+            }
           },
           "categories": {
             "web": "#7dcfff",
@@ -367,15 +502,42 @@ window.HearthlightThemes = {
             "panel": "rgba(236, 237, 242, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#8c6c3e" },
-            "server": { "label": "Server", "color": "#007197" },
-            "computer": { "label": "Computer", "color": "#2e7de9" },
-            "phone": { "label": "Phone", "color": "#9854f1" },
-            "nas": { "label": "NAS", "color": "#587539" },
-            "media": { "label": "Media", "color": "#7847bd" },
-            "iot": { "label": "IoT", "color": "#118c74" },
-            "printer": { "label": "Printer", "color": "#b15c00" },
-            "device": { "label": "Device", "color": "#5f6685" }
+            "router": {
+              "label": "Router",
+              "color": "#8c6c3e"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#007197"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#2e7de9"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#9854f1"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#587539"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#7847bd"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#118c74"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#b15c00"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#5f6685"
+            }
           },
           "categories": {
             "web": "#007197",
@@ -407,16 +569,16 @@ window.HearthlightThemes = {
     },
     {
       "id": "rose-pine",
-      "name": "Rosé Pine",
+      "name": "Ros\u00e9 Pine",
       "source": {
-        "name": "Rosé Pine",
+        "name": "Ros\u00e9 Pine",
         "url": "https://github.com/rose-pine/rose-pine",
         "note": "muted lightened from #908caa to #9591b2 for 4.5:1 text contrast and history from #6e6a86 to #908caa for 3:1 canvas contrast. The dawn variant keeps canonical base #faf4ed, text #575279, pine #286983, iris #907aa9, foam #56949f and love #b4637a; muted shifts subtle #797593 to #6e6a86 for 4.5:1 text, gold #ea9d34 to #a36500 and rose #d7827e to #a35d43 for 3:1 graphics, and online uses derived green #2f7a4a because Dawn has no green. History keeps subtle #797593 at low chroma."
       },
       "variants": [
         {
           "id": "rose-pine-moon",
-          "name": "Rosé Pine Moon",
+          "name": "Ros\u00e9 Pine Moon",
           "mode": "dark",
           "palette": {
             "bg": "#232136",
@@ -440,15 +602,42 @@ window.HearthlightThemes = {
             "panel": "rgba(35, 33, 54, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#f6c177" },
-            "server": { "label": "Server", "color": "#9ccfd8" },
-            "computer": { "label": "Computer", "color": "#3e8fb0" },
-            "phone": { "label": "Phone", "color": "#eb6f92" },
-            "nas": { "label": "NAS", "color": "#86c79a" },
-            "media": { "label": "Media", "color": "#c4a7e7" },
-            "iot": { "label": "IoT", "color": "#7dc4b8" },
-            "printer": { "label": "Printer", "color": "#ea9a97" },
-            "device": { "label": "Device", "color": "#908caa" }
+            "router": {
+              "label": "Router",
+              "color": "#f6c177"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#9ccfd8"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3e8fb0"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#eb6f92"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#86c79a"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#c4a7e7"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#7dc4b8"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#ea9a97"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#908caa"
+            }
           },
           "categories": {
             "web": "#9ccfd8",
@@ -478,7 +667,7 @@ window.HearthlightThemes = {
         },
         {
           "id": "rose-pine-dawn",
-          "name": "Rosé Pine Dawn",
+          "name": "Ros\u00e9 Pine Dawn",
           "mode": "light",
           "palette": {
             "bg": "#faf4ed",
@@ -502,15 +691,42 @@ window.HearthlightThemes = {
             "panel": "rgba(255, 250, 243, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#a36500" },
-            "server": { "label": "Server", "color": "#286983" },
-            "computer": { "label": "Computer", "color": "#3e6f9e" },
-            "phone": { "label": "Phone", "color": "#b4637a" },
-            "nas": { "label": "NAS", "color": "#2f7a4a" },
-            "media": { "label": "Media", "color": "#907aa9" },
-            "iot": { "label": "IoT", "color": "#56949f" },
-            "printer": { "label": "Printer", "color": "#a35d43" },
-            "device": { "label": "Device", "color": "#6e6a86" }
+            "router": {
+              "label": "Router",
+              "color": "#a36500"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#286983"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3e6f9e"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#b4637a"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#2f7a4a"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#907aa9"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#56949f"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#a35d43"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#6e6a86"
+            }
           },
           "categories": {
             "web": "#357f8c",
@@ -575,15 +791,42 @@ window.HearthlightThemes = {
             "panel": "rgba(31, 31, 40, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#E6C384" },
-            "server": { "label": "Server", "color": "#7E9CD8" },
-            "computer": { "label": "Computer", "color": "#7FB4CA" },
-            "phone": { "label": "Phone", "color": "#D27E99" },
-            "nas": { "label": "NAS", "color": "#98BB6C" },
-            "media": { "label": "Media", "color": "#957FB8" },
-            "iot": { "label": "IoT", "color": "#7AA89F" },
-            "printer": { "label": "Printer", "color": "#FFA066" },
-            "device": { "label": "Device", "color": "#9E9B82" }
+            "router": {
+              "label": "Router",
+              "color": "#E6C384"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7E9CD8"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#7FB4CA"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#D27E99"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#98BB6C"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#957FB8"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#7AA89F"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#FFA066"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#9E9B82"
+            }
           },
           "categories": {
             "web": "#7E9CD8",
@@ -637,15 +880,42 @@ window.HearthlightThemes = {
             "panel": "rgba(242, 236, 188, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#77713F" },
-            "server": { "label": "Server", "color": "#4D699B" },
-            "computer": { "label": "Computer", "color": "#477F94" },
-            "phone": { "label": "Phone", "color": "#B35B79" },
-            "nas": { "label": "NAS", "color": "#677F49" },
-            "media": { "label": "Media", "color": "#624C83" },
-            "iot": { "label": "IoT", "color": "#597B75" },
-            "printer": { "label": "Printer", "color": "#B66200" },
-            "device": { "label": "Device", "color": "#716E61" }
+            "router": {
+              "label": "Router",
+              "color": "#77713F"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#4D699B"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#477F94"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#B35B79"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#677F49"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#624C83"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#597B75"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#B66200"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#716E61"
+            }
           },
           "categories": {
             "web": "#4D699B",
@@ -710,15 +980,42 @@ window.HearthlightThemes = {
             "panel": "rgba(45, 53, 59, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#dbbc7f" },
-            "server": { "label": "Server", "color": "#7fb8cc" },
-            "computer": { "label": "Computer", "color": "#7fbbb3" },
-            "phone": { "label": "Phone", "color": "#d699b6" },
-            "nas": { "label": "NAS", "color": "#a7c080" },
-            "media": { "label": "Media", "color": "#b8a1d6" },
-            "iot": { "label": "IoT", "color": "#83c092" },
-            "printer": { "label": "Printer", "color": "#e69875" },
-            "device": { "label": "Device", "color": "#859289" }
+            "router": {
+              "label": "Router",
+              "color": "#dbbc7f"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7fb8cc"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#7fbbb3"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#d699b6"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#a7c080"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#b8a1d6"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#83c092"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#e69875"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#859289"
+            }
           },
           "categories": {
             "web": "#7fb8cc",
@@ -772,15 +1069,42 @@ window.HearthlightThemes = {
             "panel": "rgba(253, 246, 227, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#ae7d00" },
-            "server": { "label": "Server", "color": "#378dbc" },
-            "computer": { "label": "Computer", "color": "#309670" },
-            "phone": { "label": "Phone", "color": "#da4fae" },
-            "nas": { "label": "NAS", "color": "#7c8e01" },
-            "media": { "label": "Media", "color": "#8a6fbf" },
-            "iot": { "label": "IoT", "color": "#d94a48" },
-            "printer": { "label": "Printer", "color": "#da620a" },
-            "device": { "label": "Device", "color": "#6f7d70" }
+            "router": {
+              "label": "Router",
+              "color": "#ae7d00"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#378dbc"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#309670"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#da4fae"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#7c8e01"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#8a6fbf"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#d94a48"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#da620a"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#6f7d70"
+            }
           },
           "categories": {
             "web": "#378dbc",
@@ -845,15 +1169,42 @@ window.HearthlightThemes = {
             "panel": "rgba(40, 42, 54, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#f1fa8c" },
-            "server": { "label": "Server", "color": "#8be9fd" },
-            "computer": { "label": "Computer", "color": "#8fa1e8" },
-            "phone": { "label": "Phone", "color": "#ff79c6" },
-            "nas": { "label": "NAS", "color": "#50fa7b" },
-            "media": { "label": "Media", "color": "#bd93f9" },
-            "iot": { "label": "IoT", "color": "#4ee6c4" },
-            "printer": { "label": "Printer", "color": "#ffb86c" },
-            "device": { "label": "Device", "color": "#8b97bc" }
+            "router": {
+              "label": "Router",
+              "color": "#f1fa8c"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#8be9fd"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#8fa1e8"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#ff79c6"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#50fa7b"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#bd93f9"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#4ee6c4"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#ffb86c"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#8b97bc"
+            }
           },
           "categories": {
             "web": "#8be9fd",
@@ -907,15 +1258,42 @@ window.HearthlightThemes = {
             "panel": "rgba(255, 251, 235, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#846e15" },
-            "server": { "label": "Server", "color": "#036a96" },
-            "computer": { "label": "Computer", "color": "#3a5fbf" },
-            "phone": { "label": "Phone", "color": "#a3144d" },
-            "nas": { "label": "NAS", "color": "#14710a" },
-            "media": { "label": "Media", "color": "#644ac9" },
-            "iot": { "label": "IoT", "color": "#0f7d6c" },
-            "printer": { "label": "Printer", "color": "#a34d14" },
-            "device": { "label": "Device", "color": "#6c664b" }
+            "router": {
+              "label": "Router",
+              "color": "#846e15"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#036a96"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3a5fbf"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#a3144d"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#14710a"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#644ac9"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#0f7d6c"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#a34d14"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#6c664b"
+            }
           },
           "categories": {
             "web": "#036a96",
@@ -980,15 +1358,42 @@ window.HearthlightThemes = {
             "panel": "rgba(40, 44, 52, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#e5c07b" },
-            "server": { "label": "Server", "color": "#61afef" },
-            "computer": { "label": "Computer", "color": "#528bff" },
-            "phone": { "label": "Phone", "color": "#e06c75" },
-            "nas": { "label": "NAS", "color": "#98c379" },
-            "media": { "label": "Media", "color": "#c678dd" },
-            "iot": { "label": "IoT", "color": "#56b6c2" },
-            "printer": { "label": "Printer", "color": "#d19a66" },
-            "device": { "label": "Device", "color": "#818896" }
+            "router": {
+              "label": "Router",
+              "color": "#e5c07b"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#61afef"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#528bff"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#e06c75"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#98c379"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#c678dd"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#56b6c2"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#d19a66"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#818896"
+            }
           },
           "categories": {
             "web": "#61afef",
@@ -1042,15 +1447,42 @@ window.HearthlightThemes = {
             "panel": "rgba(250, 250, 250, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#986801" },
-            "server": { "label": "Server", "color": "#4078f2" },
-            "computer": { "label": "Computer", "color": "#526fff" },
-            "phone": { "label": "Phone", "color": "#e45649" },
-            "nas": { "label": "NAS", "color": "#4c9a4c" },
-            "media": { "label": "Media", "color": "#a626a4" },
-            "iot": { "label": "IoT", "color": "#0184bc" },
-            "printer": { "label": "Printer", "color": "#b87e01" },
-            "device": { "label": "Device", "color": "#696c77" }
+            "router": {
+              "label": "Router",
+              "color": "#986801"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#4078f2"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#526fff"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#e45649"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#4c9a4c"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#a626a4"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#0184bc"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#b87e01"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#696c77"
+            }
           },
           "categories": {
             "web": "#4078f2",
@@ -1115,15 +1547,42 @@ window.HearthlightThemes = {
             "panel": "rgba(0, 43, 54, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#b58900" },
-            "server": { "label": "Server", "color": "#268bd2" },
-            "computer": { "label": "Computer", "color": "#6e73c5" },
-            "phone": { "label": "Phone", "color": "#d53f88" },
-            "nas": { "label": "NAS", "color": "#859900" },
-            "media": { "label": "Media", "color": "#2aa198" },
-            "iot": { "label": "IoT", "color": "#de403d" },
-            "printer": { "label": "Printer", "color": "#d44e17" },
-            "device": { "label": "Device", "color": "#93a1a1" }
+            "router": {
+              "label": "Router",
+              "color": "#b58900"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#268bd2"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#6e73c5"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#d53f88"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#859900"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#2aa198"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#de403d"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#d44e17"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#93a1a1"
+            }
           },
           "categories": {
             "web": "#268bd2",
@@ -1177,15 +1636,42 @@ window.HearthlightThemes = {
             "panel": "rgba(253, 246, 227, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#a67e00" },
-            "server": { "label": "Server", "color": "#268bd2" },
-            "computer": { "label": "Computer", "color": "#6c71c4" },
-            "phone": { "label": "Phone", "color": "#d33682" },
-            "nas": { "label": "NAS", "color": "#7a8c00" },
-            "media": { "label": "Media", "color": "#26928a" },
-            "iot": { "label": "IoT", "color": "#dc322f" },
-            "printer": { "label": "Printer", "color": "#cb4b16" },
-            "device": { "label": "Device", "color": "#758787" }
+            "router": {
+              "label": "Router",
+              "color": "#a67e00"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#268bd2"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#6c71c4"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#d33682"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#7a8c00"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#26928a"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#dc322f"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#cb4b16"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#758787"
+            }
           },
           "categories": {
             "web": "#268bd2",
@@ -1250,15 +1736,42 @@ window.HearthlightThemes = {
             "panel": "rgba(40, 40, 40, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#fabd2f" },
-            "server": { "label": "Server", "color": "#7fb0b5" },
-            "computer": { "label": "Computer", "color": "#83a598" },
-            "phone": { "label": "Phone", "color": "#d3869b" },
-            "nas": { "label": "NAS", "color": "#b8bb26" },
-            "media": { "label": "Media", "color": "#b986d3" },
-            "iot": { "label": "IoT", "color": "#8ec07c" },
-            "printer": { "label": "Printer", "color": "#fe8019" },
-            "device": { "label": "Device", "color": "#928374" }
+            "router": {
+              "label": "Router",
+              "color": "#fabd2f"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7fb0b5"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#83a598"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#d3869b"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#b8bb26"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#b986d3"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#8ec07c"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#fe8019"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#928374"
+            }
           },
           "categories": {
             "web": "#7fb0b5",
@@ -1312,15 +1825,42 @@ window.HearthlightThemes = {
             "panel": "rgba(253, 246, 221, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#b57614" },
-            "server": { "label": "Server", "color": "#076678" },
-            "computer": { "label": "Computer", "color": "#427b58" },
-            "phone": { "label": "Phone", "color": "#8f3f71" },
-            "nas": { "label": "NAS", "color": "#79740e" },
-            "media": { "label": "Media", "color": "#7a4a9e" },
-            "iot": { "label": "IoT", "color": "#2f6f5a" },
-            "printer": { "label": "Printer", "color": "#af3a03" },
-            "device": { "label": "Device", "color": "#928374" }
+            "router": {
+              "label": "Router",
+              "color": "#b57614"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#076678"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#427b58"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#8f3f71"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#79740e"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#7a4a9e"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#2f6f5a"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#af3a03"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#928374"
+            }
           },
           "categories": {
             "web": "#076678",
@@ -1385,15 +1925,42 @@ window.HearthlightThemes = {
             "panel": "rgba(46, 52, 64, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#ebcb8b" },
-            "server": { "label": "Server", "color": "#88c0d0" },
-            "computer": { "label": "Computer", "color": "#81a1c1" },
-            "phone": { "label": "Phone", "color": "#b48ead" },
-            "nas": { "label": "NAS", "color": "#a3be8c" },
-            "media": { "label": "Media", "color": "#a18eb4" },
-            "iot": { "label": "IoT", "color": "#8fbcbb" },
-            "printer": { "label": "Printer", "color": "#d08770" },
-            "device": { "label": "Device", "color": "#8a96ab" }
+            "router": {
+              "label": "Router",
+              "color": "#ebcb8b"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#88c0d0"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#81a1c1"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#b48ead"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#a3be8c"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#a18eb4"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#8fbcbb"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#d08770"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#8a96ab"
+            }
           },
           "categories": {
             "web": "#88c0d0",
@@ -1447,15 +2014,42 @@ window.HearthlightThemes = {
             "panel": "rgba(244, 246, 249, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#8a6a1f" },
-            "server": { "label": "Server", "color": "#5e81ac" },
-            "computer": { "label": "Computer", "color": "#3f6f8f" },
-            "phone": { "label": "Phone", "color": "#8a5f86" },
-            "nas": { "label": "NAS", "color": "#4c7a2a" },
-            "media": { "label": "Media", "color": "#6f5a8a" },
-            "iot": { "label": "IoT", "color": "#2f736f" },
-            "printer": { "label": "Printer", "color": "#a35a3d" },
-            "device": { "label": "Device", "color": "#5f6b7d" }
+            "router": {
+              "label": "Router",
+              "color": "#8a6a1f"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#5e81ac"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3f6f8f"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#8a5f86"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#4c7a2a"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#6f5a8a"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#2f736f"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#a35a3d"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#5f6b7d"
+            }
           },
           "categories": {
             "web": "#2f736f",
@@ -1520,15 +2114,42 @@ window.HearthlightThemes = {
             "panel": "rgba(6, 11, 30, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#E9BB4F" },
-            "server": { "label": "Server", "color": "#7d82d9" },
-            "computer": { "label": "Computer", "color": "#a3bfd1" },
-            "phone": { "label": "Phone", "color": "#c89dc1" },
-            "nas": { "label": "NAS", "color": "#92a593" },
-            "media": { "label": "Media", "color": "#c2c4f0" },
-            "iot": { "label": "IoT", "color": "#dfeaf0" },
-            "printer": { "label": "Printer", "color": "#eb8b54" },
-            "device": { "label": "Device", "color": "#c9b8a6" }
+            "router": {
+              "label": "Router",
+              "color": "#E9BB4F"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7d82d9"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#a3bfd1"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#c89dc1"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#92a593"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#c2c4f0"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#dfeaf0"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#eb8b54"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#c9b8a6"
+            }
           },
           "categories": {
             "web": "#a3bfd1",
@@ -1593,15 +2214,42 @@ window.HearthlightThemes = {
             "panel": "rgba(11, 12, 22, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#e0b36a" },
-            "server": { "label": "Server", "color": "#829dd4" },
-            "computer": { "label": "Computer", "color": "#86a7df" },
-            "phone": { "label": "Phone", "color": "#cddbf4" },
-            "nas": { "label": "NAS", "color": "#82FB9C" },
-            "media": { "label": "Media", "color": "#a4ffec" },
-            "iot": { "label": "IoT", "color": "#7cf8f7" },
-            "printer": { "label": "Printer", "color": "#50f7a3" },
-            "device": { "label": "Device", "color": "#8f99c4" }
+            "router": {
+              "label": "Router",
+              "color": "#e0b36a"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#829dd4"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#86a7df"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#cddbf4"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#82FB9C"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#a4ffec"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#7cf8f7"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#50f7a3"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#8f99c4"
+            }
           },
           "categories": {
             "web": "#7cf8f7",
@@ -1666,15 +2314,42 @@ window.HearthlightThemes = {
             "panel": "rgba(20, 38, 32, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#c5cc91" },
-            "server": { "label": "Server", "color": "#96b7d0" },
-            "computer": { "label": "Computer", "color": "#86c7c5" },
-            "phone": { "label": "Phone", "color": "#b7a1c8" },
-            "nas": { "label": "NAS", "color": "#8bcbb1" },
-            "media": { "label": "Media", "color": "#cfbce0" },
-            "iot": { "label": "IoT", "color": "#a2dcda" },
-            "printer": { "label": "Printer", "color": "#d2ab8d" },
-            "device": { "label": "Device", "color": "#91ad9f" }
+            "router": {
+              "label": "Router",
+              "color": "#c5cc91"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#96b7d0"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#86c7c5"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#b7a1c8"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#8bcbb1"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#cfbce0"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#a2dcda"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#d2ab8d"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#91ad9f"
+            }
           },
           "categories": {
             "web": "#86c7c5",
@@ -1739,15 +2414,42 @@ window.HearthlightThemes = {
             "panel": "rgba(12, 11, 12, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#d1a36f" },
-            "server": { "label": "Server", "color": "#a5a0b6" },
-            "computer": { "label": "Computer", "color": "#87a9b0" },
-            "phone": { "label": "Phone", "color": "#c4d8e2" },
-            "nas": { "label": "NAS", "color": "#9fc9b4" },
-            "media": { "label": "Media", "color": "#c9b8d4" },
-            "iot": { "label": "IoT", "color": "#b8d8db" },
-            "printer": { "label": "Printer", "color": "#d8b08f" },
-            "device": { "label": "Device", "color": "#9b9499" }
+            "router": {
+              "label": "Router",
+              "color": "#d1a36f"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#a5a0b6"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#87a9b0"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#c4d8e2"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#9fc9b4"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#c9b8d4"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#b8d8db"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#d8b08f"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#9b9499"
+            }
           },
           "categories": {
             "web": "#87a9b0",
@@ -1812,15 +2514,42 @@ window.HearthlightThemes = {
             "panel": "rgba(22, 36, 45, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#d9b36a" },
-            "server": { "label": "Server", "color": "#8bc9eb" },
-            "computer": { "label": "Computer", "color": "#6fb8e3" },
-            "phone": { "label": "Phone", "color": "#b1d8ee" },
-            "nas": { "label": "NAS", "color": "#7fd1b0" },
-            "media": { "label": "Media", "color": "#b4e4f6" },
-            "iot": { "label": "IoT", "color": "#d1eef8" },
-            "printer": { "label": "Printer", "color": "#73a6cb" },
-            "device": { "label": "Device", "color": "#8fb0cc" }
+            "router": {
+              "label": "Router",
+              "color": "#d9b36a"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#8bc9eb"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#6fb8e3"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#b1d8ee"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#7fd1b0"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#b4e4f6"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#d1eef8"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#73a6cb"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#8fb0cc"
+            }
           },
           "categories": {
             "web": "#8bc9eb",
@@ -1885,15 +2614,42 @@ window.HearthlightThemes = {
             "panel": "rgba(18, 18, 18, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#e68e0d" },
-            "server": { "label": "Server", "color": "#6da8d8" },
-            "computer": { "label": "Computer", "color": "#8ab8de" },
-            "phone": { "label": "Phone", "color": "#d38fa8" },
-            "nas": { "label": "NAS", "color": "#7fc97f" },
-            "media": { "label": "Media", "color": "#b79ad8" },
-            "iot": { "label": "IoT", "color": "#8fd8c8" },
-            "printer": { "label": "Printer", "color": "#c63d3d" },
-            "device": { "label": "Device", "color": "#9e9e9e" }
+            "router": {
+              "label": "Router",
+              "color": "#e68e0d"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#6da8d8"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#8ab8de"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#d38fa8"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#7fc97f"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#b79ad8"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#8fd8c8"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#c63d3d"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#9e9e9e"
+            }
           },
           "categories": {
             "web": "#6da8d8",
@@ -1958,15 +2714,42 @@ window.HearthlightThemes = {
             "panel": "rgba(34, 34, 34, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#c9a554" },
-            "server": { "label": "Server", "color": "#7f93b3" },
-            "computer": { "label": "Computer", "color": "#9fb3c9" },
-            "phone": { "label": "Phone", "color": "#bb8a6a" },
-            "nas": { "label": "NAS", "color": "#5f875f" },
-            "media": { "label": "Media", "color": "#a58fc0" },
-            "iot": { "label": "IoT", "color": "#7fae9a" },
-            "printer": { "label": "Printer", "color": "#b36d43" },
-            "device": { "label": "Device", "color": "#a8a894" }
+            "router": {
+              "label": "Router",
+              "color": "#c9a554"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7f93b3"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#9fb3c9"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#bb8a6a"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#5f875f"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#a58fc0"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#7fae9a"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#b36d43"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#a8a894"
+            }
           },
           "categories": {
             "web": "#9fb3c9",
@@ -2031,15 +2814,42 @@ window.HearthlightThemes = {
             "panel": "rgba(5, 24, 46, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#faa968" },
-            "server": { "label": "Server", "color": "#028391" },
-            "computer": { "label": "Computer", "color": "#3f8f8a" },
-            "phone": { "label": "Phone", "color": "#8cbfb8" },
-            "nas": { "label": "NAS", "color": "#5fc7a4" },
-            "media": { "label": "Media", "color": "#a8c4d8" },
-            "iot": { "label": "IoT", "color": "#6fd1b8" },
-            "printer": { "label": "Printer", "color": "#e97b3c" },
-            "device": { "label": "Device", "color": "#7f98a0" }
+            "router": {
+              "label": "Router",
+              "color": "#faa968"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#028391"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3f8f8a"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#8cbfb8"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#5fc7a4"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#a8c4d8"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#6fd1b8"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#e97b3c"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#7f98a0"
+            }
           },
           "categories": {
             "web": "#8cbfb8",
@@ -2065,6 +2875,706 @@ window.HearthlightThemes = {
             "glowStrength": 1,
             "labelHalo": 1,
             "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "flexoki-light",
+      "name": "Flexoki Light",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/flexoki-light/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. Accent is the Omarchy shell accent #205EA6. Muted/device/other darkened from #B7B5AC to #6F6D64 and history to #7C7A72 for 4.5:1 text and 3:1 canvas contrast; online/nas/remote darkened from green #879A39 to #6E7D2E, warning/router from yellow #D0A215 to #8F6E0E, computer/infra from bright_blue #4385BE to #2F6FA8, iot/web-cyan from cyan #3AA99F to #2B8A81, printer/data from orange #D0772B to #B35F17, and phone from magenta #CE5D97 to #C7508D at the same hues; media uses an authored violet #6F4FA0 so it stays distinct from the phone magenta."
+      },
+      "variants": [
+        {
+          "id": "flexoki-light",
+          "name": "Flexoki Light",
+          "mode": "light",
+          "palette": {
+            "bg": "#FFFCF0",
+            "ink": "#100F0F",
+            "muted": "#6F6D64",
+            "accent": "#205EA6",
+            "line": "rgba(16, 15, 15, 0.16)",
+            "glass": "rgba(255, 252, 240, 0.82)",
+            "canvasTop": "#FFFEF8",
+            "canvasMiddle": "#FFFCF0",
+            "canvasBottom": "#E5E2D8",
+            "grid": "rgba(32, 94, 166, 0.07)",
+            "ambientGlow": "rgba(32, 94, 166, 0.12)",
+            "online": "#6E7D2E",
+            "warning": "#8F6E0E",
+            "danger": "#D14D41",
+            "history": "#7C7A72",
+            "vignette": "rgba(229, 226, 216, 0.55)",
+            "labelHalo": "#FFFEF8",
+            "bubble": "rgba(255, 254, 248, 0.94)",
+            "panel": "rgba(255, 252, 240, 0.97)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#8F6E0E"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#205EA6"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#2F6FA8"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#C7508D"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#6E7D2E"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#6F4FA0"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#2B8A81"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#B35F17"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#7C7A72"
+            }
+          },
+          "categories": {
+            "web": "#205EA6",
+            "media": "#6F4FA0",
+            "data": "#B35F17",
+            "remote": "#6E7D2E",
+            "infra": "#2F6FA8",
+            "iot": "#2B8A81",
+            "other": "#7C7A72"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "lupine",
+      "name": "Lupine",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/lupine/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. Accent is the Omarchy shell accent #3264EB. Muted darkened from #9E9E9E to #656565 for 4.5:1 text contrast and history/device/other darkened to #747474 for 3:1 canvas contrast; this palette ships no warm hue, so warning/router uses an authored amber #8F5410 and printer/data a matching #B86A1E to keep LAN traffic warm; computer/infra uses the deep-blue brown slot #013A6F and iot/web-cyan the cyan slot #0C67DE."
+      },
+      "variants": [
+        {
+          "id": "lupine",
+          "name": "Lupine",
+          "mode": "light",
+          "palette": {
+            "bg": "#FAFAFA",
+            "ink": "#212121",
+            "muted": "#656565",
+            "accent": "#3264EB",
+            "line": "rgba(33, 33, 33, 0.16)",
+            "glass": "rgba(250, 250, 250, 0.82)",
+            "canvasTop": "#FFFFFF",
+            "canvasMiddle": "#FAFAFA",
+            "canvasBottom": "#ECECEC",
+            "grid": "rgba(50, 100, 235, 0.07)",
+            "ambientGlow": "rgba(50, 100, 235, 0.12)",
+            "online": "#4A2FD0",
+            "warning": "#8F5410",
+            "danger": "#C900C4",
+            "history": "#747474",
+            "vignette": "rgba(236, 236, 236, 0.55)",
+            "labelHalo": "#FFFFFF",
+            "bubble": "rgba(255, 255, 255, 0.94)",
+            "panel": "rgba(250, 250, 250, 0.97)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#8F5410"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#3264EB"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#013A6F"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#C900C4"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#4A2FD0"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#8A4AD7"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#0C67DE"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#B86A1E"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#747474"
+            }
+          },
+          "categories": {
+            "web": "#3264EB",
+            "media": "#8A4AD7",
+            "data": "#B86A1E",
+            "remote": "#4A2FD0",
+            "infra": "#013A6F",
+            "iot": "#0C67DE",
+            "other": "#747474"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "ristretto",
+      "name": "Ristretto",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/ristretto/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. The Omarchy shell accent is the warm #F38D70; accent and media use the magenta slot #A8A9EB/#BEBFFD instead so tailnet highlights stay cool and inside the 180-290 degree band. Muted/device/other lightened from #72696A to #A89D9E for 4.5:1 text and 3:1 canvas contrast, with history at #B0989A to stay quieter than the online green #ADDA78."
+      },
+      "variants": [
+        {
+          "id": "ristretto",
+          "name": "Ristretto",
+          "mode": "dark",
+          "palette": {
+            "bg": "#2C2525",
+            "ink": "#E6D9DB",
+            "muted": "#A89D9E",
+            "accent": "#A8A9EB",
+            "line": "rgba(230, 217, 219, 0.14)",
+            "glass": "rgba(44, 37, 37, 0.74)",
+            "canvasTop": "#3D2F2A",
+            "canvasMiddle": "#2C2525",
+            "canvasBottom": "#211B1B",
+            "grid": "rgba(168, 169, 235, 0.06)",
+            "ambientGlow": "rgba(168, 169, 235, 0.12)",
+            "online": "#ADDA78",
+            "warning": "#F9CC6C",
+            "danger": "#FD6883",
+            "history": "#B0989A",
+            "vignette": "rgba(33, 27, 27, 0.55)",
+            "labelHalo": "rgba(33, 27, 27, 0.88)",
+            "bubble": "rgba(44, 37, 37, 0.94)",
+            "panel": "rgba(44, 37, 37, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#F9CC6C"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#A8A9EB"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#85DACC"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#FF8297"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#ADDA78"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#BEBFFD"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#9BF1E1"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#FB9A77"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#B0989A"
+            }
+          },
+          "categories": {
+            "web": "#A8A9EB",
+            "media": "#BEBFFD",
+            "data": "#FB9A77",
+            "remote": "#ADDA78",
+            "infra": "#85DACC",
+            "iot": "#FF8297",
+            "other": "#B0989A"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "solitude",
+      "name": "Solitude",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/solitude/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. Accent is the Omarchy shell accent #798186. Muted/device/other lightened from #4B4E55 to #8A9097 for 4.5:1 text contrast, with history at #9A9A9A and an authored muted green #8FB59F for online/nas/remote so live state keeps more chroma than history; warning/router uses the bright-yellow slot #D8CDBD for a warm LAN cue, and media uses an authored lavender-grey #A2A7C4 to stay cool."
+      },
+      "variants": [
+        {
+          "id": "solitude",
+          "name": "Solitude",
+          "mode": "dark",
+          "palette": {
+            "bg": "#101315",
+            "ink": "#CACCCC",
+            "muted": "#8A9097",
+            "accent": "#798186",
+            "line": "rgba(202, 204, 204, 0.14)",
+            "glass": "rgba(16, 19, 21, 0.74)",
+            "canvasTop": "#1E2225",
+            "canvasMiddle": "#101315",
+            "canvasBottom": "#0C0E10",
+            "grid": "rgba(121, 129, 134, 0.06)",
+            "ambientGlow": "rgba(121, 129, 134, 0.12)",
+            "online": "#8FB59F",
+            "warning": "#D8CDBD",
+            "danger": "#DE6145",
+            "history": "#9A9A9A",
+            "vignette": "rgba(12, 14, 16, 0.55)",
+            "labelHalo": "rgba(12, 14, 16, 0.88)",
+            "bubble": "rgba(16, 19, 21, 0.94)",
+            "panel": "rgba(16, 19, 21, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#D8CDBD"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#798186"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#A9B4BC"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#B59AA6"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#8FB59F"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#A2A7C4"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#8FAEB0"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#C08B72"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#9A9A9A"
+            }
+          },
+          "categories": {
+            "web": "#798186",
+            "media": "#A2A7C4",
+            "data": "#C08B72",
+            "remote": "#8FB59F",
+            "infra": "#A9B4BC",
+            "iot": "#8FAEB0",
+            "other": "#9A9A9A"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "starship",
+      "name": "Starship",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/starship/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. The Omarchy shell accent is the warm #FF9F0A; accent and media use the blue and cyan slots #8FB8DE/#A6DCEF instead so tailnet highlights stay cool. Warning/router uses the yellow slot #FFC27A, online/nas/remote uses the green slot #FF9F0A (macOS-style orange in this palette) for the high-chroma live cue, and history/device/other uses #98989D for the low-chroma cue."
+      },
+      "variants": [
+        {
+          "id": "starship",
+          "name": "Starship",
+          "mode": "dark",
+          "palette": {
+            "bg": "#1C1C1E",
+            "ink": "#F5F5F7",
+            "muted": "#8E8E93",
+            "accent": "#8FB8DE",
+            "line": "rgba(245, 245, 247, 0.14)",
+            "glass": "rgba(28, 28, 30, 0.74)",
+            "canvasTop": "#2C2C2E",
+            "canvasMiddle": "#1C1C1E",
+            "canvasBottom": "#161618",
+            "grid": "rgba(143, 184, 222, 0.06)",
+            "ambientGlow": "rgba(143, 184, 222, 0.12)",
+            "online": "#FF9F0A",
+            "warning": "#FFC27A",
+            "danger": "#FF5F4A",
+            "history": "#98989D",
+            "vignette": "rgba(22, 22, 24, 0.55)",
+            "labelHalo": "rgba(22, 22, 24, 0.88)",
+            "bubble": "rgba(28, 28, 30, 0.94)",
+            "panel": "rgba(28, 28, 30, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#FFC27A"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#8FB8DE"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#B5D0EA"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#FF8FA3"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#FF9F0A"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#A6DCEF"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#CDEEFA"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#FF6A3D"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#98989D"
+            }
+          },
+          "categories": {
+            "web": "#8FB8DE",
+            "media": "#A6DCEF",
+            "data": "#FF6A3D",
+            "remote": "#FF9F0A",
+            "infra": "#B5D0EA",
+            "iot": "#CDEEFA",
+            "other": "#98989D"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "vantablack",
+      "name": "Vantablack",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/vantablack/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. Accent is a cool-tinted #8D9BA3 derived from the Omarchy shell accent #8D8D8D so tailnet keeps a cool cue. On a pure-black palette the greys are deliberately tinted while staying near-monochrome: muted lifted from #7A7A7A to #8A8A8A for 4.5:1 text, warning/router #C9BDA3 warm, online/nas/remote #86B386 green, history/device/other #8F8F8F neutral, and every kind and category keeps a distinct lightness so device and service marks stay separable."
+      },
+      "variants": [
+        {
+          "id": "vantablack",
+          "name": "Vantablack",
+          "mode": "dark",
+          "palette": {
+            "bg": "#000000",
+            "ink": "#FFFFFF",
+            "muted": "#8A8A8A",
+            "accent": "#8D9BA3",
+            "line": "rgba(255, 255, 255, 0.14)",
+            "glass": "rgba(0, 0, 0, 0.74)",
+            "canvasTop": "#1A1A1A",
+            "canvasMiddle": "#090909",
+            "canvasBottom": "#070707",
+            "grid": "rgba(141, 155, 163, 0.06)",
+            "ambientGlow": "rgba(141, 155, 163, 0.12)",
+            "online": "#86B386",
+            "warning": "#C9BDA3",
+            "danger": "#C08A8A",
+            "history": "#8F8F8F",
+            "vignette": "rgba(7, 7, 7, 0.55)",
+            "labelHalo": "rgba(7, 7, 7, 0.88)",
+            "bubble": "rgba(9, 9, 9, 0.94)",
+            "panel": "rgba(0, 0, 0, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#C9BDA3"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#8D9BA3"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#A7B4C2"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#B09FAE"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#86B386"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#9A9AAD"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#8FA8A4"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#B9A58F"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#8F8F8F"
+            }
+          },
+          "categories": {
+            "web": "#8D9BA3",
+            "media": "#9A9AAD",
+            "data": "#B9A58F",
+            "remote": "#86B386",
+            "infra": "#A7B4C2",
+            "iot": "#8FA8A4",
+            "other": "#8F8F8F"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "white",
+      "name": "White",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/white/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. Accent is a cool-tinted #626B73 derived from the Omarchy shell accent #6E6E6E so tailnet keeps a cool cue. On a pure-white palette muted is darkened from #808080 to #666666 for 4.5:1 text, warning/router #7A694D keeps LAN warm, online/nas/remote #2F6B3A keeps a high-chroma green, history/device/other #6F6F6F stays neutral, and every kind and category keeps a distinct dark shade so device and service marks stay separable on #E8E8E8."
+      },
+      "variants": [
+        {
+          "id": "white",
+          "name": "White",
+          "mode": "light",
+          "palette": {
+            "bg": "#FFFFFF",
+            "ink": "#000000",
+            "muted": "#666666",
+            "accent": "#626B73",
+            "line": "rgba(0, 0, 0, 0.16)",
+            "glass": "rgba(255, 255, 255, 0.82)",
+            "canvasTop": "#FFFFFF",
+            "canvasMiddle": "#FFFFFF",
+            "canvasBottom": "#E8E8E8",
+            "grid": "rgba(98, 107, 115, 0.07)",
+            "ambientGlow": "rgba(98, 107, 115, 0.12)",
+            "online": "#2F6B3A",
+            "warning": "#7A694D",
+            "danger": "#A02F2F",
+            "history": "#6F6F6F",
+            "vignette": "rgba(232, 232, 232, 0.55)",
+            "labelHalo": "#FFFFFF",
+            "bubble": "rgba(255, 255, 255, 0.94)",
+            "panel": "rgba(255, 255, 255, 0.97)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#7A694D"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#626B73"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3F566B"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#7A4058"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#2F6B3A"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#5A4B7A"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#2F6B67"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#8A5A2B"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#6F6F6F"
+            }
+          },
+          "categories": {
+            "web": "#626B73",
+            "media": "#5A4B7A",
+            "data": "#8A5A2B",
+            "remote": "#2F6B3A",
+            "infra": "#3F566B",
+            "iot": "#2F6B67",
+            "other": "#6F6F6F"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
           }
         }
       ]
