@@ -276,6 +276,8 @@
   const toast = document.getElementById("toast");
   const subtitle = document.getElementById("subtitle");
   const stats = document.getElementById("stats");
+  const statsCompact = document.getElementById("statsCompact");
+  const statsCompactVisual = document.getElementById("statsCompactVisual");
   const historyBtn = document.getElementById("historyBtn");
   const tailnetBtn = document.getElementById("tailnetBtn");
   const scanBtn = document.getElementById("scanBtn");
@@ -1817,6 +1819,21 @@
       ${tailnetStat}
       <div class="stat"><b>${snapshot.scanIntervalSeconds || 60}s</b><span>scan cadence</span></div>
     `;
+
+    const compact = [
+      `<span class="compact-stat"><b>${summary.devicesOnline}<em>/${summary.devicesTotal}</em></b><span class="compact-label">devices</span></span>`,
+      `<span class="compact-stat"><b>${summary.servicesOnline}<em>/${summary.servicesTotal}</em></b><span class="compact-label">services</span></span>`,
+    ];
+    const readable = [
+      `${summary.devicesOnline} of ${summary.devicesTotal} devices up`,
+      `${summary.servicesOnline} of ${summary.servicesTotal} services up`,
+    ];
+    if (snapshot.tailnet) {
+      compact.push(`<span class="compact-stat compact-tailnet"><b>${snapshot.tailnet.peersOnline}<em>/${snapshot.tailnet.peersTotal}</em></b><span class="compact-label">tailnet</span></span>`);
+      readable.push(`${snapshot.tailnet.peersOnline} of ${snapshot.tailnet.peersTotal} tailnet peers up`);
+    }
+    statsCompactVisual.innerHTML = compact.join(`<span class="compact-sep" aria-hidden="true">·</span>`);
+    statsCompact.setAttribute("aria-label", readable.join(", "));
 
     if (tailnetBtn) {
       tailnetBtn.hidden = !view.tailnetPresent;
