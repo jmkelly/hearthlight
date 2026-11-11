@@ -353,6 +353,7 @@
   const themeReset = document.getElementById("themeReset");
   const omarchyFollowBtn = document.getElementById("omarchyFollowBtn");
   const omarchyFollowHint = document.getElementById("omarchyFollowHint");
+  const omarchyDocs = document.getElementById("omarchyDocs");
   const highContrastBtn = document.getElementById("highContrastBtn");
   const omarchyNote = document.getElementById("omarchyNote");
   let themeFamilyButtons = [];
@@ -2876,7 +2877,9 @@
 
   function syncOmarchyControls() {
     if (!omarchyFollowBtn) return;
-    omarchyFollowBtn.hidden = !(omarchyState.available || omarchyState.enabled);
+    const omarchyVisible = omarchyState.available || omarchyState.enabled;
+    omarchyFollowBtn.hidden = !omarchyVisible;
+    if (omarchyDocs) omarchyDocs.hidden = !omarchyVisible;
     omarchyFollowBtn.setAttribute("aria-checked", String(omarchyState.enabled));
     const state = omarchyFollowBtn.querySelector(".settings-toggle-state");
     if (state) state.textContent = omarchyState.enabled ? "on" : "off";

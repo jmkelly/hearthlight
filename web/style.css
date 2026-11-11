@@ -1132,6 +1132,43 @@ button {
   margin-top: 12px;
 }
 
+.settings-docs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-top: 12px;
+}
+
+.settings-docs[hidden] {
+  display: none;
+}
+
+.settings-docs-label {
+  color: var(--theme-section-label);
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-doc-link {
+  color: var(--theme-accent);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.settings-doc-link:hover {
+  color: var(--theme-service-name);
+}
+
+.settings-docs + .settings-toggle {
+  margin-top: 12px;
+}
+
 /* Custom theme picker and import dialog */
 
 .theme-custom-section {
