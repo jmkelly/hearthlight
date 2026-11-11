@@ -3,5 +3,5 @@ package web
 
 import "embed"
 
-//go:embed index.html app.js style.css themes.json themes.js theme-boot.js theme-import.js
+//go:embed index.html app.js style.css themes.json themes.js theme-boot.js theme-import.js omarchy.json
 var Files embed.FS

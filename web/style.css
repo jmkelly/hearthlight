@@ -1050,6 +1050,20 @@ button {
   display: none;
 }
 
+.theme-source-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  border: 1px solid var(--theme-line-badge);
+  border-radius: 999px;
+  color: var(--theme-muted);
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
 .theme-modes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
