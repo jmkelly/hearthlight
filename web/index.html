@@ -167,7 +167,7 @@
       <button id="themeImportBtn" class="settings-action" type="button" aria-haspopup="dialog" aria-controls="themeImportDialog">
         <span class="settings-toggle-copy">
           <span class="settings-toggle-label">Import theme</span>
-          <span class="settings-toggle-hint">Paste Hearthlight JSON or choose a .json file</span>
+          <span class="settings-toggle-hint">Paste JSON or Omarchy colors.toml, or choose a file</span>
         </span>
         <span class="settings-action-state" aria-hidden="true">import</span>
       </button>
@@ -190,17 +190,18 @@
       <button id="themeImportClose" class="settings-close" type="button" aria-label="Close theme import">×</button>
     </header>
     <section class="settings-section" aria-describedby="themeImportHelp">
-      <p id="themeImportHelp" class="theme-import-note">Paste Hearthlight theme JSON or choose a .json file. A single variant, a family with dark and light variants, or a full catalog is accepted.</p>
+      <p id="themeImportHelp" class="theme-import-note">Paste Hearthlight theme JSON or an Omarchy colors.toml, or choose a .json / .toml file. A single variant, a family with dark and light variants, or a full catalog is accepted.</p>
       <label class="theme-import-field" for="themeImportFile">
         <span>Theme file</span>
-        <input id="themeImportFile" type="file" accept=".json,application/json">
+        <input id="themeImportFile" type="file" accept=".json,.toml,application/json,text/plain">
       </label>
       <label class="theme-import-field" for="themeImportText">
-        <span>Paste JSON</span>
-        <textarea id="themeImportText" rows="9" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="themeImportHelp themeImportStorageNote" placeholder='{ "schemaVersion": 1, ... }'></textarea>
+        <span>Paste JSON or TOML</span>
+        <textarea id="themeImportText" rows="9" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="themeImportHelp themeImportStorageNote" placeholder='{ "schemaVersion": 1, ... } or background = "#1a1b26"'></textarea>
       </label>
       <p id="themeImportStorageNote" class="theme-import-note">Custom themes are stored in this browser only, under hearthlight.themes.custom.v1.</p>
       <div id="themeImportPreview" class="theme-import-preview" hidden></div>
+      <p id="themeImportNotes" class="theme-import-note" role="status" hidden></p>
       <ul id="themeImportErrors" class="theme-import-errors" role="alert" aria-live="assertive" hidden></ul>
       <p id="themeImportStatus" class="theme-import-status" role="status" hidden></p>
       <div class="theme-import-actions">

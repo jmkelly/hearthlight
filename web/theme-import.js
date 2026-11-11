@@ -15,6 +15,42 @@
     "vignette", "labelHalo", "bubble", "panel",
   ]);
 
+  const OMARCHY_COLOR_KEYS = new Set([
+    "background", "dark_background", "darker_background", "lighter_background",
+    "foreground", "bright_foreground", "light_foreground", "dark_foreground",
+    "accent", "red", "green", "yellow", "orange", "blue", "cyan", "magenta",
+  ]);
+
+  const OMARCHY_REQUIRED_SOURCES = Object.freeze([
+    Object.freeze({ name: "background", keys: Object.freeze(["background", "dark_background", "darker_background", "lighter_background"]) }),
+    Object.freeze({ name: "foreground", keys: Object.freeze(["foreground", "bright_foreground", "light_foreground", "dark_foreground"]) }),
+    Object.freeze({ name: "accent", keys: Object.freeze(["accent", "blue", "cyan"]) }),
+    Object.freeze({ name: "green", keys: Object.freeze(["green"]) }),
+    Object.freeze({ name: "yellow", keys: Object.freeze(["yellow", "orange"]) }),
+    Object.freeze({ name: "red", keys: Object.freeze(["red"]) }),
+    Object.freeze({ name: "blue", keys: Object.freeze(["blue", "cyan"]) }),
+    Object.freeze({ name: "magenta", keys: Object.freeze(["magenta"]) }),
+  ]);
+
+  const OMARCHY_FALLBACK_PALETTE = Object.freeze({
+    dark: Object.freeze({
+      bg: "#050a12",
+      ink: "#e9f2fa",
+      accent: "#5ee7ff",
+      online: "#5ee7a5",
+      warning: "#ffd166",
+      danger: "#ff7b72",
+    }),
+    light: Object.freeze({
+      bg: "#f2f5f9",
+      ink: "#0f1c2b",
+      accent: "#076b84",
+      online: "#0a7448",
+      warning: "#8f5c00",
+      danger: "#b02a22",
+    }),
+  });
+
   const DEFAULT_EFFECTS = Object.freeze({
     dark: Object.freeze({
       vignette: 0.52,
@@ -176,26 +212,77 @@
     return true;
   };
 
-  const parseColor = (value) => {
-    if (typeof value !== "string") return false;
+  const parseColorValue = (value) => {
+    if (typeof value !== "string") return null;
     const text = value.trim();
-    if (!text) return false;
+    if (!text) return null;
     if (text[0] === "#") {
-      const digits = text.slice(1);
-      if (!HEX_COLOR_PATTERN.test(digits)) return false;
-      return digits.length === 3 || digits.length === 4 || digits.length === 6 || digits.length === 8;
+      let digits = text.slice(1);
+      if (!HEX_COLOR_PATTERN.test(digits)) return null;
+      if (digits.length === 3 || digits.length === 4) {
+        digits = digits.split("").map((digit) => digit + digit).join("");
+      }
+      if (digits.length !== 6 && digits.length !== 8) return null;
+      return {
+        r: parseInt(digits.slice(0, 2), 16),
+        g: parseInt(digits.slice(2, 4), 16),
+        b: parseInt(digits.slice(4, 6), 16),
+        a: digits.length === 8 ? parseInt(digits.slice(6, 8), 16) / 255 : 1,
+      };
     }
     const match = text.match(RGB_COLOR_PATTERN);
-    if (!match) return false;
+    if (!match) return null;
     for (let index = 1; index <= 3; index += 1) {
-      if (Number(match[index]) > 255) return false;
+      if (Number(match[index]) > 255) return null;
     }
+    let alpha = 1;
     if (match[4] !== undefined && match[4] !== "") {
-      const alpha = Number(match[4]);
-      if (!Number.isFinite(alpha) || alpha < 0 || alpha > 1) return false;
+      alpha = Number(match[4]);
+      if (!Number.isFinite(alpha) || alpha < 0 || alpha > 1) return null;
     }
-    return true;
+    return {
+      r: Number(match[1]),
+      g: Number(match[2]),
+      b: Number(match[3]),
+      a: alpha,
+    };
   };
+
+  const parseColor = (value) => parseColorValue(value) !== null;
+
+  const hexByte = (value) =>
+    Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, "0");
+
+  const formatHex = (color) => {
+    const base = "#" + hexByte(color.r) + hexByte(color.g) + hexByte(color.b);
+    return color.a < 1 ? base + hexByte(color.a * 255) : base;
+  };
+
+  const formatAlpha = (value) => String(Math.round(value * 1e6) / 1e6);
+
+  const rgbaString = (color, alpha) =>
+    "rgba(" + Math.round(color.r) + ", " + Math.round(color.g) + ", " + Math.round(color.b) +
+    ", " + formatAlpha(color.a * alpha) + ")";
+
+  const mixColor = (from, to, amount) => ({
+    r: Math.round(from.r * (1 - amount) + to.r * amount),
+    g: Math.round(from.g * (1 - amount) + to.g * amount),
+    b: Math.round(from.b * (1 - amount) + to.b * amount),
+    a: from.a * (1 - amount) + to.a * amount,
+  });
+
+  const lighten = (color, amount) => mixColor(color, { r: 255, g: 255, b: 255, a: 1 }, amount);
+  const darken = (color, amount) => mixColor(color, { r: 0, g: 0, b: 0, a: 1 }, amount);
+
+  const relativeLuminance = (color) => {
+    const linear = (channel) => {
+      const value = channel / 255;
+      return value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * linear(color.r) + 0.7152 * linear(color.g) + 0.0722 * linear(color.b);
+  };
+
+  const colorOr = (value) => parseColorValue(value) || { r: 0, g: 0, b: 0, a: 1 };
 
   const validateColor = (value, path, errors) => {
     if (typeof value !== "string") {
@@ -612,40 +699,388 @@
     }
   };
 
-  const parse = (text) => {
+  const stripTomlComment = (line) => {
+    let quote = "";
+    let escaped = false;
+    for (let index = 0; index < line.length; index += 1) {
+      const char = line[index];
+      if (quote) {
+        if (quote === '"' && escaped) {
+          escaped = false;
+        } else if (quote === '"' && char === "\\") {
+          escaped = true;
+        } else if (char === quote) {
+          quote = "";
+        }
+        continue;
+      }
+      if (char === '"' || char === "'") {
+        quote = char;
+        continue;
+      }
+      if (char === "#") return line.slice(0, index);
+    }
+    return line;
+  };
+
+  const tomlKey = (raw) => {
+    const key = raw.trim();
+    if (!key) return null;
+    if (key[0] === '"') {
+      if (key.length < 2 || key[key.length - 1] !== '"') return null;
+      try {
+        return JSON.parse(key);
+      } catch (_error) {
+        return null;
+      }
+    }
+    if (key[0] === "'") {
+      if (key.length < 2 || key[key.length - 1] !== "'") return null;
+      return key.slice(1, -1);
+    }
+    return key;
+  };
+
+  const tomlString = (raw) => {
+    const value = raw.trim();
+    if (!value) return null;
+    if (value[0] === '"') {
+      if (value.length < 2 || value[value.length - 1] !== '"') return null;
+      try {
+        return JSON.parse(value);
+      } catch (_error) {
+        return null;
+      }
+    }
+    if (value[0] === "'") {
+      if (value.length < 2 || value[value.length - 1] !== "'") return null;
+      return value.slice(1, -1);
+    }
+    return null;
+  };
+
+  const looksLikeJSONDocument = (raw) => {
+    const trimmed = raw.trimStart();
+    if (trimmed[0] === "{") return true;
+    if (trimmed[0] !== "[") return false;
+    const assignment = /^(?:[A-Za-z_][A-Za-z0-9_.-]*|"(?:[^"\\]|\\.)*"|'[^']*')\s*=/;
+    for (const line of trimmed.split("\n")) {
+      const text = stripTomlComment(line.replace(/\r$/, "")).trim();
+      if (!text || text[0] === "[" || text[0] === "]") continue;
+      if (assignment.test(text)) return false;
+    }
+    return true;
+  };
+
+  const firstOmarchyColor = (colors, keys) => {
+    for (const key of keys) {
+      if (!Object.prototype.hasOwnProperty.call(colors, key)) continue;
+      const color = parseColorValue(colors[key]);
+      if (color) return color;
+    }
+    return null;
+  };
+
+  const namedOmarchyColor = (colors, key, fallback) =>
+    firstOmarchyColor(colors, [key]) || colorOr(fallback);
+
+  const missingOmarchySources = (colors) =>
+    OMARCHY_REQUIRED_SOURCES
+      .filter((requirement) =>
+        !requirement.keys.some((key) => Object.prototype.hasOwnProperty.call(colors, key)))
+      .map((requirement) => requirement.name);
+
+  const omarchyFallbackPalette = (mode) => {
+    const palette = Object.assign({}, OMARCHY_FALLBACK_PALETTE[mode === "light" ? "light" : "dark"]);
+    const catalog = window.HearthlightThemes;
+    const families = catalog && Array.isArray(catalog.families) ? catalog.families : [];
+    const family = families.find((candidate) => candidate && candidate.id === "hearthlight");
+    const variant = family && Array.isArray(family.variants)
+      ? family.variants.find((candidate) => candidate && candidate.mode === mode)
+      : null;
+    if (!variant || !isPlainObject(variant.palette)) return palette;
+    for (const key of Object.keys(variant.palette)) {
+      if (typeof variant.palette[key] === "string" && parseColor(variant.palette[key])) {
+        palette[key] = variant.palette[key];
+      }
+    }
+    return palette;
+  };
+
+  const omarchyPalette = (colors, mode, background, hasBackground) => {
+    const palette = omarchyFallbackPalette(mode);
+    const bg = hasBackground && background ? background : colorOr(palette.bg);
+    palette.bg = formatHex(bg);
+    palette.canvasMiddle = formatHex(bg);
+
+    const canvasTop = firstOmarchyColor(colors, ["lighter_background"]) || lighten(bg, 0.08);
+    const canvasBottom =
+      firstOmarchyColor(colors, ["darker_background", "dark_background"]) || darken(bg, 0.12);
+    palette.canvasTop = formatHex(canvasTop);
+    palette.canvasBottom = formatHex(canvasBottom);
+
+    const ink =
+      firstOmarchyColor(colors, ["foreground", "bright_foreground", "light_foreground", "dark_foreground"]) ||
+      colorOr(palette.ink);
+    palette.ink = formatHex(ink);
+
+    const muted = firstOmarchyColor(colors, ["dark_foreground"]) || mixColor(ink, bg, 0.45);
+    palette.muted = formatHex(muted);
+    palette.history = formatHex(muted);
+
+    const accent = firstOmarchyColor(colors, ["accent", "blue", "cyan"]) || colorOr(palette.accent);
+    palette.accent = formatHex(accent);
+
+    const online = firstOmarchyColor(colors, ["green"]) || colorOr(palette.online);
+    palette.online = formatHex(online);
+
+    const warning = firstOmarchyColor(colors, ["yellow", "orange"]) || colorOr(palette.warning);
+    palette.warning = formatHex(warning);
+
+    const danger = firstOmarchyColor(colors, ["red"]) || colorOr(palette.danger);
+    palette.danger = formatHex(danger);
+
+    let lineAlpha = 0.14;
+    let glassAlpha = 0.74;
+    let gridAlpha = 0.06;
+    let glowAlpha = 0.12;
+    let bubbleAlpha = 0.94;
+    let panelAlpha = 0.95;
+    if (mode === "light") {
+      lineAlpha = 0.16;
+      glassAlpha = 0.82;
+      gridAlpha = 0.07;
+      glowAlpha = 0.16;
+      bubbleAlpha = 0.92;
+      panelAlpha = 0.97;
+    }
+    palette.line = rgbaString(ink, lineAlpha);
+    palette.glass = rgbaString(bg, glassAlpha);
+    palette.grid = rgbaString(accent, gridAlpha);
+    palette.ambientGlow = rgbaString(accent, glowAlpha);
+    palette.vignette = rgbaString(canvasBottom, 0.55);
+    palette.labelHalo = rgbaString(mode === "light" ? canvasTop : canvasBottom, 0.88);
+    palette.bubble = rgbaString(bg, bubbleAlpha);
+    palette.panel = rgbaString(bg, panelAlpha);
+    return palette;
+  };
+
+  const omarchyKinds = (colors, palette) => {
+    const warning = namedOmarchyColor(colors, "yellow", palette.warning);
+    const orange = namedOmarchyColor(colors, "orange", formatHex(warning));
+    const green = namedOmarchyColor(colors, "green", palette.online);
+    const cyan = namedOmarchyColor(colors, "cyan", palette.accent);
+    const blue = namedOmarchyColor(colors, "blue", palette.accent);
+    const magenta = namedOmarchyColor(colors, "magenta", palette.accent);
+    return {
+      router: { label: "Router", color: formatHex(warning) },
+      server: { label: "Server", color: palette.accent },
+      computer: { label: "Computer", color: formatHex(blue) },
+      phone: { label: "Phone", color: formatHex(magenta) },
+      nas: { label: "NAS", color: formatHex(green) },
+      media: { label: "Media", color: formatHex(magenta) },
+      iot: { label: "IoT", color: formatHex(cyan) },
+      printer: { label: "Printer", color: formatHex(orange) },
+      device: { label: "Device", color: palette.muted },
+    };
+  };
+
+  const omarchyCategories = (colors, palette) => {
+    const warning = namedOmarchyColor(colors, "yellow", palette.warning);
+    const orange = namedOmarchyColor(colors, "orange", formatHex(warning));
+    const green = namedOmarchyColor(colors, "green", palette.online);
+    const cyan = namedOmarchyColor(colors, "cyan", palette.accent);
+    const blue = namedOmarchyColor(colors, "blue", palette.accent);
+    const magenta = namedOmarchyColor(colors, "magenta", palette.accent);
+    return {
+      web: formatHex(cyan),
+      media: formatHex(magenta),
+      data: formatHex(orange),
+      remote: formatHex(green),
+      infra: formatHex(blue),
+      iot: formatHex(cyan),
+      other: palette.muted,
+    };
+  };
+
+  const hashText = (text) => {
+    let h1 = 0xdeadbeef ^ text.length;
+    let h2 = 0x41c6ce57 ^ text.length;
+    for (let index = 0; index < text.length; index += 1) {
+      const code = text.charCodeAt(index);
+      h1 = Math.imul(h1 ^ code, 2654435761);
+      h2 = Math.imul(h2 ^ code, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0");
+  };
+
+  const omarchyIdentity = (colors, mode) => {
+    const parts = ["mode=" + mode];
+    for (const key of Object.keys(colors).sort()) {
+      parts.push(key + "=" + formatHex(colorOr(colors[key])));
+    }
+    return parts.join("\n");
+  };
+
+  const parseOmarchyDocument = (raw) => {
     const errors = [];
     const warnings = [];
-    if (typeof text !== "string") {
-      pushError(errors, "malformed", "$", "Theme input must be text.");
-      return { ok: false, families: [], errors, warnings };
+    const ignored = [];
+    const ignoredSeen = new Set();
+    const colors = Object.create(null);
+    let mode = "";
+    let inTable = false;
+
+    const fail = () => ({ ok: false, families: [], errors, warnings, format: "toml", mode, missing: [], ignored });
+
+    const lines = raw.split("\n");
+    for (let index = 0; index < lines.length; index += 1) {
+      const line = stripTomlComment(lines[index].replace(/\r$/, ""));
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      const path = "line " + (index + 1);
+      if (trimmed[0] === "[") {
+        if (trimmed[trimmed.length - 1] !== "]") {
+          pushError(errors, "malformed", path, "Unterminated table header.");
+          return fail();
+        }
+        inTable = true;
+        continue;
+      }
+      if (inTable) continue;
+      const equals = trimmed.indexOf("=");
+      if (equals < 0) {
+        pushError(errors, "malformed", path, "Expected key = value.");
+        return fail();
+      }
+      const key = tomlKey(trimmed.slice(0, equals));
+      if (key === null) {
+        pushError(errors, "malformed", path, "Invalid key.");
+        return fail();
+      }
+      if (!key) {
+        pushError(errors, "malformed", path, "Key must not be empty.");
+        return fail();
+      }
+      if (FORBIDDEN_KEYS.has(key)) {
+        pushError(errors, "forbidden_key", path + "." + key, "Key \"" + key + "\" is not allowed.");
+        return fail();
+      }
+      if (key !== "mode" && !OMARCHY_COLOR_KEYS.has(key)) {
+        if (!ignoredSeen.has(key)) {
+          ignoredSeen.add(key);
+          ignored.push(key);
+        }
+        continue;
+      }
+      const value = tomlString(trimmed.slice(equals + 1));
+      if (value === null) {
+        pushError(errors, "malformed", path + "." + key, "Value for " + key + " must be a quoted string.");
+        return fail();
+      }
+      if (key === "mode") {
+        if (value !== "dark" && value !== "light") {
+          pushError(errors, "invalid_mode", path + ".mode", "mode \"" + value + "\" must be dark or light.");
+          return fail();
+        }
+        mode = value;
+        continue;
+      }
+      if (!parseColor(value)) {
+        pushError(errors, "invalid_color", path + "." + key, "\"" + value + "\" is not a valid hex or rgb/rgba colour.");
+        return fail();
+      }
+      colors[key] = value.trim();
     }
-    const bytes = byteLength(text);
-    if (bytes > MAX_IMPORT_BYTES) {
-      pushError(errors, "too_large", "$", "Import is " + Math.ceil(bytes / 1024) + " KiB, maximum is 256 KiB.");
-      return { ok: false, families: [], errors, warnings };
+
+    if (Object.keys(colors).length === 0) {
+      pushError(errors, "malformed", "$", "No colour keys found.");
+      return fail();
     }
-    const raw = text.replace(/^\uFEFF/, "");
-    if (!raw.trim()) {
-      pushError(errors, "malformed", "$", "Paste a theme or choose a file first.");
-      return { ok: false, families: [], errors, warnings };
+
+    const missing = missingOmarchySources(colors);
+    const background = firstOmarchyColor(colors, ["background", "dark_background", "darker_background", "lighter_background"]);
+    let resolvedMode = mode;
+    if (!resolvedMode) {
+      resolvedMode = background && relativeLuminance(background) > 0.5 ? "light" : "dark";
+      missing.push("mode");
     }
+
+    const palette = omarchyPalette(colors, resolvedMode, background, Boolean(background));
+    const hash = hashText(omarchyIdentity(colors, resolvedMode)).slice(0, 12);
+    const familyID = "omarchy-" + hash;
+    const variantID = familyID + "-" + resolvedMode;
+    const variants = [{
+      id: variantID,
+      name: "Omarchy Import " + resolvedMode.charAt(0).toUpperCase() + resolvedMode.slice(1),
+      mode: resolvedMode,
+      palette,
+      kinds: omarchyKinds(colors, palette),
+      categories: omarchyCategories(colors, palette),
+      effects: Object.assign({}, DEFAULT_EFFECTS[resolvedMode]),
+    }];
+    const families = [{ id: familyID, name: "Omarchy Import", variants }];
+    validateCatalog(families, errors);
+    return {
+      ok: errors.length === 0,
+      families,
+      errors,
+      warnings,
+      format: "toml",
+      mode: resolvedMode,
+      missing,
+      ignored,
+    };
+  };
+  const parseJSONDocument = (raw) => {
+    const errors = [];
+    const warnings = [];
     let root;
     try {
       root = JSON.parse(raw);
     } catch (error) {
       pushError(errors, "malformed", "$", "Invalid JSON: " + (error && error.message ? error.message : "could not parse input") + ".");
-      return { ok: false, families: [], errors, warnings };
+      return { ok: false, families: [], errors, warnings, format: "json" };
     }
     if (rejectForbiddenKeys(root, "$", errors)) {
-      return { ok: false, families: [], errors, warnings };
+      return { ok: false, families: [], errors, warnings, format: "json" };
     }
     if (!isPlainObject(root)) {
       pushError(errors, "invalid_shape", "$", "Top-level JSON value must be an object.");
-      return { ok: false, families: [], errors, warnings };
+      return { ok: false, families: [], errors, warnings, format: "json" };
     }
     const families = parseDocument(root, errors);
     validateCatalog(families, errors);
-    return { ok: errors.length === 0 && families.length > 0, families, errors, warnings };
+    return {
+      ok: errors.length === 0 && families.length > 0,
+      families,
+      errors,
+      warnings,
+      format: "json",
+    };
+  };
+
+  const parse = (text) => {
+    const errors = [];
+    const warnings = [];
+    if (typeof text !== "string") {
+      pushError(errors, "malformed", "$", "Theme input must be text.");
+      return { ok: false, families: [], errors, warnings, format: "unknown" };
+    }
+    const bytes = byteLength(text);
+    if (bytes > MAX_IMPORT_BYTES) {
+      pushError(errors, "too_large", "$", "Import is " + Math.ceil(bytes / 1024) + " KiB, maximum is 256 KiB.");
+      return { ok: false, families: [], errors, warnings, format: "unknown" };
+    }
+    const raw = text.replace(/^\uFEFF/, "");
+    if (!raw.trim()) {
+      pushError(errors, "malformed", "$", "Paste a theme or choose a file first.");
+      return { ok: false, families: [], errors, warnings, format: "unknown" };
+    }
+    if (looksLikeJSONDocument(raw)) return parseJSONDocument(raw);
+    return parseOmarchyDocument(raw);
   };
 
   const markCustomFamily = (family) => Object.assign({}, family, { custom: true });

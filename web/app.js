@@ -368,6 +368,7 @@
   const themeImportFile = document.getElementById("themeImportFile");
   const themeImportText = document.getElementById("themeImportText");
   const themeImportPreview = document.getElementById("themeImportPreview");
+  const themeImportNotes = document.getElementById("themeImportNotes");
   const themeImportErrors = document.getElementById("themeImportErrors");
   const themeImportNote = document.getElementById("themeImportStorageNote");
   const themeImportStatus = document.getElementById("themeImportStatus");
@@ -2225,6 +2226,23 @@
     themeImportPreview.innerHTML = rows.join("");
   }
 
+  function renderThemeImportNotes(result) {
+    if (!themeImportNotes) return;
+    const notes = [];
+    if (result && result.format === "toml") {
+      const mode = result.mode === "light" ? "light" : "dark";
+      notes.push(`Omarchy colors.toml detected. Resolved ${mode} mode.`);
+      if (Array.isArray(result.missing) && result.missing.length) {
+        notes.push(`Derived ${result.missing.join(", ")}.`);
+      }
+      if (Array.isArray(result.ignored) && result.ignored.length) {
+        notes.push(`Ignored ${result.ignored.join(", ")}.`);
+      }
+    }
+    themeImportNotes.hidden = !notes.length;
+    themeImportNotes.textContent = notes.join(" ");
+  }
+
   function themeImportCollisions(families) {
     const errors = [];
     const existing = customThemeFamilies();
@@ -2264,6 +2282,7 @@
     pendingThemeImport = null;
     renderThemeImportErrors(errors);
     renderThemeImportPreview([]);
+    renderThemeImportNotes(null);
     if (themeImportSave) {
       themeImportSave.disabled = true;
       themeImportSave.textContent = "Save theme";
@@ -2281,6 +2300,7 @@
       pendingThemeImport = null;
       renderThemeImportErrors([]);
       renderThemeImportPreview([]);
+      renderThemeImportNotes(null);
       if (themeImportSave) {
         themeImportSave.disabled = true;
         themeImportSave.textContent = "Save theme";
@@ -2305,6 +2325,7 @@
     pendingThemeImport = ok ? { families: result.families, replacements: collisions.replacements } : null;
     renderThemeImportErrors(errors);
     renderThemeImportPreview(result.families);
+    renderThemeImportNotes(ok ? result : null);
     if (themeImportSave) {
       themeImportSave.disabled = !ok;
       themeImportSave.textContent = collisions.replacements.length ? "Replace theme" : "Save theme";
@@ -2410,6 +2431,7 @@
     if (themeImportFile) themeImportFile.value = "";
     renderThemeImportErrors([]);
     renderThemeImportPreview([]);
+    renderThemeImportNotes(null);
     if (themeImportStatus) {
       themeImportStatus.hidden = true;
       themeImportStatus.textContent = "";
