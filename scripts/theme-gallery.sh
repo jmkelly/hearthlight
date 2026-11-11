@@ -98,12 +98,24 @@ if os.path.exists(omarchy_path):
         mapping = json.load(handle)
     stock = {variant: name for name, variant in mapping.get("themes", {}).items()}
 
-# Planned stock mapping from issue #22 until web/omarchy.json lands.
+# Stock mapping from issue #22 until web/omarchy.json lands. Only names the
+# plugin or the Omarchy batch plan already ties to a shipped variant belong here.
 fallback_stock = {
     "catppuccin-mocha": "Yes. Omarchy `catppuccin`.",
+    "everforest-dark": "Yes. Omarchy `everforest`.",
+    "gruvbox-dark": "Yes. Omarchy `gruvbox`.",
     "kanagawa-wave": "Yes. Omarchy `kanagawa`.",
+    "nord-dark": "Yes. Omarchy `nord`.",
     "tokyo-night": "Yes. Omarchy `tokyo-night`.",
     "rose-pine-moon": "No. Omarchy stock `rose-pine` is the light Dawn palette.",
+    "everforest-light": "No. Omarchy stock `everforest` is dark only.",
+    "kanagawa-lotus": "No. Omarchy stock `kanagawa` is the dark Wave palette.",
+    "dracula": "No. Not an Omarchy stock theme.",
+    "dracula-alucard": "No. Not an Omarchy stock theme.",
+    "one-dark": "No. Not an Omarchy stock theme.",
+    "one-light": "No. Not an Omarchy stock theme.",
+    "solarized-dark": "No. Not an Omarchy stock theme.",
+    "solarized-light": "No. Not an Omarchy stock theme.",
     "hearthlight-dark": "No, Hearthlight original.",
     "hearthlight-light": "No, Hearthlight original.",
 }
