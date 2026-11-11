@@ -546,7 +546,7 @@
       "source": {
         "name": "Kanagawa",
         "url": "https://github.com/rebelot/kanagawa.nvim",
-        "note": "muted, history, device, and other lightened from #727169 to #9E9B82 for 4.5:1 text and 3:1 canvas contrast"
+        "note": "muted, history, device, and other lightened from #727169 to #9E9B82 for 4.5:1 text and 3:1 canvas contrast; kanagawa-lotus darkens muted from lotusGray2 #716E61 to #6B695C for 4.5:1 text on #F2ECBC, and online/nas/remote from lotusGreen #6F894E to #677F49, computer/infra from lotusTeal1 #4E8CA2 to #477F94, and printer/data from lotusOrange #CC6D00 to #B66200 for 3:1 on canvasBottom #E4D794 at the same hues"
       },
       "variants": [
         {
@@ -610,6 +610,68 @@
             "labelHalo": 1,
             "shadowStrength": 1
           }
+        },
+        {
+          "id": "kanagawa-lotus",
+          "name": "Kanagawa Lotus",
+          "mode": "light",
+          "palette": {
+            "bg": "#F2ECBC",
+            "ink": "#545464",
+            "muted": "#6B695C",
+            "accent": "#4D699B",
+            "line": "rgba(84, 84, 100, 0.18)",
+            "glass": "rgba(242, 236, 188, 0.82)",
+            "canvasTop": "#F7F2CD",
+            "canvasMiddle": "#EDE7B7",
+            "canvasBottom": "#E4D794",
+            "grid": "rgba(77, 105, 155, 0.08)",
+            "ambientGlow": "rgba(77, 105, 155, 0.12)",
+            "online": "#677F49",
+            "warning": "#77713F",
+            "danger": "#C84053",
+            "history": "#716E61",
+            "vignette": "rgba(213, 206, 163, 0.55)",
+            "labelHalo": "#F7F2CD",
+            "bubble": "rgba(247, 242, 205, 0.94)",
+            "panel": "rgba(242, 236, 188, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#77713F" },
+            "server": { "label": "Server", "color": "#4D699B" },
+            "computer": { "label": "Computer", "color": "#477F94" },
+            "phone": { "label": "Phone", "color": "#B35B79" },
+            "nas": { "label": "NAS", "color": "#677F49" },
+            "media": { "label": "Media", "color": "#624C83" },
+            "iot": { "label": "IoT", "color": "#597B75" },
+            "printer": { "label": "Printer", "color": "#B66200" },
+            "device": { "label": "Device", "color": "#716E61" }
+          },
+          "categories": {
+            "web": "#4D699B",
+            "media": "#624C83",
+            "data": "#B66200",
+            "remote": "#677F49",
+            "infra": "#477F94",
+            "iot": "#597B75",
+            "other": "#716E61"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
         }
       ]
     },
@@ -619,7 +681,7 @@
       "source": {
         "name": "Everforest",
         "url": "https://github.com/sainnhe/everforest",
-        "note": "muted lightened from #859289 to #9da9a0 for 4.5:1 text contrast"
+        "note": "muted lightened from #859289 to #9da9a0 for 4.5:1 text contrast; everforest-light darkens muted from grey2 #829181 to #657567 for 4.5:1 text on #FDF6E3, accent from blue #3A94C5 to #378DBC, warning/router from yellow #DFA000 to #AE7D00, online/remote from green #8DA101 to #7C8E01, printer/data from orange #F57D26 to #DA620A, computer/infra from aqua #35A77C to #309670, phone/iot from purple #DF69BA to #DA4FAE, and history/device/other from grey1 #939F91 to #6F7D70 for 3:1 on canvasBottom #EFEBD4 at the same hues; media uses an authored violet #8A6FBF so it stays distinct from the phone magenta"
       },
       "variants": [
         {
@@ -683,6 +745,68 @@
             "labelHalo": 1,
             "shadowStrength": 1
           }
+        },
+        {
+          "id": "everforest-light",
+          "name": "Everforest Light",
+          "mode": "light",
+          "palette": {
+            "bg": "#fdf6e3",
+            "ink": "#5c6a72",
+            "muted": "#657567",
+            "accent": "#378dbc",
+            "line": "rgba(92, 106, 114, 0.18)",
+            "glass": "rgba(253, 246, 227, 0.82)",
+            "canvasTop": "#fffbef",
+            "canvasMiddle": "#fdf6e3",
+            "canvasBottom": "#efebd4",
+            "grid": "rgba(55, 141, 188, 0.08)",
+            "ambientGlow": "rgba(55, 141, 188, 0.12)",
+            "online": "#7c8e01",
+            "warning": "#ae7d00",
+            "danger": "#f85552",
+            "history": "#6f7d70",
+            "vignette": "rgba(230, 226, 204, 0.55)",
+            "labelHalo": "#fffbef",
+            "bubble": "rgba(255, 251, 239, 0.94)",
+            "panel": "rgba(253, 246, 227, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#ae7d00" },
+            "server": { "label": "Server", "color": "#378dbc" },
+            "computer": { "label": "Computer", "color": "#309670" },
+            "phone": { "label": "Phone", "color": "#da4fae" },
+            "nas": { "label": "NAS", "color": "#7c8e01" },
+            "media": { "label": "Media", "color": "#8a6fbf" },
+            "iot": { "label": "IoT", "color": "#d94a48" },
+            "printer": { "label": "Printer", "color": "#da620a" },
+            "device": { "label": "Device", "color": "#6f7d70" }
+          },
+          "categories": {
+            "web": "#378dbc",
+            "media": "#8a6fbf",
+            "data": "#da620a",
+            "remote": "#7c8e01",
+            "infra": "#309670",
+            "iot": "#da4fae",
+            "other": "#6f7d70"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
         }
       ]
     },
@@ -692,7 +816,7 @@
       "source": {
         "name": "Dracula",
         "url": "https://github.com/dracula/dracula-theme",
-        "note": "muted, history, device, and other lightened from #6272a4 to #8b97bc, lifting lightness from 51.4% to 64.1% at the same blue-violet hue for 4.5:1 text and 3:1 canvas contrast"
+        "note": "muted, history, device, and other lightened from #6272a4 to #8b97bc, lifting lightness from 51.4% to 64.1% at the same blue-violet hue for 4.5:1 text and 3:1 canvas contrast; dracula-alucard uses the official Alucard values unchanged because every text and graphical pair clears 4.5:1 and 3:1 on the derived light canvas"
       },
       "variants": [
         {
@@ -756,6 +880,68 @@
             "labelHalo": 1,
             "shadowStrength": 1
           }
+        },
+        {
+          "id": "dracula-alucard",
+          "name": "Dracula Alucard",
+          "mode": "light",
+          "palette": {
+            "bg": "#fffbeb",
+            "ink": "#1f1f1f",
+            "muted": "#6c664b",
+            "accent": "#036a96",
+            "line": "rgba(31, 31, 31, 0.16)",
+            "glass": "rgba(255, 251, 235, 0.82)",
+            "canvasTop": "#fffdf5",
+            "canvasMiddle": "#fffbeb",
+            "canvasBottom": "#f6efd9",
+            "grid": "rgba(3, 106, 150, 0.08)",
+            "ambientGlow": "rgba(3, 106, 150, 0.12)",
+            "online": "#14710a",
+            "warning": "#846e15",
+            "danger": "#cb3a2a",
+            "history": "#6c664b",
+            "vignette": "rgba(207, 207, 222, 0.55)",
+            "labelHalo": "#fffdf5",
+            "bubble": "rgba(255, 253, 245, 0.94)",
+            "panel": "rgba(255, 251, 235, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#846e15" },
+            "server": { "label": "Server", "color": "#036a96" },
+            "computer": { "label": "Computer", "color": "#3a5fbf" },
+            "phone": { "label": "Phone", "color": "#a3144d" },
+            "nas": { "label": "NAS", "color": "#14710a" },
+            "media": { "label": "Media", "color": "#644ac9" },
+            "iot": { "label": "IoT", "color": "#0f7d6c" },
+            "printer": { "label": "Printer", "color": "#a34d14" },
+            "device": { "label": "Device", "color": "#6c664b" }
+          },
+          "categories": {
+            "web": "#036a96",
+            "media": "#644ac9",
+            "data": "#a34d14",
+            "remote": "#14710a",
+            "infra": "#3a5fbf",
+            "iot": "#a3144d",
+            "other": "#6c664b"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
         }
       ]
     },
@@ -765,7 +951,7 @@
       "source": {
         "name": "Atom One Dark",
         "url": "https://github.com/atom/one-dark-syntax",
-        "note": "muted lightened from #5c6370 to #8d94a1 (40% to 59.2% lightness) for 4.5:1 text contrast and history from #5c6370 to #77808f (40% to 51.5% lightness) for 3:1 canvas contrast, both at the 219 degree hue"
+        "note": "muted lightened from #5c6370 to #8d94a1 (40% to 59.2% lightness) for 4.5:1 text contrast and history from #5c6370 to #77808f (40% to 51.5% lightness) for 3:1 canvas contrast, both at the 219 degree hue; one-light darkens online/nas/remote from green #50A14F to #4C9A4C and printer from orange #C18401 to #B87E01 for 3:1 on canvasBottom #F0F0F0, and history/other from mono-3 #A0A1A7 to #83858D at the 230 degree hue for the same target"
       },
       "variants": [
         {
@@ -829,6 +1015,68 @@
             "labelHalo": 1,
             "shadowStrength": 1
           }
+        },
+        {
+          "id": "one-light",
+          "name": "One Light",
+          "mode": "light",
+          "palette": {
+            "bg": "#fafafa",
+            "ink": "#383a42",
+            "muted": "#696c77",
+            "accent": "#4078f2",
+            "line": "rgba(56, 58, 66, 0.16)",
+            "glass": "rgba(250, 250, 250, 0.82)",
+            "canvasTop": "#ffffff",
+            "canvasMiddle": "#fafafa",
+            "canvasBottom": "#f0f0f0",
+            "grid": "rgba(64, 120, 242, 0.08)",
+            "ambientGlow": "rgba(64, 120, 242, 0.12)",
+            "online": "#4c9a4c",
+            "warning": "#986801",
+            "danger": "#e45649",
+            "history": "#83858d",
+            "vignette": "rgba(229, 229, 230, 0.55)",
+            "labelHalo": "#ffffff",
+            "bubble": "rgba(255, 255, 255, 0.94)",
+            "panel": "rgba(250, 250, 250, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#986801" },
+            "server": { "label": "Server", "color": "#4078f2" },
+            "computer": { "label": "Computer", "color": "#526fff" },
+            "phone": { "label": "Phone", "color": "#e45649" },
+            "nas": { "label": "NAS", "color": "#4c9a4c" },
+            "media": { "label": "Media", "color": "#a626a4" },
+            "iot": { "label": "IoT", "color": "#0184bc" },
+            "printer": { "label": "Printer", "color": "#b87e01" },
+            "device": { "label": "Device", "color": "#696c77" }
+          },
+          "categories": {
+            "web": "#4078f2",
+            "media": "#a626a4",
+            "data": "#986801",
+            "remote": "#4c9a4c",
+            "infra": "#0184bc",
+            "iot": "#526fff",
+            "other": "#83858d"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
         }
       ]
     },
@@ -838,7 +1086,7 @@
       "source": {
         "name": "Solarized",
         "url": "https://github.com/altercation/solarized",
-        "note": "muted lightened from #586e75 to #79929a (40.2% to 53.9% lightness) for 4.5:1 text contrast and history to #657e86 for 3:1 canvas contrast at the same 194 degree hue; computer/media violet, kind iot red, phone/category iot magenta, and printer/data orange lightened at their canonical hues to clear 3:1 on canvasTop"
+        "note": "muted lightened from #586e75 to #79929a (40.2% to 53.9% lightness) for 4.5:1 text contrast and history to #657e86 for 3:1 canvas contrast at the same 194 degree hue; computer/media violet, kind iot red, phone/category iot magenta, and printer/data orange lightened at their canonical hues to clear 3:1 on canvasTop; solarized-light shifts muted from base00 #657B83 to #5F747C for 4.5:1 text on #FDF6E3, and history/device/other from base1 #93A1A1 to #758787, online/nas/remote from green #859900 to #7A8C00, router/warning from yellow #B58900 to #A67E00, and media/infra from cyan #2AA198 to #26928A for 3:1 on canvasBottom #EEE8D5 at the same hues"
       },
       "variants": [
         {
@@ -901,6 +1149,68 @@
             "glowStrength": 1,
             "labelHalo": 1,
             "shadowStrength": 1
+          }
+        },
+        {
+          "id": "solarized-light",
+          "name": "Solarized Light",
+          "mode": "light",
+          "palette": {
+            "bg": "#fdf6e3",
+            "ink": "#586e75",
+            "muted": "#5f747c",
+            "accent": "#268bd2",
+            "line": "rgba(88, 110, 117, 0.18)",
+            "glass": "rgba(253, 246, 227, 0.82)",
+            "canvasTop": "#fffcf0",
+            "canvasMiddle": "#fdf6e3",
+            "canvasBottom": "#eee8d5",
+            "grid": "rgba(38, 139, 210, 0.08)",
+            "ambientGlow": "rgba(38, 139, 210, 0.12)",
+            "online": "#7a8c00",
+            "warning": "#a67e00",
+            "danger": "#dc322f",
+            "history": "#758787",
+            "vignette": "rgba(238, 232, 213, 0.55)",
+            "labelHalo": "#fffcf0",
+            "bubble": "rgba(255, 252, 240, 0.94)",
+            "panel": "rgba(253, 246, 227, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#a67e00" },
+            "server": { "label": "Server", "color": "#268bd2" },
+            "computer": { "label": "Computer", "color": "#6c71c4" },
+            "phone": { "label": "Phone", "color": "#d33682" },
+            "nas": { "label": "NAS", "color": "#7a8c00" },
+            "media": { "label": "Media", "color": "#26928a" },
+            "iot": { "label": "IoT", "color": "#dc322f" },
+            "printer": { "label": "Printer", "color": "#cb4b16" },
+            "device": { "label": "Device", "color": "#758787" }
+          },
+          "categories": {
+            "web": "#268bd2",
+            "media": "#6c71c4",
+            "data": "#cb4b16",
+            "remote": "#7a8c00",
+            "infra": "#26928a",
+            "iot": "#d33682",
+            "other": "#758787"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
           }
         }
       ]

@@ -366,6 +366,67 @@ var wantKanagawaWaveEffects = map[string]any{
 	"shadowStrength": 1.0,
 }
 
+var wantKanagawaLotusPalette = map[string]string{
+	"bg":           "#F2ECBC",
+	"ink":          "#545464",
+	"muted":        "#6B695C",
+	"accent":       "#4D699B",
+	"line":         "rgba(84, 84, 100, 0.18)",
+	"glass":        "rgba(242, 236, 188, 0.82)",
+	"canvasTop":    "#F7F2CD",
+	"canvasMiddle": "#EDE7B7",
+	"canvasBottom": "#E4D794",
+	"grid":         "rgba(77, 105, 155, 0.08)",
+	"ambientGlow":  "rgba(77, 105, 155, 0.12)",
+	"online":       "#677F49",
+	"warning":      "#77713F",
+	"danger":       "#C84053",
+	"history":      "#716E61",
+	"vignette":     "rgba(213, 206, 163, 0.55)",
+	"labelHalo":    "#F7F2CD",
+	"bubble":       "rgba(247, 242, 205, 0.94)",
+	"panel":        "rgba(242, 236, 188, 0.97)",
+}
+
+var wantKanagawaLotusKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#77713F"},
+	"server":   {Label: "Server", Color: "#4D699B"},
+	"computer": {Label: "Computer", Color: "#477F94"},
+	"phone":    {Label: "Phone", Color: "#B35B79"},
+	"nas":      {Label: "NAS", Color: "#677F49"},
+	"media":    {Label: "Media", Color: "#624C83"},
+	"iot":      {Label: "IoT", Color: "#597B75"},
+	"printer":  {Label: "Printer", Color: "#B66200"},
+	"device":   {Label: "Device", Color: "#716E61"},
+}
+
+var wantKanagawaLotusCategories = map[string]string{
+	"web":    "#4D699B",
+	"media":  "#624C83",
+	"data":   "#B66200",
+	"remote": "#677F49",
+	"infra":  "#477F94",
+	"iot":    "#597B75",
+	"other":  "#716E61",
+}
+
+var wantKanagawaLotusEffects = map[string]any{
+	"vignette":       0.3,
+	"deviceGlow":     0.14,
+	"devicePulse":    0.22,
+	"serviceGlow":    0.08,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "multiply",
+	"territoryAlpha": 0.72,
+	"glowStrength":   0.6,
+	"labelHalo":      0.9,
+	"shadowStrength": 0.5,
+}
+
 var wantEverforestDarkPalette = map[string]string{
 	"bg":           "#2d353b",
 	"ink":          "#d3c6aa",
@@ -425,6 +486,67 @@ var wantEverforestDarkEffects = map[string]any{
 	"glowStrength":   1.0,
 	"labelHalo":      1.0,
 	"shadowStrength": 1.0,
+}
+
+var wantEverforestLightPalette = map[string]string{
+	"bg":           "#fdf6e3",
+	"ink":          "#5c6a72",
+	"muted":        "#657567",
+	"accent":       "#378dbc",
+	"line":         "rgba(92, 106, 114, 0.18)",
+	"glass":        "rgba(253, 246, 227, 0.82)",
+	"canvasTop":    "#fffbef",
+	"canvasMiddle": "#fdf6e3",
+	"canvasBottom": "#efebd4",
+	"grid":         "rgba(55, 141, 188, 0.08)",
+	"ambientGlow":  "rgba(55, 141, 188, 0.12)",
+	"online":       "#7c8e01",
+	"warning":      "#ae7d00",
+	"danger":       "#f85552",
+	"history":      "#6f7d70",
+	"vignette":     "rgba(230, 226, 204, 0.55)",
+	"labelHalo":    "#fffbef",
+	"bubble":       "rgba(255, 251, 239, 0.94)",
+	"panel":        "rgba(253, 246, 227, 0.97)",
+}
+
+var wantEverforestLightKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#ae7d00"},
+	"server":   {Label: "Server", Color: "#378dbc"},
+	"computer": {Label: "Computer", Color: "#309670"},
+	"phone":    {Label: "Phone", Color: "#da4fae"},
+	"nas":      {Label: "NAS", Color: "#7c8e01"},
+	"media":    {Label: "Media", Color: "#8a6fbf"},
+	"iot":      {Label: "IoT", Color: "#d94a48"},
+	"printer":  {Label: "Printer", Color: "#da620a"},
+	"device":   {Label: "Device", Color: "#6f7d70"},
+}
+
+var wantEverforestLightCategories = map[string]string{
+	"web":    "#378dbc",
+	"media":  "#8a6fbf",
+	"data":   "#da620a",
+	"remote": "#7c8e01",
+	"infra":  "#309670",
+	"iot":    "#da4fae",
+	"other":  "#6f7d70",
+}
+
+var wantEverforestLightEffects = map[string]any{
+	"vignette":       0.3,
+	"deviceGlow":     0.14,
+	"devicePulse":    0.22,
+	"serviceGlow":    0.08,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "multiply",
+	"territoryAlpha": 0.72,
+	"glowStrength":   0.6,
+	"labelHalo":      0.9,
+	"shadowStrength": 0.5,
 }
 
 var wantDraculaPalette = map[string]string{
@@ -488,6 +610,67 @@ var wantDraculaEffects = map[string]any{
 	"shadowStrength": 1.0,
 }
 
+var wantDraculaAlucardPalette = map[string]string{
+	"bg":           "#fffbeb",
+	"ink":          "#1f1f1f",
+	"muted":        "#6c664b",
+	"accent":       "#036a96",
+	"line":         "rgba(31, 31, 31, 0.16)",
+	"glass":        "rgba(255, 251, 235, 0.82)",
+	"canvasTop":    "#fffdf5",
+	"canvasMiddle": "#fffbeb",
+	"canvasBottom": "#f6efd9",
+	"grid":         "rgba(3, 106, 150, 0.08)",
+	"ambientGlow":  "rgba(3, 106, 150, 0.12)",
+	"online":       "#14710a",
+	"warning":      "#846e15",
+	"danger":       "#cb3a2a",
+	"history":      "#6c664b",
+	"vignette":     "rgba(207, 207, 222, 0.55)",
+	"labelHalo":    "#fffdf5",
+	"bubble":       "rgba(255, 253, 245, 0.94)",
+	"panel":        "rgba(255, 251, 235, 0.97)",
+}
+
+var wantDraculaAlucardKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#846e15"},
+	"server":   {Label: "Server", Color: "#036a96"},
+	"computer": {Label: "Computer", Color: "#3a5fbf"},
+	"phone":    {Label: "Phone", Color: "#a3144d"},
+	"nas":      {Label: "NAS", Color: "#14710a"},
+	"media":    {Label: "Media", Color: "#644ac9"},
+	"iot":      {Label: "IoT", Color: "#0f7d6c"},
+	"printer":  {Label: "Printer", Color: "#a34d14"},
+	"device":   {Label: "Device", Color: "#6c664b"},
+}
+
+var wantDraculaAlucardCategories = map[string]string{
+	"web":    "#036a96",
+	"media":  "#644ac9",
+	"data":   "#a34d14",
+	"remote": "#14710a",
+	"infra":  "#3a5fbf",
+	"iot":    "#a3144d",
+	"other":  "#6c664b",
+}
+
+var wantDraculaAlucardEffects = map[string]any{
+	"vignette":       0.3,
+	"deviceGlow":     0.14,
+	"devicePulse":    0.22,
+	"serviceGlow":    0.08,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "multiply",
+	"territoryAlpha": 0.72,
+	"glowStrength":   0.6,
+	"labelHalo":      0.9,
+	"shadowStrength": 0.5,
+}
+
 var wantOneDarkPalette = map[string]string{
 	"bg":           "#282c34",
 	"ink":          "#abb2bf",
@@ -549,6 +732,67 @@ var wantOneDarkEffects = map[string]any{
 	"shadowStrength": 1.0,
 }
 
+var wantOneLightPalette = map[string]string{
+	"bg":           "#fafafa",
+	"ink":          "#383a42",
+	"muted":        "#696c77",
+	"accent":       "#4078f2",
+	"line":         "rgba(56, 58, 66, 0.16)",
+	"glass":        "rgba(250, 250, 250, 0.82)",
+	"canvasTop":    "#ffffff",
+	"canvasMiddle": "#fafafa",
+	"canvasBottom": "#f0f0f0",
+	"grid":         "rgba(64, 120, 242, 0.08)",
+	"ambientGlow":  "rgba(64, 120, 242, 0.12)",
+	"online":       "#4c9a4c",
+	"warning":      "#986801",
+	"danger":       "#e45649",
+	"history":      "#83858d",
+	"vignette":     "rgba(229, 229, 230, 0.55)",
+	"labelHalo":    "#ffffff",
+	"bubble":       "rgba(255, 255, 255, 0.94)",
+	"panel":        "rgba(250, 250, 250, 0.97)",
+}
+
+var wantOneLightKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#986801"},
+	"server":   {Label: "Server", Color: "#4078f2"},
+	"computer": {Label: "Computer", Color: "#526fff"},
+	"phone":    {Label: "Phone", Color: "#e45649"},
+	"nas":      {Label: "NAS", Color: "#4c9a4c"},
+	"media":    {Label: "Media", Color: "#a626a4"},
+	"iot":      {Label: "IoT", Color: "#0184bc"},
+	"printer":  {Label: "Printer", Color: "#b87e01"},
+	"device":   {Label: "Device", Color: "#696c77"},
+}
+
+var wantOneLightCategories = map[string]string{
+	"web":    "#4078f2",
+	"media":  "#a626a4",
+	"data":   "#986801",
+	"remote": "#4c9a4c",
+	"infra":  "#0184bc",
+	"iot":    "#526fff",
+	"other":  "#83858d",
+}
+
+var wantOneLightEffects = map[string]any{
+	"vignette":       0.3,
+	"deviceGlow":     0.14,
+	"devicePulse":    0.22,
+	"serviceGlow":    0.08,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "multiply",
+	"territoryAlpha": 0.72,
+	"glowStrength":   0.6,
+	"labelHalo":      0.9,
+	"shadowStrength": 0.5,
+}
+
 var wantSolarizedDarkPalette = map[string]string{
 	"bg":           "#002b36",
 	"ink":          "#839496",
@@ -608,6 +852,67 @@ var wantSolarizedDarkEffects = map[string]any{
 	"glowStrength":   1.0,
 	"labelHalo":      1.0,
 	"shadowStrength": 1.0,
+}
+
+var wantSolarizedLightPalette = map[string]string{
+	"bg":           "#fdf6e3",
+	"ink":          "#586e75",
+	"muted":        "#5f747c",
+	"accent":       "#268bd2",
+	"line":         "rgba(88, 110, 117, 0.18)",
+	"glass":        "rgba(253, 246, 227, 0.82)",
+	"canvasTop":    "#fffcf0",
+	"canvasMiddle": "#fdf6e3",
+	"canvasBottom": "#eee8d5",
+	"grid":         "rgba(38, 139, 210, 0.08)",
+	"ambientGlow":  "rgba(38, 139, 210, 0.12)",
+	"online":       "#7a8c00",
+	"warning":      "#a67e00",
+	"danger":       "#dc322f",
+	"history":      "#758787",
+	"vignette":     "rgba(238, 232, 213, 0.55)",
+	"labelHalo":    "#fffcf0",
+	"bubble":       "rgba(255, 252, 240, 0.94)",
+	"panel":        "rgba(253, 246, 227, 0.97)",
+}
+
+var wantSolarizedLightKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#a67e00"},
+	"server":   {Label: "Server", Color: "#268bd2"},
+	"computer": {Label: "Computer", Color: "#6c71c4"},
+	"phone":    {Label: "Phone", Color: "#d33682"},
+	"nas":      {Label: "NAS", Color: "#7a8c00"},
+	"media":    {Label: "Media", Color: "#26928a"},
+	"iot":      {Label: "IoT", Color: "#dc322f"},
+	"printer":  {Label: "Printer", Color: "#cb4b16"},
+	"device":   {Label: "Device", Color: "#758787"},
+}
+
+var wantSolarizedLightCategories = map[string]string{
+	"web":    "#268bd2",
+	"media":  "#6c71c4",
+	"data":   "#cb4b16",
+	"remote": "#7a8c00",
+	"infra":  "#26928a",
+	"iot":    "#d33682",
+	"other":  "#758787",
+}
+
+var wantSolarizedLightEffects = map[string]any{
+	"vignette":       0.3,
+	"deviceGlow":     0.14,
+	"devicePulse":    0.22,
+	"serviceGlow":    0.08,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "multiply",
+	"territoryAlpha": 0.72,
+	"glowStrength":   0.6,
+	"labelHalo":      0.9,
+	"shadowStrength": 0.5,
 }
 
 var wantGruvboxDarkPalette = map[string]string{
@@ -892,6 +1197,17 @@ func findThemeFamily(t *testing.T, catalog themeCatalog, id string) themeFamily 
 	return themeFamily{}
 }
 
+func findThemeVariant(t *testing.T, family themeFamily, id string) themeVariant {
+	t.Helper()
+	for _, variant := range family.Variants {
+		if variant.ID == id {
+			return variant
+		}
+	}
+	t.Fatalf("theme family %q has no variant %q", family.ID, id)
+	return themeVariant{}
+}
+
 func TestCatppuccinMochaVariant(t *testing.T) {
 	_, catalog := readCatalog(t)
 	family := findThemeFamily(t, catalog, "catppuccin")
@@ -1003,8 +1319,8 @@ func TestKanagawaWaveVariant(t *testing.T) {
 	if family.Source.URL != "https://github.com/rebelot/kanagawa.nvim" {
 		t.Errorf("source url = %q, want the Kanagawa project URL", family.Source.URL)
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
 	variant := family.Variants[0]
 	if variant.ID != "kanagawa-wave" || variant.Name != "Kanagawa Wave" || variant.Mode != "dark" {
@@ -1024,6 +1340,42 @@ func TestKanagawaWaveVariant(t *testing.T) {
 	}
 }
 
+func TestKanagawaLotusVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "kanagawa")
+	if family.Name != "Kanagawa" {
+		t.Fatalf("family name = %q, want Kanagawa", family.Name)
+	}
+	if family.Source.Name != "Kanagawa" {
+		t.Errorf("source name = %q, want Kanagawa", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/rebelot/kanagawa.nvim" {
+		t.Errorf("source url = %q, want the Kanagawa project URL", family.Source.URL)
+	}
+	if strings.TrimSpace(family.Source.Note) == "" {
+		t.Error("source note is empty, want the contrast shifts documented")
+	}
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
+	}
+	variant := findThemeVariant(t, family, "kanagawa-lotus")
+	if variant.Name != "Kanagawa Lotus" || variant.Mode != "light" {
+		t.Fatalf("variant = %+v, want Kanagawa Lotus light", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantKanagawaLotusPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantKanagawaLotusPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantKanagawaLotusKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantKanagawaLotusKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantKanagawaLotusCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantKanagawaLotusCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantKanagawaLotusEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantKanagawaLotusEffects)
+	}
+}
+
 func TestEverforestDarkVariant(t *testing.T) {
 	_, catalog := readCatalog(t)
 	family := findThemeFamily(t, catalog, "everforest")
@@ -1036,8 +1388,8 @@ func TestEverforestDarkVariant(t *testing.T) {
 	if family.Source.URL != "https://github.com/sainnhe/everforest" {
 		t.Errorf("source url = %q, want the Everforest project URL", family.Source.URL)
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
 	variant := family.Variants[0]
 	if variant.ID != "everforest-dark" || variant.Name != "Everforest Dark" || variant.Mode != "dark" {
@@ -1057,6 +1409,42 @@ func TestEverforestDarkVariant(t *testing.T) {
 	}
 }
 
+func TestEverforestLightVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "everforest")
+	if family.Name != "Everforest" {
+		t.Fatalf("family name = %q, want Everforest", family.Name)
+	}
+	if family.Source.Name != "Everforest" {
+		t.Errorf("source name = %q, want Everforest", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/sainnhe/everforest" {
+		t.Errorf("source url = %q, want the Everforest project URL", family.Source.URL)
+	}
+	if strings.TrimSpace(family.Source.Note) == "" {
+		t.Error("source note is empty, want the contrast shifts documented")
+	}
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
+	}
+	variant := findThemeVariant(t, family, "everforest-light")
+	if variant.Name != "Everforest Light" || variant.Mode != "light" {
+		t.Fatalf("variant = %+v, want Everforest Light", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantEverforestLightPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantEverforestLightPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantEverforestLightKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantEverforestLightKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantEverforestLightCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantEverforestLightCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantEverforestLightEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantEverforestLightEffects)
+	}
+}
+
 func TestDraculaVariant(t *testing.T) {
 	_, catalog := readCatalog(t)
 	family := findThemeFamily(t, catalog, "dracula")
@@ -1069,8 +1457,8 @@ func TestDraculaVariant(t *testing.T) {
 	if family.Source.URL != "https://github.com/dracula/dracula-theme" {
 		t.Errorf("source url = %q, want the Dracula project URL", family.Source.URL)
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
 	variant := family.Variants[0]
 	if variant.ID != "dracula" || variant.Name != "Dracula" || variant.Mode != "dark" {
@@ -1090,6 +1478,42 @@ func TestDraculaVariant(t *testing.T) {
 	}
 }
 
+func TestDraculaAlucardVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "dracula")
+	if family.Name != "Dracula" {
+		t.Fatalf("family name = %q, want Dracula", family.Name)
+	}
+	if family.Source.Name != "Dracula" {
+		t.Errorf("source name = %q, want Dracula", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/dracula/dracula-theme" {
+		t.Errorf("source url = %q, want the Dracula project URL", family.Source.URL)
+	}
+	if strings.TrimSpace(family.Source.Note) == "" {
+		t.Error("source note is empty, want the provenance documented")
+	}
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
+	}
+	variant := findThemeVariant(t, family, "dracula-alucard")
+	if variant.Name != "Dracula Alucard" || variant.Mode != "light" {
+		t.Fatalf("variant = %+v, want Dracula Alucard light", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantDraculaAlucardPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantDraculaAlucardPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantDraculaAlucardKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantDraculaAlucardKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantDraculaAlucardCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantDraculaAlucardCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantDraculaAlucardEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantDraculaAlucardEffects)
+	}
+}
+
 func TestOneDarkVariant(t *testing.T) {
 	_, catalog := readCatalog(t)
 	family := findThemeFamily(t, catalog, "one")
@@ -1102,8 +1526,8 @@ func TestOneDarkVariant(t *testing.T) {
 	if family.Source.URL != "https://github.com/atom/one-dark-syntax" {
 		t.Errorf("source url = %q, want the One Dark project URL", family.Source.URL)
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
 	variant := family.Variants[0]
 	if variant.ID != "one-dark" || variant.Name != "One Dark" || variant.Mode != "dark" {
@@ -1123,6 +1547,42 @@ func TestOneDarkVariant(t *testing.T) {
 	}
 }
 
+func TestOneLightVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "one")
+	if family.Name != "One" {
+		t.Fatalf("family name = %q, want One", family.Name)
+	}
+	if family.Source.Name != "Atom One Dark" {
+		t.Errorf("source name = %q, want Atom One Dark", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/atom/one-dark-syntax" {
+		t.Errorf("source url = %q, want the One Dark project URL", family.Source.URL)
+	}
+	if strings.TrimSpace(family.Source.Note) == "" {
+		t.Error("source note is empty, want the contrast shifts documented")
+	}
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
+	}
+	variant := findThemeVariant(t, family, "one-light")
+	if variant.Name != "One Light" || variant.Mode != "light" {
+		t.Fatalf("variant = %+v, want One Light", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantOneLightPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantOneLightPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantOneLightKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantOneLightKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantOneLightCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantOneLightCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantOneLightEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantOneLightEffects)
+	}
+}
+
 func TestSolarizedDarkVariant(t *testing.T) {
 	_, catalog := readCatalog(t)
 	family := findThemeFamily(t, catalog, "solarized")
@@ -1135,8 +1595,8 @@ func TestSolarizedDarkVariant(t *testing.T) {
 	if family.Source.URL != "https://github.com/altercation/solarized" {
 		t.Errorf("source url = %q, want the Solarized project URL", family.Source.URL)
 	}
-	if len(family.Variants) != 1 {
-		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
 	}
 	variant := family.Variants[0]
 	if variant.ID != "solarized-dark" || variant.Name != "Solarized Dark" || variant.Mode != "dark" {
@@ -1153,6 +1613,42 @@ func TestSolarizedDarkVariant(t *testing.T) {
 	}
 	if !reflect.DeepEqual(variant.Effects, wantSolarizedDarkEffects) {
 		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantSolarizedDarkEffects)
+	}
+}
+
+func TestSolarizedLightVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "solarized")
+	if family.Name != "Solarized" {
+		t.Fatalf("family name = %q, want Solarized", family.Name)
+	}
+	if family.Source.Name != "Solarized" {
+		t.Errorf("source name = %q, want Solarized", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/altercation/solarized" {
+		t.Errorf("source url = %q, want the Solarized project URL", family.Source.URL)
+	}
+	if strings.TrimSpace(family.Source.Note) == "" {
+		t.Error("source note is empty, want the contrast shifts documented")
+	}
+	if len(family.Variants) != 2 {
+		t.Fatalf("variants = %d, want 2", len(family.Variants))
+	}
+	variant := findThemeVariant(t, family, "solarized-light")
+	if variant.Name != "Solarized Light" || variant.Mode != "light" {
+		t.Fatalf("variant = %+v, want Solarized Light", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantSolarizedLightPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantSolarizedLightPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantSolarizedLightKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantSolarizedLightKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantSolarizedLightCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantSolarizedLightCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantSolarizedLightEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantSolarizedLightEffects)
 	}
 }
 
