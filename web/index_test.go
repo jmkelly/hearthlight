@@ -396,6 +396,26 @@ func TestThemeControlAppliesBeforeFirstPaint(t *testing.T) {
 	)
 }
 
+func TestColorSchemeFollowsResolvedMode(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-boot.js")
+	apply := arrowBody(t, source, "apply")
+	requireContains(t, apply,
+		"resolved.resolvedMode",
+		"root.dataset.mode = mode",
+		`setMeta("color-scheme", mode)`,
+	)
+
+	html := readAccessibilityFile(t, "index.html")
+	requireContains(t, html,
+		`<meta name="color-scheme" content="dark">`,
+	)
+
+	css := readAccessibilityFile(t, "style.css")
+	dark, light, _ := splitThemeCSS(t, css)
+	requireContains(t, dark, "color-scheme: dark;")
+	requireContains(t, light, "color-scheme: light;")
+}
+
 func TestCanvasThemeBootstrapsFromControl(t *testing.T) {
 	js := readAccessibilityFile(t, "app.js")
 	requireContains(t, js,
