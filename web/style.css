@@ -208,6 +208,22 @@
   --theme-warning-glow: rgba(143, 92, 0, 0.3);
 }
 
+/* High contrast promotes the muted chrome text to the palette's ink. Canvas
+   labels do the same in app.js; both keep the theme background and accent. */
+:root[data-contrast="high"] {
+  --theme-label: var(--theme-ink);
+  --theme-section-label: var(--theme-ink);
+  --theme-section-value: var(--theme-ink);
+  --theme-meta-label: var(--theme-ink);
+  --theme-meta-value: var(--theme-ink);
+  --theme-action-text: var(--theme-ink);
+  --theme-action-off: var(--theme-ink);
+  --theme-service-name: var(--theme-ink);
+  --theme-ip-text: var(--theme-ink);
+  --theme-tooltip-meta: var(--theme-ink);
+  --theme-empty-text: var(--theme-ink);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -586,9 +602,12 @@ button {
   font: inherit;
 }
 
-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+/* A light ink underlay keeps the ring visible on every palette, even when a
+   theme's accent sits close to its surface. */
+:is(button, a[href], input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--theme-ink);
 }
 
 .actions button {
@@ -1143,6 +1162,21 @@ button:focus-visible {
   border-radius: 50%;
   background: var(--c);
   box-shadow: 0 0 8px color-mix(in srgb, var(--c) 45%, transparent);
+}
+
+.legend-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  color: var(--c);
+}
+
+.legend-glyph svg {
+  display: block;
+  width: 11px;
+  height: 11px;
 }
 
 .legend-dot.hollow {
@@ -1871,6 +1905,139 @@ button:focus-visible {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+}
+
+:root[data-contrast="high"] .vignette {
+  opacity: 0.32;
+}
+
+:root[data-contrast="high"] .glass,
+:root[data-contrast="high"] .settings::backdrop,
+:root[data-contrast="high"] .hint,
+:root[data-contrast="high"] .panel,
+:root[data-contrast="high"] .tooltip,
+:root[data-contrast="high"] .toast {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+:root[data-contrast="high"] .settings-toggle,
+:root[data-contrast="high"] .settings-action,
+:root[data-contrast="high"] .theme-card {
+  border-width: 2px;
+}
+
+:root[data-contrast="high"] .legend-dot,
+:root[data-contrast="high"] .legend-flow,
+:root[data-contrast="high"] .legend-badge,
+:root[data-contrast="high"] .conn i,
+:root[data-contrast="high"] .settings-toggle[aria-pressed="true"] .settings-switch::after,
+:root[data-contrast="high"] .settings-toggle[aria-checked="true"] .settings-switch::after {
+  box-shadow: none;
+}
+
+:root[data-contrast="high"] .legend-dot.pulse {
+  animation: none;
+}
+
+:root[data-contrast="high"] :is(button, a[href], input, select, textarea, summary, [tabindex]):focus-visible {
+  outline-width: 4px;
+}
+
+@media (forced-colors: active) {
+  :root,
+  body {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .vignette {
+    display: none;
+  }
+
+  .glass,
+  .settings,
+  .panel,
+  .tooltip,
+  .toast,
+  .legend,
+  .hint,
+  .device-list.open,
+  .device-list:focus-within {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    box-shadow: none;
+    color: CanvasText;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .settings::backdrop {
+    background: Canvas;
+  }
+
+  .conn,
+  .brand p,
+  .stats,
+  .stats-compact,
+  .device-list-hint,
+  .settings-toggle-hint,
+  .theme-card-hint,
+  .theme-fallback-note {
+    color: CanvasText;
+  }
+
+  .actions button,
+  .settings-toggle,
+  .settings-action,
+  .theme-card,
+  .theme-mode,
+  .settings-close,
+  .panel-close,
+  .device-list-close,
+  .device-entry {
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+  }
+
+  .settings-toggle[aria-checked="true"],
+  .theme-card[aria-pressed="true"],
+  .theme-mode[aria-pressed="true"] {
+    border-color: Highlight;
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+
+  .settings-switch {
+    border: 1px solid ButtonText;
+    background: Canvas;
+  }
+
+  .settings-switch::after {
+    background: ButtonText;
+    box-shadow: none;
+  }
+
+  .settings-toggle[aria-checked="true"] .settings-switch::after {
+    background: Highlight;
+  }
+
+  .legend-dot,
+  .legend-glyph,
+  .legend-badge,
+  .legend-pin,
+  .legend-halo {
+    border-color: CanvasText;
+    color: CanvasText;
+  }
+
+  :root[data-contrast] :is(button, a[href], input, select, textarea, summary, [tabindex]):focus,
+  :root[data-contrast] :is(button, a[href], input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 3px;
+    box-shadow: none;
   }
 }
 

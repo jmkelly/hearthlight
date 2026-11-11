@@ -32,6 +32,22 @@
 
   const THEME_MODES = new Set(["dark", "light", "auto"]);
 
+  const HIGH_CONTRAST_STORAGE_KEY = "hearthlight.contrast.v1";
+  // High contrast keeps every palette colour but removes the soft effects that
+  // make labels and outlines blend into the canvas.
+  const HIGH_CONTRAST_EFFECTS = Object.freeze({
+    territoryBlur: 0,
+    ribbonBlur: 0,
+    lensBlur: 0,
+    glassBlur: 0,
+    panelBlur: 0,
+    glowStrength: 0,
+    shadowStrength: 0,
+    deviceGlow: 0,
+    serviceGlow: 0,
+    labelHalo: 1.5,
+  });
+
   // Glyph shapes live in an -4..4 box with a 1-unit stroke, so one table
   // feeds both the panel SVG and the canvas bubble.
   const SERVICE_GLYPHS = {
@@ -77,6 +93,35 @@
       ["rect", -3.2, -1.2, 6.4, 3, 0.6],
       ["rect", -1.8, 1.3, 3.6, 1.8, 0.2],
     ],
+    router: [
+      ["path", "M -3.1 1.6 Q 0 -2.8 3.1 1.6"],
+      ["path", "M -1.6 1.6 Q 0 -0.6 1.6 1.6"],
+      ["dot", 0, 1.2, 0.45],
+    ],
+    server: [
+      ["rect", -2.9, -2.7, 5.8, 1.7, 0.35],
+      ["rect", -2.9, -0.85, 5.8, 1.7, 0.35],
+      ["rect", -2.9, 1, 5.8, 1.7, 0.35],
+    ],
+    computer: [
+      ["rect", -3, -2.4, 6, 4.1, 0.5],
+      ["path", "M -1.3 2.2 H 1.3 M 0 1.7 V 2.2"],
+    ],
+    phone: [
+      ["rect", -1.3, -2.9, 2.6, 5.8, 0.5],
+      ["dot", 0, 2.1, 0.35],
+    ],
+    nas: [
+      ["ellipse", 0, -2, 2.5, 0.8],
+      ["path", "M -2.5 -2 V 1.7 M 2.5 -2 V 1.7"],
+      ["path", "M -2.5 1.7 A 2.5 0.8 0 0 0 2.5 1.7"],
+    ],
+    device: [
+      ["path", "M 0 -2.6 L -2.4 1.6 H 2.4 Z"],
+      ["dot", 0, -1.2, 0.4],
+      ["dot", -1.6, 1.2, 0.4],
+      ["dot", 1.6, 1.2, 0.4],
+    ],
     dot: [
       ["dot", 0, 0, 1.5],
     ],
@@ -101,9 +146,23 @@
     media: "play",
     data: "folder",
     remote: "terminal",
-    infra: "globe",
+    infra: "server",
     iot: "radio",
     other: "dot",
+  };
+
+  // The legend reuses the canvas device shapes so a colour blind reader can
+  // match a legend entry to a bubble without relying on hue.
+  const KIND_GLYPHS = {
+    router: "router",
+    server: "server",
+    computer: "computer",
+    phone: "phone",
+    nas: "nas",
+    media: "play",
+    iot: "radio",
+    printer: "printer",
+    device: "device",
   };
 
   const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
@@ -294,6 +353,7 @@
   const themeReset = document.getElementById("themeReset");
   const omarchyFollowBtn = document.getElementById("omarchyFollowBtn");
   const omarchyFollowHint = document.getElementById("omarchyFollowHint");
+  const highContrastBtn = document.getElementById("highContrastBtn");
   const omarchyNote = document.getElementById("omarchyNote");
   let themeFamilyButtons = [];
   let themeDefaultBadge = null;
@@ -347,6 +407,7 @@
     pointer: { x: 0, y: 0 },
     initialized: false,
     userAdjusted: false,
+    highContrast: false,
     reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     lastErrorShown: "",
     toastTimer: 0,
@@ -380,6 +441,9 @@
   };
 
   const themeEffect = (name) => {
+    if (view.highContrast && Object.prototype.hasOwnProperty.call(HIGH_CONTRAST_EFFECTS, name)) {
+      return HIGH_CONTRAST_EFFECTS[name];
+    }
     const effects = view.theme && view.theme.effects;
     const value = effects && effects[name];
     if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -1165,12 +1229,13 @@
   }
 
   function drawBoundary(territory, color, glow) {
+    const high = view.highContrast;
     ctx.save();
-    ctx.setLineDash([1.5, 7]);
-    ctx.lineWidth = 1.2;
+    ctx.setLineDash(high ? [6, 6] : [1.5, 7]);
+    ctx.lineWidth = high ? 2.6 : 1.2;
     ctx.strokeStyle = color;
     ctx.shadowColor = glow;
-    ctx.shadowBlur = 9 * themeEffect("glowStrength") * themeEffect("shadowStrength");
+    ctx.shadowBlur = high ? 0 : 9 * themeEffect("glowStrength") * themeEffect("shadowStrength");
     ctx.beginPath();
     traceLoops(ctx, territory.loops);
     ctx.stroke();
@@ -1179,13 +1244,22 @@
 
   function drawTerritoryBoundaries() {
     if (!view.territories) return;
+    const high = view.highContrast;
     if (view.territories.lan) {
       const warning = themeColor("warning");
-      drawBoundary(screenTerritory(view.territories.lan), rgba(warning, 0.66), rgba(warning, 0.42));
+      drawBoundary(
+        screenTerritory(view.territories.lan),
+        rgba(warning, high ? 0.96 : 0.66),
+        rgba(warning, 0.42),
+      );
     }
     if (view.territories.tailnet) {
       const accent = themeColor("accent");
-      drawBoundary(screenTerritory(view.territories.tailnet), rgba(accent, 0.82), rgba(accent, 0.62));
+      drawBoundary(
+        screenTerritory(view.territories.tailnet),
+        rgba(accent, high ? 1 : 0.82),
+        rgba(accent, 0.62),
+      );
     }
   }
 
@@ -1270,7 +1344,7 @@
     ctx.fill();
     ctx.shadowBlur = 0;
     ctx.strokeStyle = tailnet ? rgba(accent, 0.32) : rgba(themeColor("line"), 0.2);
-    ctx.lineWidth = 1;
+    ctx.lineWidth = view.highContrast ? 1.8 : 1;
     ctx.stroke();
 
     ctx.beginPath();
@@ -1284,7 +1358,7 @@
     ctx.fillStyle = ink;
     ctx.fillText(title, left + 23, top + height / 2 + 0.5);
     ctx.font = `500 9px ${MONO}`;
-    ctx.fillStyle = tailnet ? rgba(accent, 0.72) : themeColor("muted");
+    ctx.fillStyle = view.highContrast ? ink : (tailnet ? rgba(accent, 0.72) : themeColor("muted"));
     ctx.fillText(detail, left + 23 + titleWidth + 9, top + height / 2 + 0.5);
     ctx.restore();
     return { left, top, width, height };
@@ -1328,7 +1402,7 @@
     ctx.fillStyle = rgba(themeColor("canvasMiddle"), 0.94);
     ctx.fill();
     ctx.strokeStyle = reach === "local" ? rgba(ink, 0.28) : rgba(accent, 0.36);
-    ctx.lineWidth = 1;
+    ctx.lineWidth = view.highContrast ? 1.8 : 1;
     ctx.stroke();
 
     const glyph = height * 0.58;
@@ -1768,6 +1842,61 @@
   function syncSettingsControls() {
     syncToggleState(settingsHistoryBtn, view.showOffline);
     syncToggleState(settingsTailnetBtn, view.showTailnet);
+    syncHighContrast();
+  }
+
+  function syncHighContrast() {
+    if (!highContrastBtn) return;
+    highContrastBtn.setAttribute("aria-checked", String(view.highContrast));
+    const state = highContrastBtn.querySelector(".settings-toggle-state");
+    if (state) state.textContent = view.highContrast ? "on" : "off";
+  }
+
+  function highContrastPreference() {
+    const control = window.HearthlightTheme;
+    if (control && typeof control.contrastPreference === "function") {
+      return control.contrastPreference();
+    }
+    try {
+      const stored = window.localStorage.getItem(HIGH_CONTRAST_STORAGE_KEY);
+      if (stored === "high") return true;
+      if (stored === "normal") return false;
+    } catch (_error) {
+      // Private browsing can disable localStorage; fall back to the OS.
+    }
+    return window.matchMedia("(prefers-contrast: more)").matches;
+  }
+
+  function applyHighContrastPreference() {
+    view.highContrast = highContrastPreference();
+    const control = window.HearthlightTheme;
+    if (control && typeof control.applyContrast === "function") {
+      control.applyContrast(view.highContrast);
+    } else {
+      document.documentElement.dataset.contrast = view.highContrast ? "high" : "normal";
+    }
+    syncHighContrast();
+    return view.highContrast;
+  }
+
+  function setHighContrast(enabled, announce = true) {
+    view.highContrast = Boolean(enabled);
+    try {
+      window.localStorage.setItem(HIGH_CONTRAST_STORAGE_KEY, view.highContrast ? "high" : "normal");
+    } catch (_error) {
+      // Storage is optional; the live setting still applies.
+    }
+    const control = window.HearthlightTheme;
+    if (control && typeof control.applyContrast === "function") {
+      control.applyContrast(view.highContrast);
+    } else {
+      document.documentElement.dataset.contrast = view.highContrast ? "high" : "normal";
+    }
+    syncHighContrast();
+    view.territorySig = "";
+    view.territoryLayer = null;
+    requestDraw();
+    if (announce) showToast(view.highContrast ? "High contrast on" : "High contrast off");
   }
 
   function themeFamilyPreview(family) {
@@ -1869,6 +1998,7 @@
     const target = themeFamilyButtons[next];
     for (const button of themeFamilyButtons) button.tabIndex = button === target ? 0 : -1;
     target.focus();
+    setThemeFamily(target.dataset.family, false);
   }
 
   function themeModeLabel(mode) {
@@ -1918,18 +2048,24 @@
     showToast(`${themeModeLabel(mode)} theme`);
   }
 
-  function setThemeFamily(familyId) {
+  function setThemeFamily(familyId, announce = true) {
     const control = window.HearthlightTheme;
     if (!control || !familyId) return;
     const mode = control.initialPreference().mode;
     applyTheme(control.persist({ family: familyId, mode }));
-    showToast(`${themeFamilyName(familyId)} theme`);
+    if (announce) showToast(`${themeFamilyName(familyId)} theme`);
   }
 
   function resetTheme() {
     const control = window.HearthlightTheme;
     if (!control) return;
+    try {
+      window.localStorage.removeItem(HIGH_CONTRAST_STORAGE_KEY);
+    } catch (_error) {
+      // Storage is optional; the OS-derived default still applies.
+    }
     applyTheme(control.persist(control.DEFAULT_THEME));
+    applyHighContrastPreference();
     showToast("Theme reset");
   }
 
@@ -2363,11 +2499,11 @@
     const kinds = Object.keys(KIND)
       .map((name) => {
         const info = themeKind(name);
-        return `<span class="legend-item"><i class="legend-dot" style="--c:${info.color}"></i>${info.label}</span>`;
+        return `<span class="legend-item"><i class="legend-glyph" style="--c:${info.color}">${glyphSVG(KIND_GLYPHS[name] || "device")}</i>${info.label}</span>`;
       })
       .join("");
     const categories = CATEGORY
-      .map((name) => `<span class="legend-item"><i class="legend-dot" style="--c:${themeCategory(name)}"></i>${name}</span>`)
+      .map((name) => `<span class="legend-item"><i class="legend-glyph" style="--c:${themeCategory(name)}">${glyphSVG(CATEGORY_GLYPHS[name] || "dot")}</i>${name}</span>`)
       .join("");
     const tailnet = view.tailnetPresent;
     const tailnetOnly = tailnet
@@ -2903,6 +3039,7 @@
       }
     }
 
+    if (view.highContrast) return;
     const glow = ctx.createRadialGradient(
       size.width * 0.72,
       -size.height * 0.2,
@@ -3107,7 +3244,8 @@
   function strokeLabel(text, x, y, fontSize) {
     const halo = themeEffect("labelHalo");
     ctx.lineWidth = Math.max(3, fontSize * 0.28) * halo;
-    ctx.strokeStyle = rgba(themeColor("labelHalo"), 0.86 * halo);
+    const opacity = view.highContrast ? Math.min(1, halo) : 0.86 * halo;
+    ctx.strokeStyle = rgba(themeColor("labelHalo"), opacity);
     ctx.lineJoin = "round";
     ctx.strokeText(text, x, y);
   }
@@ -3200,7 +3338,7 @@
     ctx.save();
     ctx.globalAlpha = historicAlpha;
     ctx.setLineDash(active ? [] : [4, 5]);
-    ctx.lineWidth = active ? 1.6 : 1.1;
+    ctx.lineWidth = view.highContrast ? (active ? 2.8 : 2) : (active ? 1.6 : 1.1);
     ctx.strokeStyle = rgba(color, active ? 0.9 : 0.5);
     ctx.beginPath();
     ctx.arc(point.x, point.y, radius, 0, TAU);
@@ -3233,8 +3371,8 @@
     if (view.selectedDeviceId === node.id || view.hoverId === node.id) {
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius + 5, 0, TAU);
-      ctx.strokeStyle = rgba(themeColor("ink"), view.selectedDeviceId === node.id ? 0.45 : 0.25);
-      ctx.lineWidth = 1.1;
+      ctx.strokeStyle = rgba(themeColor("ink"), view.highContrast ? 0.9 : (view.selectedDeviceId === node.id ? 0.45 : 0.25));
+      ctx.lineWidth = view.highContrast ? 2.6 : 1.1;
       ctx.stroke();
     }
 
@@ -3251,9 +3389,9 @@
       ctx.fillStyle = rgba(themeColor("canvasMiddle"), 0.95);
       ctx.fill();
       ctx.strokeStyle = rgba(onlineCount > 0 ? color : themeColor("history"), 0.85);
-      ctx.lineWidth = 1;
+      ctx.lineWidth = view.highContrast ? 1.8 : 1;
       ctx.stroke();
-      ctx.fillStyle = onlineCount > 0 ? themeColor("ink") : themeColor("muted");
+      ctx.fillStyle = onlineCount > 0 || view.highContrast ? themeColor("ink") : themeColor("muted");
       ctx.font = `600 ${Math.max(7.5, badgeRadius * 1.05)}px ${MONO}`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -3274,7 +3412,7 @@
     ctx.font = `600 ${fontSize}px ${FONT}`;
     const textY = point.y + radius + 8 * zoom + 3;
     strokeLabel(name, point.x, textY, fontSize);
-    ctx.fillStyle = active ? themeColor("ink") : themeColor("muted");
+    ctx.fillStyle = active || view.highContrast ? themeColor("ink") : themeColor("muted");
     ctx.fillText(name, point.x, textY);
 
     const subline = view.tailnetPresent && hasTailnet(device) && (reach === "tailnet" || device.self)
@@ -3285,7 +3423,7 @@
     if (!active) {
       ctx.globalAlpha = labelAlpha * historicAlpha;
       ctx.font = `500 ${subSize}px ${MONO}`;
-      ctx.fillStyle = themeColor("muted");
+      ctx.fillStyle = view.highContrast ? themeColor("ink") : themeColor("muted");
       const lastSeen = lastSeenLabel(device);
       strokeLabel(lastSeen, point.x, subY, subSize);
       ctx.fillText(lastSeen, point.x, subY);
@@ -3294,7 +3432,7 @@
     if (subline) {
       ctx.globalAlpha = labelAlpha * historicAlpha * smoothstep(0.4, 0.62, zoom);
       ctx.font = `500 ${subSize}px ${MONO}`;
-      ctx.fillStyle = device.self ? themeColor("muted") : themeColor("accent");
+      ctx.fillStyle = view.highContrast ? themeColor("ink") : (device.self ? themeColor("muted") : themeColor("accent"));
       strokeLabel(subline, point.x, subY, subSize);
       ctx.fillText(subline, point.x, subY);
       subY += subSize + 3;
@@ -3303,7 +3441,7 @@
     if (zoom > 1.25) {
       ctx.globalAlpha = labelAlpha * historicAlpha * smoothstep(1.25, 1.6, zoom);
       ctx.font = `500 ${subSize}px ${MONO}`;
-      ctx.fillStyle = themeColor("muted");
+      ctx.fillStyle = view.highContrast ? themeColor("ink") : themeColor("muted");
       if (reach !== "tailnet") {
         strokeLabel(device.ip, point.x, subY, subSize);
         ctx.fillText(device.ip, point.x, subY);
@@ -3354,7 +3492,7 @@
       ctx.fillStyle = rgba(color, 0.24);
       ctx.fill();
       ctx.strokeStyle = rgba(color, 0.9);
-      ctx.lineWidth = 1.1;
+      ctx.lineWidth = view.highContrast ? 2.4 : 1.1;
       ctx.stroke();
 
       if (zoom >= SERVICE_GLYPH_ZOOM) {
@@ -3369,8 +3507,8 @@
       ctx.setLineDash([2.5, 3]);
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius, 0, TAU);
-      ctx.strokeStyle = rgba(color, 0.55);
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = rgba(color, view.highContrast ? 0.95 : 0.55);
+      ctx.lineWidth = view.highContrast ? 2 : 1;
       ctx.stroke();
       ctx.setLineDash([]);
       if (zoom >= SERVICE_GLYPH_ZOOM) {
@@ -3391,8 +3529,8 @@
     if (view.hoverId === node.id || view.selectedServiceId === node.id) {
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius + 4, 0, TAU);
-      ctx.strokeStyle = rgba(themeColor("ink"), 0.5);
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = rgba(themeColor("ink"), view.highContrast ? 0.9 : 0.5);
+      ctx.lineWidth = view.highContrast ? 2.4 : 1;
       ctx.stroke();
     }
 
@@ -3442,15 +3580,17 @@
     view.serviceLabelRects.push(labelRect);
     ctx.globalAlpha = labelAlpha * alpha;
     strokeLabel(label, textX, textY, fontSize);
-    ctx.fillStyle = active
-      ? (node.data.tailnet && !node.data.local ? themeColor("accent") : themeColor("ink"))
-      : themeColor("muted");
+    ctx.fillStyle = view.highContrast
+      ? themeColor("ink")
+      : (active
+        ? (node.data.tailnet && !node.data.local ? themeColor("accent") : themeColor("ink"))
+        : themeColor("muted"));
     ctx.fillText(label, textX, textY);
 
     if (zoom > 1.45) {
       ctx.globalAlpha = labelAlpha * alpha * smoothstep(1.45, 1.8, zoom);
       ctx.font = `500 ${Math.max(8, 9.5 * zoom)}px ${MONO}`;
-      ctx.fillStyle = themeColor("muted");
+      ctx.fillStyle = view.highContrast ? themeColor("ink") : themeColor("muted");
       const portY = textY + fontSize * 0.95;
       const portText = `:${node.data.port}`;
       strokeLabel(portText, textX, portY, Math.max(8, 9.5 * zoom));
@@ -3620,9 +3760,9 @@
         view.hoverId === self.id || view.selectedDeviceId === self.id;
       const emphasis = related ? 1 : 0.72;
       const total = entry.rxShown + entry.txShown;
-      const width = entry.measured
-        ? (1.1 + rateWeight(total) * 1.3) * scale
-        : (0.9 + Math.min(entry.conns, 6) * 0.22) * scale;
+      const width = (entry.measured
+        ? (1.1 + rateWeight(total) * 1.3)
+        : (0.9 + Math.min(entry.conns, 6) * 0.22)) * scale * (view.highContrast ? 1.5 : 1);
 
       const path = () => {
         ctx.beginPath();
@@ -3631,11 +3771,13 @@
       };
 
       // Soft glow under the edge.
-      path();
-      ctx.setLineDash([]);
-      ctx.strokeStyle = rgba(color, 0.08 * entry.alpha * emphasis);
-      ctx.lineWidth = width * 4;
-      ctx.stroke();
+      if (!view.highContrast) {
+        path();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = rgba(color, 0.08 * entry.alpha * emphasis);
+        ctx.lineWidth = width * 4;
+        ctx.stroke();
+      }
 
       path();
       if (!entry.measured) {
@@ -3662,10 +3804,12 @@
           const t = (seconds * speed + i / count + entry.phase + (inbound ? 0.5 / count : 0)) % 1;
           const point = bezierPoint(from, control, to, inbound ? 1 - t : t);
           const edgeFade = Math.min(1, t * 6, (1 - t) * 6);
-          ctx.beginPath();
-          ctx.arc(point.x, point.y, radius * 2.4, 0, TAU);
-          ctx.fillStyle = rgba(color, 0.14 * entry.alpha * edgeFade);
-          ctx.fill();
+          if (!view.highContrast) {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, radius * 2.4, 0, TAU);
+            ctx.fillStyle = rgba(color, 0.14 * entry.alpha * edgeFade);
+            ctx.fill();
+          }
           ctx.beginPath();
           ctx.arc(point.x, point.y, radius, 0, TAU);
           ctx.fillStyle = rgba(inbound ? color : themeColor("ink"), 0.9 * entry.alpha * edgeFade);
@@ -4083,6 +4227,9 @@
   if (omarchyFollowBtn) {
     omarchyFollowBtn.addEventListener("click", () => setOmarchyFollow(!omarchyState.enabled));
   }
+  if (highContrastBtn) {
+    highContrastBtn.addEventListener("click", () => setHighContrast(!view.highContrast));
+  }
   settingsDialog.addEventListener("cancel", (event) => {
     event.preventDefault();
     closeSettings();
@@ -4226,6 +4373,18 @@
   window.addEventListener("hearthlight:theme", (event) => {
     applyTheme(event.detail);
   });
+  window.addEventListener("hearthlight:contrast", (event) => {
+    const enabled = Boolean(event.detail && event.detail.enabled);
+    if (view.highContrast === enabled) {
+      syncHighContrast();
+      return;
+    }
+    view.highContrast = enabled;
+    syncHighContrast();
+    view.territorySig = "";
+    view.territoryLayer = null;
+    requestDraw();
+  });
   window.addEventListener("resize", resize);
   window.setInterval(updateSubtitle, 1000);
   window.setInterval(refreshServiceTimes, 15000);
@@ -4235,6 +4394,7 @@
 
   renderThemeFamilies();
   resize();
+  applyHighContrastPreference();
   applyTheme();
   loadOmarchy();
   setConnection("connecting");

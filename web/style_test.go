@@ -168,6 +168,25 @@ func TestLightModeChromeTokens(t *testing.T) {
 	}
 }
 
+func TestHighContrastAndForcedColourStyles(t *testing.T) {
+	css := readAccessibilityFile(t, "style.css")
+	requireContains(t, css,
+		`:root[data-contrast="high"] .vignette {`,
+		"opacity: 0.32;",
+		"backdrop-filter: none;",
+		"@media (forced-colors: active) {",
+		"background: Canvas;",
+		"color: CanvasText;",
+		"outline: 3px solid Highlight;",
+		"border: 1px solid CanvasText;",
+	)
+	focus := cssRule(t, css, ":is(button, a[href], input, select, textarea, summary, [tabindex]):focus-visible {")
+	requireContains(t, focus,
+		"outline: 3px solid var(--accent);",
+		"box-shadow: 0 0 0 3px var(--theme-ink);",
+	)
+}
+
 func TestChromeSurfacesUseThemeTokens(t *testing.T) {
 	css := readAccessibilityFile(t, "style.css")
 	for _, selector := range []string{
