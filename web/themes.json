@@ -202,6 +202,78 @@
           }
         }
       ]
+    },
+    {
+      "id": "tokyo-night",
+      "name": "Tokyo Night",
+      "source": {
+        "name": "Tokyo Night",
+        "url": "https://github.com/folke/tokyonight.nvim"
+      },
+      "variants": [
+        {
+          "id": "tokyo-night",
+          "name": "Tokyo Night",
+          "mode": "dark",
+          "palette": {
+            "bg": "#1a1b26",
+            "ink": "#c0caf5",
+            "muted": "#a9b1d6",
+            "accent": "#7aa2f7",
+            "line": "rgba(192, 202, 245, 0.14)",
+            "glass": "rgba(26, 27, 38, 0.74)",
+            "canvasTop": "#292e42",
+            "canvasMiddle": "#1a1b26",
+            "canvasBottom": "#16161e",
+            "grid": "rgba(122, 162, 247, 0.06)",
+            "ambientGlow": "rgba(122, 162, 247, 0.12)",
+            "online": "#9ece6a",
+            "warning": "#e0af68",
+            "danger": "#f7768e",
+            "history": "#565f89",
+            "vignette": "rgba(22, 22, 30, 0.55)",
+            "labelHalo": "rgba(22, 22, 30, 0.88)",
+            "bubble": "rgba(26, 27, 38, 0.94)",
+            "panel": "rgba(26, 27, 38, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#e0af68" },
+            "server": { "label": "Server", "color": "#7dcfff" },
+            "computer": { "label": "Computer", "color": "#7aa2f7" },
+            "phone": { "label": "Phone", "color": "#ff007c" },
+            "nas": { "label": "NAS", "color": "#9ece6a" },
+            "media": { "label": "Media", "color": "#bb9af7" },
+            "iot": { "label": "IoT", "color": "#73daca" },
+            "printer": { "label": "Printer", "color": "#ff9e64" },
+            "device": { "label": "Device", "color": "#737aa2" }
+          },
+          "categories": {
+            "web": "#7dcfff",
+            "media": "#bb9af7",
+            "data": "#ff9e64",
+            "remote": "#9ece6a",
+            "infra": "#7aa2f7",
+            "iot": "#73daca",
+            "other": "#737aa2"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
     }
   ]
 }
