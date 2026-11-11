@@ -149,6 +149,74 @@ func TestSettingsAppearanceMarkup(t *testing.T) {
 	}
 }
 
+func TestSettingsHighContrastMarkup(t *testing.T) {
+	html := readAccessibilityFile(t, "index.html")
+	dialog := markupBetween(t, html, `<dialog id="settingsDialog"`, `</dialog>`)
+	appearance := markupBetween(t, dialog, `<section class="settings-section settings-appearance"`, `</section>`)
+	requireContains(t, appearance,
+		`id="highContrastBtn"`,
+		`class="settings-toggle"`,
+		`role="switch"`,
+		`aria-checked="false"`,
+		`>High contrast<`,
+		`Stronger labels and outlines, no glow or blur`,
+	)
+}
+
+func TestHighContrastPreferenceAppliesAndResets(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	requireContains(t, js,
+		`const HIGH_CONTRAST_STORAGE_KEY = "hearthlight.contrast.v1";`,
+		`document.getElementById("highContrastBtn")`,
+		`highContrastBtn.addEventListener("click", () => setHighContrast(!view.highContrast));`,
+		`window.matchMedia("(prefers-contrast: more)")`,
+		`"hearthlight:contrast"`,
+	)
+	set := functionBody(t, js, "setHighContrast")
+	requireContains(t, set,
+		"view.highContrast",
+		"localStorage.setItem(HIGH_CONTRAST_STORAGE_KEY",
+		"control.applyContrast(view.highContrast)",
+		"syncHighContrast()",
+		"requestDraw()",
+	)
+	reset := functionBody(t, js, "resetTheme")
+	requireContains(t, reset,
+		"removeItem(HIGH_CONTRAST_STORAGE_KEY)",
+		"applyHighContrastPreference()",
+	)
+	move := functionBody(t, js, "onThemeFamilyKeydown")
+	requireContains(t, move, "target.focus()", "setThemeFamily(target.dataset.family")
+}
+
+func TestThemeBootRestoresContrastBeforeFirstPaint(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-boot.js")
+	requireContains(t, source,
+		`const CONTRAST_STORAGE_KEY = "hearthlight.contrast.v1";`,
+		`window.matchMedia("(prefers-contrast: more)")`,
+		`root.dataset.contrast = high ? "high" : "normal";`,
+		`applyContrast(contrastPreference());`,
+		`contrastQuery.addEventListener("change"`,
+	)
+	api := markupBetween(t, source, "window.HearthlightTheme = Object.freeze({", "});")
+	requireContains(t, api, "CONTRAST_STORAGE_KEY,", "contrastPreference,", "applyContrast,")
+}
+
+func TestLegendUsesNonColourGlyphs(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	legend := functionBody(t, js, "renderLegend")
+	requireContains(t, legend,
+		`glyphSVG(KIND_GLYPHS[name] || "device")`,
+		`glyphSVG(CATEGORY_GLYPHS[name] || "dot")`,
+	)
+	requireContains(t, js,
+		`router: "router",`,
+		`server: "server",`,
+		`nas: "nas",`,
+		`infra: "server",`,
+	)
+}
+
 func TestAppearanceControlsApplyAndPersist(t *testing.T) {
 	js := readAccessibilityFile(t, "app.js")
 	requireContains(t, js,

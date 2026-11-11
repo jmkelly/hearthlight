@@ -2,6 +2,7 @@
   "use strict";
 
   const STORAGE_KEY = "hearthlight.theme.v1";
+  const CONTRAST_STORAGE_KEY = "hearthlight.contrast.v1";
   const DEFAULT_THEME = Object.freeze({ family: "hearthlight", mode: "dark" });
   const AUTO_MODES = new Set(["auto", "system"]);
   const MODES = new Set(["dark", "light"]);
@@ -9,6 +10,7 @@
 
   const root = document.documentElement;
   const lightQuery = window.matchMedia("(prefers-color-scheme: light)");
+  const contrastQuery = window.matchMedia("(prefers-contrast: more)");
   const catalog = window.HearthlightThemes;
   const families = catalog && Array.isArray(catalog.families) ? catalog.families : [];
   const appliedTokens = new Set();
@@ -205,10 +207,44 @@
     return update(normalized);
   };
 
+  // The OS asks for more contrast unless the user chose either value explicitly.
+  const readContrastOverride = () => {
+    let stored = null;
+    try {
+      stored = window.localStorage.getItem(CONTRAST_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+    if (stored === "high") return true;
+    if (stored === "normal") return false;
+    return null;
+  };
+
+  const contrastPreference = () => {
+    const override = readContrastOverride();
+    return override === null ? contrastQuery.matches : override;
+  };
+
+  const dispatchContrast = (enabled) => {
+    if (typeof window.CustomEvent !== "function") return;
+    window.dispatchEvent(new CustomEvent("hearthlight:contrast", { detail: { enabled } }));
+  };
+
+  const applyContrast = (enabled) => {
+    const high = Boolean(enabled);
+    root.dataset.contrast = high ? "high" : "normal";
+    dispatchContrast(high);
+    return high;
+  };
+
   apply(resolve(initialPreference()));
+  applyContrast(contrastPreference());
 
   window.addEventListener("storage", (event) => {
     if (event.key === STORAGE_KEY || event.key === null) update(initialPreference());
+    if (event.key === CONTRAST_STORAGE_KEY || event.key === null) {
+      applyContrast(contrastPreference());
+    }
   });
 
   if (typeof lightQuery.addEventListener === "function") {
@@ -217,10 +253,20 @@
     lightQuery.addListener(() => update(initialPreference()));
   }
 
+  const onContrastChange = () => applyContrast(contrastPreference());
+  if (typeof contrastQuery.addEventListener === "function") {
+    contrastQuery.addEventListener("change", onContrastChange);
+  } else if (typeof contrastQuery.addListener === "function") {
+    contrastQuery.addListener(onContrastChange);
+  }
+
   window.HearthlightTheme = Object.freeze({
     STORAGE_KEY,
+    CONTRAST_STORAGE_KEY,
     DEFAULT_THEME,
     initialPreference,
+    contrastPreference,
+    applyContrast,
     resolve,
     apply,
     persist,
