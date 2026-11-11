@@ -170,6 +170,67 @@ var wantCatppuccinMochaEffects = map[string]any{
 	"shadowStrength": 1.0,
 }
 
+var wantTokyoNightPalette = map[string]string{
+	"bg":           "#1a1b26",
+	"ink":          "#c0caf5",
+	"muted":        "#a9b1d6",
+	"accent":       "#7aa2f7",
+	"line":         "rgba(192, 202, 245, 0.14)",
+	"glass":        "rgba(26, 27, 38, 0.74)",
+	"canvasTop":    "#292e42",
+	"canvasMiddle": "#1a1b26",
+	"canvasBottom": "#16161e",
+	"grid":         "rgba(122, 162, 247, 0.06)",
+	"ambientGlow":  "rgba(122, 162, 247, 0.12)",
+	"online":       "#9ece6a",
+	"warning":      "#e0af68",
+	"danger":       "#f7768e",
+	"history":      "#565f89",
+	"vignette":     "rgba(22, 22, 30, 0.55)",
+	"labelHalo":    "rgba(22, 22, 30, 0.88)",
+	"bubble":       "rgba(26, 27, 38, 0.94)",
+	"panel":        "rgba(26, 27, 38, 0.95)",
+}
+
+var wantTokyoNightKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#e0af68"},
+	"server":   {Label: "Server", Color: "#7dcfff"},
+	"computer": {Label: "Computer", Color: "#7aa2f7"},
+	"phone":    {Label: "Phone", Color: "#ff007c"},
+	"nas":      {Label: "NAS", Color: "#9ece6a"},
+	"media":    {Label: "Media", Color: "#bb9af7"},
+	"iot":      {Label: "IoT", Color: "#73daca"},
+	"printer":  {Label: "Printer", Color: "#ff9e64"},
+	"device":   {Label: "Device", Color: "#737aa2"},
+}
+
+var wantTokyoNightCategories = map[string]string{
+	"web":    "#7dcfff",
+	"media":  "#bb9af7",
+	"data":   "#ff9e64",
+	"remote": "#9ece6a",
+	"infra":  "#7aa2f7",
+	"iot":    "#73daca",
+	"other":  "#737aa2",
+}
+
+var wantTokyoNightEffects = map[string]any{
+	"vignette":       0.55,
+	"deviceGlow":     0.22,
+	"devicePulse":    0.3,
+	"serviceGlow":    0.16,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "screen",
+	"territoryAlpha": 1.0,
+	"glowStrength":   1.0,
+	"labelHalo":      1.0,
+	"shadowStrength": 1.0,
+}
+
 var requiredPaletteTokens = []string{
 	"bg", "ink", "muted", "accent", "line", "glass",
 	"canvasTop", "canvasMiddle", "canvasBottom", "grid", "ambientGlow",
@@ -361,6 +422,134 @@ func TestCatppuccinMochaVariant(t *testing.T) {
 	if !reflect.DeepEqual(variant.Effects, wantCatppuccinMochaEffects) {
 		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantCatppuccinMochaEffects)
 	}
+}
+
+func TestTokyoNightVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "tokyo-night")
+	if family.Name != "Tokyo Night" {
+		t.Fatalf("family name = %q, want Tokyo Night", family.Name)
+	}
+	if family.Source.Name != "Tokyo Night" {
+		t.Errorf("source name = %q, want Tokyo Night", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/folke/tokyonight.nvim" {
+		t.Errorf("source url = %q, want the Tokyo Night project URL", family.Source.URL)
+	}
+	if len(family.Variants) != 1 {
+		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	}
+	variant := family.Variants[0]
+	if variant.ID != "tokyo-night" || variant.Name != "Tokyo Night" || variant.Mode != "dark" {
+		t.Fatalf("variant = %+v, want Tokyo Night dark", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantTokyoNightPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantTokyoNightPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantTokyoNightKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantTokyoNightKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantTokyoNightCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantTokyoNightCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantTokyoNightEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantTokyoNightEffects)
+	}
+}
+
+func TestDarkVariantsKeepMapSeparation(t *testing.T) {
+	_, catalog := readCatalog(t)
+	for _, family := range catalog.Families {
+		for _, variant := range family.Variants {
+			if variant.Mode != "dark" {
+				continue
+			}
+			checkDistinctColours(t, variant.ID, "kind", kindColours(variant.Kinds))
+			checkDistinctColours(t, variant.ID, "category", variant.Categories)
+
+			warning := parseHexColour(t, variant.ID, "warning", variant.Palette["warning"])
+			accent := parseHexColour(t, variant.ID, "accent", variant.Palette["accent"])
+			media := parseHexColour(t, variant.ID, "media category", variant.Categories["media"])
+			online := parseHexColour(t, variant.ID, "online", variant.Palette["online"])
+			history := parseHexColour(t, variant.ID, "history", variant.Palette["history"])
+
+			if hue := hueOf(warning); hue < 20 || hue > 70 {
+				t.Errorf("%s: warning hue = %.0f, want a warm hue between 20 and 70", variant.ID, hue)
+			}
+			for name, colour := range map[string][3]float64{"accent": accent, "media category": media} {
+				if hue := hueOf(colour); hue < 180 || hue > 290 {
+					t.Errorf("%s: %s hue = %.0f, want a cool hue between 180 and 290", variant.ID, name, hue)
+				}
+			}
+			if saturationOf(online) <= saturationOf(history) {
+				t.Errorf("%s: online saturation = %.2f, history saturation = %.2f, want online more saturated",
+					variant.ID, saturationOf(online), saturationOf(history))
+			}
+		}
+	}
+}
+
+func kindColours(kinds map[string]themeKind) map[string]string {
+	colours := make(map[string]string, len(kinds))
+	for name, kind := range kinds {
+		colours[name] = kind.Color
+	}
+	return colours
+}
+
+func checkDistinctColours(t *testing.T, variant, group string, colours map[string]string) {
+	t.Helper()
+	seen := make(map[string]string, len(colours))
+	for name, colour := range colours {
+		if other, ok := seen[colour]; ok {
+			t.Errorf("%s: %s %q and %q share the colour %s", variant, group, other, name, colour)
+		}
+		seen[colour] = name
+	}
+}
+
+func parseHexColour(t *testing.T, variant, token, value string) [3]float64 {
+	t.Helper()
+	colour, ok := hexColour(value)
+	if !ok {
+		t.Fatalf("%s: %s = %q, want a hex colour", variant, token, value)
+	}
+	return colour
+}
+
+func hueOf(rgb [3]float64) float64 {
+	high, low := math.Max(rgb[0], math.Max(rgb[1], rgb[2])), math.Min(rgb[0], math.Min(rgb[1], rgb[2]))
+	if high == low {
+		return 0
+	}
+	delta := high - low
+	hue := 0.0
+	switch high {
+	case rgb[0]:
+		hue = math.Mod((rgb[1]-rgb[2])/delta, 6)
+	case rgb[1]:
+		hue = (rgb[2]-rgb[0])/delta + 2
+	default:
+		hue = (rgb[0]-rgb[1])/delta + 4
+	}
+	hue *= 60
+	if hue < 0 {
+		hue += 360
+	}
+	return hue
+}
+
+func saturationOf(rgb [3]float64) float64 {
+	high, low := math.Max(rgb[0], math.Max(rgb[1], rgb[2])), math.Min(rgb[0], math.Min(rgb[1], rgb[2]))
+	lightness := (high + low) / 2
+	if high == low {
+		return 0
+	}
+	delta := high - low
+	if lightness > 0.5 {
+		return delta / (2 - high - low)
+	}
+	return delta / (high + low)
 }
 
 func TestThemeIDsAreKebabCase(t *testing.T) {

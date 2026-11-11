@@ -146,8 +146,8 @@ func TestThemesEndpoint(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &catalog); err != nil {
 		t.Fatalf("response is not valid JSON: %v", err)
 	}
-	if catalog.SchemaVersion != 1 || len(catalog.Families) != 2 {
-		t.Fatalf("schemaVersion = %d, families = %d, want 1 and 2", catalog.SchemaVersion, len(catalog.Families))
+	if catalog.SchemaVersion != 1 || len(catalog.Families) != 3 {
+		t.Fatalf("schemaVersion = %d, families = %d, want 1 and 3", catalog.SchemaVersion, len(catalog.Families))
 	}
 }
 
