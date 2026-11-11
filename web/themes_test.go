@@ -610,6 +610,128 @@ var wantSolarizedDarkEffects = map[string]any{
 	"shadowStrength": 1.0,
 }
 
+var wantGruvboxDarkPalette = map[string]string{
+	"bg":           "#282828",
+	"ink":          "#ebdbb2",
+	"muted":        "#bdae93",
+	"accent":       "#7fb0b5",
+	"line":         "rgba(235, 219, 178, 0.14)",
+	"glass":        "rgba(40, 40, 40, 0.74)",
+	"canvasTop":    "#3c3836",
+	"canvasMiddle": "#282828",
+	"canvasBottom": "#1d2021",
+	"grid":         "rgba(131, 165, 152, 0.06)",
+	"ambientGlow":  "rgba(131, 165, 152, 0.12)",
+	"online":       "#b8bb26",
+	"warning":      "#fabd2f",
+	"danger":       "#fb4934",
+	"history":      "#928374",
+	"vignette":     "rgba(29, 32, 33, 0.55)",
+	"labelHalo":    "rgba(29, 32, 33, 0.88)",
+	"bubble":       "rgba(50, 48, 47, 0.94)",
+	"panel":        "rgba(40, 40, 40, 0.95)",
+}
+
+var wantGruvboxDarkKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#fabd2f"},
+	"server":   {Label: "Server", Color: "#7fb0b5"},
+	"computer": {Label: "Computer", Color: "#83a598"},
+	"phone":    {Label: "Phone", Color: "#d3869b"},
+	"nas":      {Label: "NAS", Color: "#b8bb26"},
+	"media":    {Label: "Media", Color: "#b986d3"},
+	"iot":      {Label: "IoT", Color: "#8ec07c"},
+	"printer":  {Label: "Printer", Color: "#fe8019"},
+	"device":   {Label: "Device", Color: "#928374"},
+}
+
+var wantGruvboxDarkCategories = map[string]string{
+	"web":    "#7fb0b5",
+	"media":  "#b986d3",
+	"data":   "#fe8019",
+	"remote": "#b8bb26",
+	"infra":  "#83a598",
+	"iot":    "#8ec07c",
+	"other":  "#928374",
+}
+
+var wantGruvboxDarkEffects = map[string]any{
+	"vignette":       0.55,
+	"deviceGlow":     0.22,
+	"devicePulse":    0.3,
+	"serviceGlow":    0.16,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "screen",
+	"territoryAlpha": 1.0,
+	"glowStrength":   1.0,
+	"labelHalo":      1.0,
+	"shadowStrength": 1.0,
+}
+
+var wantNordDarkPalette = map[string]string{
+	"bg":           "#2e3440",
+	"ink":          "#d8dee9",
+	"muted":        "#a7b1c2",
+	"accent":       "#88c0d0",
+	"line":         "rgba(216, 222, 233, 0.14)",
+	"glass":        "rgba(46, 52, 64, 0.74)",
+	"canvasTop":    "#3b4252",
+	"canvasMiddle": "#2e3440",
+	"canvasBottom": "#242933",
+	"grid":         "rgba(136, 192, 208, 0.06)",
+	"ambientGlow":  "rgba(136, 192, 208, 0.12)",
+	"online":       "#a3be8c",
+	"warning":      "#ebcb8b",
+	"danger":       "#bf616a",
+	"history":      "#8a96ab",
+	"vignette":     "rgba(36, 41, 51, 0.55)",
+	"labelHalo":    "rgba(36, 41, 51, 0.88)",
+	"bubble":       "rgba(46, 52, 64, 0.94)",
+	"panel":        "rgba(46, 52, 64, 0.95)",
+}
+
+var wantNordDarkKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#ebcb8b"},
+	"server":   {Label: "Server", Color: "#88c0d0"},
+	"computer": {Label: "Computer", Color: "#81a1c1"},
+	"phone":    {Label: "Phone", Color: "#b48ead"},
+	"nas":      {Label: "NAS", Color: "#a3be8c"},
+	"media":    {Label: "Media", Color: "#a18eb4"},
+	"iot":      {Label: "IoT", Color: "#8fbcbb"},
+	"printer":  {Label: "Printer", Color: "#d08770"},
+	"device":   {Label: "Device", Color: "#8a96ab"},
+}
+
+var wantNordDarkCategories = map[string]string{
+	"web":    "#88c0d0",
+	"media":  "#a18eb4",
+	"data":   "#d08770",
+	"remote": "#a3be8c",
+	"infra":  "#81a1c1",
+	"iot":    "#8fbcbb",
+	"other":  "#8a96ab",
+}
+
+var wantNordDarkEffects = map[string]any{
+	"vignette":       0.55,
+	"deviceGlow":     0.22,
+	"devicePulse":    0.3,
+	"serviceGlow":    0.16,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "screen",
+	"territoryAlpha": 1.0,
+	"glowStrength":   1.0,
+	"labelHalo":      1.0,
+	"shadowStrength": 1.0,
+}
+
 var requiredPaletteTokens = []string{
 	"bg", "ink", "muted", "accent", "line", "glass",
 	"canvasTop", "canvasMiddle", "canvasBottom", "grid", "ambientGlow",
@@ -1031,6 +1153,94 @@ func TestSolarizedDarkVariant(t *testing.T) {
 	}
 	if !reflect.DeepEqual(variant.Effects, wantSolarizedDarkEffects) {
 		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantSolarizedDarkEffects)
+	}
+}
+
+func TestGruvboxVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "gruvbox")
+	if family.Name != "Gruvbox" {
+		t.Fatalf("family name = %q, want Gruvbox", family.Name)
+	}
+	if family.Source.Name != "Gruvbox" {
+		t.Errorf("source name = %q, want Gruvbox", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/morhetz/gruvbox" {
+		t.Errorf("source url = %q, want the Gruvbox project URL", family.Source.URL)
+	}
+	if strings.TrimSpace(family.Source.Note) == "" {
+		t.Error("source note is empty, want the separation-driven shifts documented")
+	}
+	if len(family.Variants) != 1 {
+		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	}
+	variant := family.Variants[0]
+	if variant.ID != "gruvbox-dark" || variant.Name != "Gruvbox Dark" || variant.Mode != "dark" {
+		t.Fatalf("variant = %+v, want Gruvbox Dark", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantGruvboxDarkPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantGruvboxDarkPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantGruvboxDarkKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantGruvboxDarkKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantGruvboxDarkCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantGruvboxDarkCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantGruvboxDarkEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantGruvboxDarkEffects)
+	}
+}
+
+func TestNordVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "nord")
+	if family.Name != "Nord" {
+		t.Fatalf("family name = %q, want Nord", family.Name)
+	}
+	if family.Source.Name != "Nord" {
+		t.Errorf("source name = %q, want Nord", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/nordtheme/nord" {
+		t.Errorf("source url = %q, want the Nord project URL", family.Source.URL)
+	}
+	if strings.TrimSpace(family.Source.Note) == "" {
+		t.Error("source note is empty, want the separation-driven shifts documented")
+	}
+	if len(family.Variants) != 1 {
+		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	}
+	variant := family.Variants[0]
+	if variant.ID != "nord-dark" || variant.Name != "Nord Dark" || variant.Mode != "dark" {
+		t.Fatalf("variant = %+v, want Nord Dark", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantNordDarkPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantNordDarkPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantNordDarkKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantNordDarkKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantNordDarkCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantNordDarkCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantNordDarkEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantNordDarkEffects)
+	}
+}
+
+func TestThemeFamiliesCreditSources(t *testing.T) {
+	_, catalog := readCatalog(t)
+	for _, family := range catalog.Families {
+		if strings.TrimSpace(family.Source.Name) == "" {
+			t.Errorf("family %q has an empty source name", family.ID)
+		}
+		if !strings.HasPrefix(family.Source.URL, "https://") {
+			t.Errorf("family %q source url = %q, want an https:// URL", family.ID, family.Source.URL)
+		}
+	}
+	hearthlight := findThemeFamily(t, catalog, "hearthlight")
+	if hearthlight.Source.URL != "https://github.com/jmkelly/hearthlight" {
+		t.Errorf("hearthlight source url = %q, want the Hearthlight repository URL", hearthlight.Source.URL)
 	}
 }
 
