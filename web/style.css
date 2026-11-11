@@ -1,4 +1,6 @@
 :root {
+  color-scheme: dark;
+
   /* Hearthlight Dark palette */
   --theme-bg: #050a12;
   --theme-ink: #e9f2fa;
@@ -113,6 +115,97 @@
   --radius: 14px;
   --font: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Chrome tokens are derived from the dark palette above. The theme boot script
+   applies the light palette inline; these overrides keep every chrome surface
+   legible when the resolved mode is light. */
+:root[data-mode="light"] {
+  color-scheme: light;
+
+  /* Chrome surfaces */
+  --theme-glass-top: rgba(255, 255, 255, 0.92);
+  --theme-glass-bottom: rgba(243, 248, 253, 0.88);
+  --theme-glass-border: rgba(21, 54, 84, 0.14);
+  --theme-glass-shadow: rgba(31, 55, 81, 0.14);
+  --theme-glass-highlight: rgba(255, 255, 255, 0.9);
+  --theme-hint-surface: rgba(250, 253, 255, 0.82);
+  --theme-panel-top: rgba(255, 255, 255, 0.97);
+  --theme-panel-bottom: rgba(243, 248, 253, 0.97);
+  --theme-panel-shadow: rgba(24, 45, 68, 0.18);
+  --theme-meta-tint: rgba(21, 54, 84, 0.08);
+  --theme-meta-surface: rgba(247, 251, 255, 0.9);
+  --theme-control-pressed: rgba(7, 107, 132, 0.1);
+  --theme-row-hover-border: rgba(7, 107, 132, 0.16);
+  --theme-row-hover-surface: rgba(7, 107, 132, 0.06);
+  --theme-close-hover: rgba(21, 54, 84, 0.08);
+  --theme-tooltip-surface: rgba(255, 255, 255, 0.97);
+  --theme-toast-surface: rgba(255, 255, 255, 0.97);
+  --theme-popover-shadow: rgba(24, 45, 68, 0.2);
+  --theme-settings-backdrop: rgba(21, 40, 60, 0.35);
+
+  /* Borders and dividers */
+  --theme-line-faint: rgba(21, 54, 84, 0.08);
+  --theme-line-soft: rgba(21, 54, 84, 0.14);
+  --theme-line-panel: rgba(21, 54, 84, 0.16);
+  --theme-line-strong: rgba(21, 54, 84, 0.18);
+  --theme-line-scroll: rgba(21, 54, 84, 0.26);
+  --theme-line-badge: rgba(21, 54, 84, 0.24);
+
+  /* Accent states */
+  --theme-accent-faint: rgba(7, 107, 132, 0.05);
+  --theme-accent-whisper: rgba(7, 107, 132, 0.07);
+  --theme-accent-hover: rgba(7, 107, 132, 0.09);
+  --theme-accent-wash: rgba(7, 107, 132, 0.12);
+  --theme-accent-muted: rgba(7, 107, 132, 0.16);
+  --theme-accent-soft: rgba(7, 107, 132, 0.2);
+  --theme-accent-bright: rgba(7, 107, 132, 0.22);
+  --theme-accent-line: rgba(7, 107, 132, 0.28);
+  --theme-accent-edge: rgba(7, 107, 132, 0.34);
+  --theme-accent-selected: rgba(7, 107, 132, 0.38);
+  --theme-accent-ring: rgba(7, 107, 132, 0.44);
+  --theme-accent-badge: rgba(7, 107, 132, 0.5);
+  --theme-accent-glow: rgba(7, 107, 132, 0.18);
+  --theme-accent-glow-strong: rgba(7, 107, 132, 0.26);
+  --theme-accent-line-strong: rgba(7, 107, 132, 0.65);
+  --theme-accent-halo: rgba(7, 107, 132, 0.75);
+
+  /* Text */
+  --theme-text-hover: #08303a;
+  --theme-action-text: #31465b;
+  --theme-action-off: #5f7286;
+  --theme-tailnet-text: #055566;
+  --theme-tailnet-muted: #3f6573;
+  --theme-label: #5a6c81;
+  --theme-badge-text: #2d4257;
+  --theme-hint-text: #55677b;
+  --theme-close-text: #576a7f;
+  --theme-close-hover-text: #0f1c2b;
+  --theme-offline: #7b8a9c;
+  --theme-ip-text: #344b61;
+  --theme-meta-label: #56687d;
+  --theme-meta-value: #20354a;
+  --theme-section-label: #56687d;
+  --theme-section-value: #3f5469;
+  --theme-service-name: #152639;
+  --theme-service-port: #4f647a;
+  --theme-reach-tailnet: #076b84;
+  --theme-empty-service: #5f7184;
+  --theme-tooltip-text: #33485d;
+  --theme-tooltip-strong: #0f1c2b;
+  --theme-tooltip-meta: #566a7f;
+  --theme-toast-text: #33485d;
+  --theme-empty-text: #566a7e;
+  --theme-history-dot: #637588;
+
+  /* Orb and status glows */
+  --theme-orb-core: #eaffff;
+  --theme-orb-mid: #0b7189;
+  --theme-orb-deep: #083949;
+  --theme-empty-orb-deep: #0c6a83;
+  --theme-online-glow: rgba(10, 116, 72, 0.35);
+  --theme-danger-glow: rgba(176, 42, 34, 0.32);
+  --theme-warning-glow: rgba(143, 92, 0, 0.3);
 }
 
 * {
@@ -1299,6 +1392,12 @@ button:focus-visible {
 
 .service-row.off {
   opacity: 0.55;
+}
+
+/* History rows are still interactive, so keep them above the text contrast
+   floor on the lighter panel surface. */
+:root[data-mode="light"] .service-row.off {
+  opacity: 0.7;
 }
 
 .svc-glyph {
