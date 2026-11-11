@@ -35,15 +35,42 @@
             "panel": "rgba(12, 21, 35, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#ffd166" },
-            "server": { "label": "Server", "color": "#5ee7ff" },
-            "computer": { "label": "Computer", "color": "#8fb3ff" },
-            "phone": { "label": "Phone", "color": "#ff9ec7" },
-            "nas": { "label": "NAS", "color": "#5ee0a5" },
-            "media": { "label": "Media", "color": "#b18cff" },
-            "iot": { "label": "IoT", "color": "#f08fc8" },
-            "printer": { "label": "Printer", "color": "#ffb86b" },
-            "device": { "label": "Device", "color": "#94a3b8" }
+            "router": {
+              "label": "Router",
+              "color": "#ffd166"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#5ee7ff"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#8fb3ff"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#ff9ec7"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#5ee0a5"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#b18cff"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#f08fc8"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#ffb86b"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#94a3b8"
+            }
           },
           "categories": {
             "web": "#5ee7ff",
@@ -97,15 +124,42 @@
             "panel": "rgba(250, 252, 255, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#8a5a00" },
-            "server": { "label": "Server", "color": "#076b84" },
-            "computer": { "label": "Computer", "color": "#2d5cae" },
-            "phone": { "label": "Phone", "color": "#a8346c" },
-            "nas": { "label": "NAS", "color": "#0a7448" },
-            "media": { "label": "Media", "color": "#6840ad" },
-            "iot": { "label": "IoT", "color": "#a13b85" },
-            "printer": { "label": "Printer", "color": "#a15400" },
-            "device": { "label": "Device", "color": "#5a6878" }
+            "router": {
+              "label": "Router",
+              "color": "#8a5a00"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#076b84"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#2d5cae"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#a8346c"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#0a7448"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#6840ad"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#a13b85"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#a15400"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#5a6878"
+            }
           },
           "categories": {
             "web": "#076b84",
@@ -170,15 +224,42 @@
             "panel": "rgba(30, 30, 46, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#f9e2af" },
-            "server": { "label": "Server", "color": "#89dceb" },
-            "computer": { "label": "Computer", "color": "#89b4fa" },
-            "phone": { "label": "Phone", "color": "#f5c2e7" },
-            "nas": { "label": "NAS", "color": "#a6e3a1" },
-            "media": { "label": "Media", "color": "#cba6f7" },
-            "iot": { "label": "IoT", "color": "#94e2d5" },
-            "printer": { "label": "Printer", "color": "#fab387" },
-            "device": { "label": "Device", "color": "#9399b2" }
+            "router": {
+              "label": "Router",
+              "color": "#f9e2af"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#89dceb"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#89b4fa"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#f5c2e7"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#a6e3a1"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#cba6f7"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#94e2d5"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#fab387"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#9399b2"
+            }
           },
           "categories": {
             "web": "#89dceb",
@@ -232,15 +313,42 @@
             "panel": "rgba(248, 249, 252, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#9a6400" },
-            "server": { "label": "Server", "color": "#179299" },
-            "computer": { "label": "Computer", "color": "#1e66f5" },
-            "phone": { "label": "Phone", "color": "#c0266b" },
-            "nas": { "label": "NAS", "color": "#2f7d20" },
-            "media": { "label": "Media", "color": "#8839ef" },
-            "iot": { "label": "IoT", "color": "#1a7f6e" },
-            "printer": { "label": "Printer", "color": "#b34a00" },
-            "device": { "label": "Device", "color": "#6c6f85" }
+            "router": {
+              "label": "Router",
+              "color": "#9a6400"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#179299"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#1e66f5"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#c0266b"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#2f7d20"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#8839ef"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#1a7f6e"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#b34a00"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#6c6f85"
+            }
           },
           "categories": {
             "web": "#179299",
@@ -305,15 +413,42 @@
             "panel": "rgba(26, 27, 38, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#e0af68" },
-            "server": { "label": "Server", "color": "#7dcfff" },
-            "computer": { "label": "Computer", "color": "#7aa2f7" },
-            "phone": { "label": "Phone", "color": "#ff007c" },
-            "nas": { "label": "NAS", "color": "#9ece6a" },
-            "media": { "label": "Media", "color": "#bb9af7" },
-            "iot": { "label": "IoT", "color": "#73daca" },
-            "printer": { "label": "Printer", "color": "#ff9e64" },
-            "device": { "label": "Device", "color": "#737aa2" }
+            "router": {
+              "label": "Router",
+              "color": "#e0af68"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7dcfff"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#7aa2f7"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#ff007c"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#9ece6a"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#bb9af7"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#73daca"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#ff9e64"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#737aa2"
+            }
           },
           "categories": {
             "web": "#7dcfff",
@@ -367,15 +502,42 @@
             "panel": "rgba(236, 237, 242, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#8c6c3e" },
-            "server": { "label": "Server", "color": "#007197" },
-            "computer": { "label": "Computer", "color": "#2e7de9" },
-            "phone": { "label": "Phone", "color": "#9854f1" },
-            "nas": { "label": "NAS", "color": "#587539" },
-            "media": { "label": "Media", "color": "#7847bd" },
-            "iot": { "label": "IoT", "color": "#118c74" },
-            "printer": { "label": "Printer", "color": "#b15c00" },
-            "device": { "label": "Device", "color": "#5f6685" }
+            "router": {
+              "label": "Router",
+              "color": "#8c6c3e"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#007197"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#2e7de9"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#9854f1"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#587539"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#7847bd"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#118c74"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#b15c00"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#5f6685"
+            }
           },
           "categories": {
             "web": "#007197",
@@ -407,16 +569,16 @@
     },
     {
       "id": "rose-pine",
-      "name": "Rosé Pine",
+      "name": "Ros\u00e9 Pine",
       "source": {
-        "name": "Rosé Pine",
+        "name": "Ros\u00e9 Pine",
         "url": "https://github.com/rose-pine/rose-pine",
         "note": "muted lightened from #908caa to #9591b2 for 4.5:1 text contrast and history from #6e6a86 to #908caa for 3:1 canvas contrast. The dawn variant keeps canonical base #faf4ed, text #575279, pine #286983, iris #907aa9, foam #56949f and love #b4637a; muted shifts subtle #797593 to #6e6a86 for 4.5:1 text, gold #ea9d34 to #a36500 and rose #d7827e to #a35d43 for 3:1 graphics, and online uses derived green #2f7a4a because Dawn has no green. History keeps subtle #797593 at low chroma."
       },
       "variants": [
         {
           "id": "rose-pine-moon",
-          "name": "Rosé Pine Moon",
+          "name": "Ros\u00e9 Pine Moon",
           "mode": "dark",
           "palette": {
             "bg": "#232136",
@@ -440,15 +602,42 @@
             "panel": "rgba(35, 33, 54, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#f6c177" },
-            "server": { "label": "Server", "color": "#9ccfd8" },
-            "computer": { "label": "Computer", "color": "#3e8fb0" },
-            "phone": { "label": "Phone", "color": "#eb6f92" },
-            "nas": { "label": "NAS", "color": "#86c79a" },
-            "media": { "label": "Media", "color": "#c4a7e7" },
-            "iot": { "label": "IoT", "color": "#7dc4b8" },
-            "printer": { "label": "Printer", "color": "#ea9a97" },
-            "device": { "label": "Device", "color": "#908caa" }
+            "router": {
+              "label": "Router",
+              "color": "#f6c177"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#9ccfd8"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3e8fb0"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#eb6f92"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#86c79a"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#c4a7e7"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#7dc4b8"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#ea9a97"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#908caa"
+            }
           },
           "categories": {
             "web": "#9ccfd8",
@@ -478,7 +667,7 @@
         },
         {
           "id": "rose-pine-dawn",
-          "name": "Rosé Pine Dawn",
+          "name": "Ros\u00e9 Pine Dawn",
           "mode": "light",
           "palette": {
             "bg": "#faf4ed",
@@ -502,15 +691,42 @@
             "panel": "rgba(255, 250, 243, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#a36500" },
-            "server": { "label": "Server", "color": "#286983" },
-            "computer": { "label": "Computer", "color": "#3e6f9e" },
-            "phone": { "label": "Phone", "color": "#b4637a" },
-            "nas": { "label": "NAS", "color": "#2f7a4a" },
-            "media": { "label": "Media", "color": "#907aa9" },
-            "iot": { "label": "IoT", "color": "#56949f" },
-            "printer": { "label": "Printer", "color": "#a35d43" },
-            "device": { "label": "Device", "color": "#6e6a86" }
+            "router": {
+              "label": "Router",
+              "color": "#a36500"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#286983"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3e6f9e"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#b4637a"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#2f7a4a"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#907aa9"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#56949f"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#a35d43"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#6e6a86"
+            }
           },
           "categories": {
             "web": "#357f8c",
@@ -575,15 +791,42 @@
             "panel": "rgba(31, 31, 40, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#E6C384" },
-            "server": { "label": "Server", "color": "#7E9CD8" },
-            "computer": { "label": "Computer", "color": "#7FB4CA" },
-            "phone": { "label": "Phone", "color": "#D27E99" },
-            "nas": { "label": "NAS", "color": "#98BB6C" },
-            "media": { "label": "Media", "color": "#957FB8" },
-            "iot": { "label": "IoT", "color": "#7AA89F" },
-            "printer": { "label": "Printer", "color": "#FFA066" },
-            "device": { "label": "Device", "color": "#9E9B82" }
+            "router": {
+              "label": "Router",
+              "color": "#E6C384"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7E9CD8"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#7FB4CA"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#D27E99"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#98BB6C"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#957FB8"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#7AA89F"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#FFA066"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#9E9B82"
+            }
           },
           "categories": {
             "web": "#7E9CD8",
@@ -637,15 +880,42 @@
             "panel": "rgba(242, 236, 188, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#77713F" },
-            "server": { "label": "Server", "color": "#4D699B" },
-            "computer": { "label": "Computer", "color": "#477F94" },
-            "phone": { "label": "Phone", "color": "#B35B79" },
-            "nas": { "label": "NAS", "color": "#677F49" },
-            "media": { "label": "Media", "color": "#624C83" },
-            "iot": { "label": "IoT", "color": "#597B75" },
-            "printer": { "label": "Printer", "color": "#B66200" },
-            "device": { "label": "Device", "color": "#716E61" }
+            "router": {
+              "label": "Router",
+              "color": "#77713F"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#4D699B"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#477F94"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#B35B79"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#677F49"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#624C83"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#597B75"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#B66200"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#716E61"
+            }
           },
           "categories": {
             "web": "#4D699B",
@@ -710,15 +980,42 @@
             "panel": "rgba(45, 53, 59, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#dbbc7f" },
-            "server": { "label": "Server", "color": "#7fb8cc" },
-            "computer": { "label": "Computer", "color": "#7fbbb3" },
-            "phone": { "label": "Phone", "color": "#d699b6" },
-            "nas": { "label": "NAS", "color": "#a7c080" },
-            "media": { "label": "Media", "color": "#b8a1d6" },
-            "iot": { "label": "IoT", "color": "#83c092" },
-            "printer": { "label": "Printer", "color": "#e69875" },
-            "device": { "label": "Device", "color": "#859289" }
+            "router": {
+              "label": "Router",
+              "color": "#dbbc7f"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7fb8cc"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#7fbbb3"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#d699b6"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#a7c080"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#b8a1d6"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#83c092"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#e69875"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#859289"
+            }
           },
           "categories": {
             "web": "#7fb8cc",
@@ -772,15 +1069,42 @@
             "panel": "rgba(253, 246, 227, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#ae7d00" },
-            "server": { "label": "Server", "color": "#378dbc" },
-            "computer": { "label": "Computer", "color": "#309670" },
-            "phone": { "label": "Phone", "color": "#da4fae" },
-            "nas": { "label": "NAS", "color": "#7c8e01" },
-            "media": { "label": "Media", "color": "#8a6fbf" },
-            "iot": { "label": "IoT", "color": "#d94a48" },
-            "printer": { "label": "Printer", "color": "#da620a" },
-            "device": { "label": "Device", "color": "#6f7d70" }
+            "router": {
+              "label": "Router",
+              "color": "#ae7d00"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#378dbc"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#309670"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#da4fae"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#7c8e01"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#8a6fbf"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#d94a48"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#da620a"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#6f7d70"
+            }
           },
           "categories": {
             "web": "#378dbc",
@@ -845,15 +1169,42 @@
             "panel": "rgba(40, 42, 54, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#f1fa8c" },
-            "server": { "label": "Server", "color": "#8be9fd" },
-            "computer": { "label": "Computer", "color": "#8fa1e8" },
-            "phone": { "label": "Phone", "color": "#ff79c6" },
-            "nas": { "label": "NAS", "color": "#50fa7b" },
-            "media": { "label": "Media", "color": "#bd93f9" },
-            "iot": { "label": "IoT", "color": "#4ee6c4" },
-            "printer": { "label": "Printer", "color": "#ffb86c" },
-            "device": { "label": "Device", "color": "#8b97bc" }
+            "router": {
+              "label": "Router",
+              "color": "#f1fa8c"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#8be9fd"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#8fa1e8"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#ff79c6"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#50fa7b"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#bd93f9"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#4ee6c4"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#ffb86c"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#8b97bc"
+            }
           },
           "categories": {
             "web": "#8be9fd",
@@ -907,15 +1258,42 @@
             "panel": "rgba(255, 251, 235, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#846e15" },
-            "server": { "label": "Server", "color": "#036a96" },
-            "computer": { "label": "Computer", "color": "#3a5fbf" },
-            "phone": { "label": "Phone", "color": "#a3144d" },
-            "nas": { "label": "NAS", "color": "#14710a" },
-            "media": { "label": "Media", "color": "#644ac9" },
-            "iot": { "label": "IoT", "color": "#0f7d6c" },
-            "printer": { "label": "Printer", "color": "#a34d14" },
-            "device": { "label": "Device", "color": "#6c664b" }
+            "router": {
+              "label": "Router",
+              "color": "#846e15"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#036a96"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3a5fbf"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#a3144d"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#14710a"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#644ac9"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#0f7d6c"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#a34d14"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#6c664b"
+            }
           },
           "categories": {
             "web": "#036a96",
@@ -980,15 +1358,42 @@
             "panel": "rgba(40, 44, 52, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#e5c07b" },
-            "server": { "label": "Server", "color": "#61afef" },
-            "computer": { "label": "Computer", "color": "#528bff" },
-            "phone": { "label": "Phone", "color": "#e06c75" },
-            "nas": { "label": "NAS", "color": "#98c379" },
-            "media": { "label": "Media", "color": "#c678dd" },
-            "iot": { "label": "IoT", "color": "#56b6c2" },
-            "printer": { "label": "Printer", "color": "#d19a66" },
-            "device": { "label": "Device", "color": "#818896" }
+            "router": {
+              "label": "Router",
+              "color": "#e5c07b"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#61afef"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#528bff"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#e06c75"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#98c379"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#c678dd"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#56b6c2"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#d19a66"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#818896"
+            }
           },
           "categories": {
             "web": "#61afef",
@@ -1042,15 +1447,42 @@
             "panel": "rgba(250, 250, 250, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#986801" },
-            "server": { "label": "Server", "color": "#4078f2" },
-            "computer": { "label": "Computer", "color": "#526fff" },
-            "phone": { "label": "Phone", "color": "#e45649" },
-            "nas": { "label": "NAS", "color": "#4c9a4c" },
-            "media": { "label": "Media", "color": "#a626a4" },
-            "iot": { "label": "IoT", "color": "#0184bc" },
-            "printer": { "label": "Printer", "color": "#b87e01" },
-            "device": { "label": "Device", "color": "#696c77" }
+            "router": {
+              "label": "Router",
+              "color": "#986801"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#4078f2"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#526fff"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#e45649"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#4c9a4c"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#a626a4"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#0184bc"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#b87e01"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#696c77"
+            }
           },
           "categories": {
             "web": "#4078f2",
@@ -1115,15 +1547,42 @@
             "panel": "rgba(0, 43, 54, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#b58900" },
-            "server": { "label": "Server", "color": "#268bd2" },
-            "computer": { "label": "Computer", "color": "#6e73c5" },
-            "phone": { "label": "Phone", "color": "#d53f88" },
-            "nas": { "label": "NAS", "color": "#859900" },
-            "media": { "label": "Media", "color": "#2aa198" },
-            "iot": { "label": "IoT", "color": "#de403d" },
-            "printer": { "label": "Printer", "color": "#d44e17" },
-            "device": { "label": "Device", "color": "#93a1a1" }
+            "router": {
+              "label": "Router",
+              "color": "#b58900"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#268bd2"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#6e73c5"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#d53f88"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#859900"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#2aa198"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#de403d"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#d44e17"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#93a1a1"
+            }
           },
           "categories": {
             "web": "#268bd2",
@@ -1177,15 +1636,42 @@
             "panel": "rgba(253, 246, 227, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#a67e00" },
-            "server": { "label": "Server", "color": "#268bd2" },
-            "computer": { "label": "Computer", "color": "#6c71c4" },
-            "phone": { "label": "Phone", "color": "#d33682" },
-            "nas": { "label": "NAS", "color": "#7a8c00" },
-            "media": { "label": "Media", "color": "#26928a" },
-            "iot": { "label": "IoT", "color": "#dc322f" },
-            "printer": { "label": "Printer", "color": "#cb4b16" },
-            "device": { "label": "Device", "color": "#758787" }
+            "router": {
+              "label": "Router",
+              "color": "#a67e00"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#268bd2"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#6c71c4"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#d33682"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#7a8c00"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#26928a"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#dc322f"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#cb4b16"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#758787"
+            }
           },
           "categories": {
             "web": "#268bd2",
@@ -1250,15 +1736,42 @@
             "panel": "rgba(40, 40, 40, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#fabd2f" },
-            "server": { "label": "Server", "color": "#7fb0b5" },
-            "computer": { "label": "Computer", "color": "#83a598" },
-            "phone": { "label": "Phone", "color": "#d3869b" },
-            "nas": { "label": "NAS", "color": "#b8bb26" },
-            "media": { "label": "Media", "color": "#b986d3" },
-            "iot": { "label": "IoT", "color": "#8ec07c" },
-            "printer": { "label": "Printer", "color": "#fe8019" },
-            "device": { "label": "Device", "color": "#928374" }
+            "router": {
+              "label": "Router",
+              "color": "#fabd2f"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7fb0b5"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#83a598"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#d3869b"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#b8bb26"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#b986d3"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#8ec07c"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#fe8019"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#928374"
+            }
           },
           "categories": {
             "web": "#7fb0b5",
@@ -1312,15 +1825,42 @@
             "panel": "rgba(253, 246, 221, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#b57614" },
-            "server": { "label": "Server", "color": "#076678" },
-            "computer": { "label": "Computer", "color": "#427b58" },
-            "phone": { "label": "Phone", "color": "#8f3f71" },
-            "nas": { "label": "NAS", "color": "#79740e" },
-            "media": { "label": "Media", "color": "#7a4a9e" },
-            "iot": { "label": "IoT", "color": "#2f6f5a" },
-            "printer": { "label": "Printer", "color": "#af3a03" },
-            "device": { "label": "Device", "color": "#928374" }
+            "router": {
+              "label": "Router",
+              "color": "#b57614"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#076678"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#427b58"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#8f3f71"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#79740e"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#7a4a9e"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#2f6f5a"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#af3a03"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#928374"
+            }
           },
           "categories": {
             "web": "#076678",
@@ -1385,15 +1925,42 @@
             "panel": "rgba(46, 52, 64, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#ebcb8b" },
-            "server": { "label": "Server", "color": "#88c0d0" },
-            "computer": { "label": "Computer", "color": "#81a1c1" },
-            "phone": { "label": "Phone", "color": "#b48ead" },
-            "nas": { "label": "NAS", "color": "#a3be8c" },
-            "media": { "label": "Media", "color": "#a18eb4" },
-            "iot": { "label": "IoT", "color": "#8fbcbb" },
-            "printer": { "label": "Printer", "color": "#d08770" },
-            "device": { "label": "Device", "color": "#8a96ab" }
+            "router": {
+              "label": "Router",
+              "color": "#ebcb8b"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#88c0d0"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#81a1c1"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#b48ead"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#a3be8c"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#a18eb4"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#8fbcbb"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#d08770"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#8a96ab"
+            }
           },
           "categories": {
             "web": "#88c0d0",
@@ -1447,15 +2014,42 @@
             "panel": "rgba(244, 246, 249, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#8a6a1f" },
-            "server": { "label": "Server", "color": "#5e81ac" },
-            "computer": { "label": "Computer", "color": "#3f6f8f" },
-            "phone": { "label": "Phone", "color": "#8a5f86" },
-            "nas": { "label": "NAS", "color": "#4c7a2a" },
-            "media": { "label": "Media", "color": "#6f5a8a" },
-            "iot": { "label": "IoT", "color": "#2f736f" },
-            "printer": { "label": "Printer", "color": "#a35a3d" },
-            "device": { "label": "Device", "color": "#5f6b7d" }
+            "router": {
+              "label": "Router",
+              "color": "#8a6a1f"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#5e81ac"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3f6f8f"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#8a5f86"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#4c7a2a"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#6f5a8a"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#2f736f"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#a35a3d"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#5f6b7d"
+            }
           },
           "categories": {
             "web": "#2f736f",
@@ -1481,6 +2075,806 @@
             "glowStrength": 0.6,
             "labelHalo": 0.9,
             "shadowStrength": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "ethereal",
+      "name": "Ethereal",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/ethereal/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #131a3a and darker_background #030610. muted lightened from #6d7db6 to #919dd6 at the same hue for 4.5:1 text contrast. online uses #8fd6a4, a more saturated green than stock green #92a593 so online stays higher chroma than history; history is #7f8da8, desaturated from the stock muted blue. Shell accent #7d82d9 is already cool and clears 3:1, so it is used unchanged."
+      },
+      "variants": [
+        {
+          "id": "ethereal",
+          "name": "Ethereal",
+          "mode": "dark",
+          "palette": {
+            "bg": "#060B1E",
+            "ink": "#ffcead",
+            "muted": "#919dd6",
+            "accent": "#7d82d9",
+            "line": "rgba(255, 206, 173, 0.14)",
+            "glass": "rgba(6, 11, 30, 0.74)",
+            "canvasTop": "#131a3a",
+            "canvasMiddle": "#060B1E",
+            "canvasBottom": "#030610",
+            "grid": "rgba(125, 130, 217, 0.06)",
+            "ambientGlow": "rgba(125, 130, 217, 0.12)",
+            "online": "#8fd6a4",
+            "warning": "#E9BB4F",
+            "danger": "#ED5B5A",
+            "history": "#7f8da8",
+            "vignette": "rgba(3, 6, 16, 0.55)",
+            "labelHalo": "rgba(3, 6, 16, 0.88)",
+            "bubble": "rgba(6, 11, 30, 0.94)",
+            "panel": "rgba(6, 11, 30, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#E9BB4F"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7d82d9"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#a3bfd1"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#c89dc1"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#92a593"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#c2c4f0"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#dfeaf0"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#eb8b54"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#c9b8a6"
+            }
+          },
+          "categories": {
+            "web": "#a3bfd1",
+            "media": "#c2c4f0",
+            "data": "#eb8b54",
+            "remote": "#92a593",
+            "infra": "#7d82d9",
+            "iot": "#c89dc1",
+            "other": "#c9b8a6"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "hackerman",
+      "name": "Hackerman",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/hackerman/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #151828 and darker_background #06060c. The stock palette is a green terminal set with no cool accent and no warm hue, so accent uses named blue #829dd4 for the cool tailnet and warning uses Hearthlight amber #e0b36a for the warm LAN. danger uses #ff7a7a because the stock red is green. muted lightened from #2d3450 to #8f99c4 at the same hue for 4.5:1 text contrast. online keeps the stock accent #82FB9C as the high-chroma green; history is #7c85ad, a low-chroma blue-grey."
+      },
+      "variants": [
+        {
+          "id": "hackerman",
+          "name": "Hackerman",
+          "mode": "dark",
+          "palette": {
+            "bg": "#0B0C16",
+            "ink": "#ddf7ff",
+            "muted": "#8f99c4",
+            "accent": "#829dd4",
+            "line": "rgba(221, 247, 255, 0.14)",
+            "glass": "rgba(11, 12, 22, 0.74)",
+            "canvasTop": "#151828",
+            "canvasMiddle": "#0B0C16",
+            "canvasBottom": "#06060c",
+            "grid": "rgba(130, 157, 212, 0.06)",
+            "ambientGlow": "rgba(130, 157, 212, 0.12)",
+            "online": "#82FB9C",
+            "warning": "#e0b36a",
+            "danger": "#ff7a7a",
+            "history": "#7c85ad",
+            "vignette": "rgba(6, 6, 12, 0.55)",
+            "labelHalo": "rgba(6, 6, 12, 0.88)",
+            "bubble": "rgba(11, 12, 22, 0.94)",
+            "panel": "rgba(11, 12, 22, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#e0b36a"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#829dd4"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#86a7df"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#cddbf4"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#82FB9C"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#a4ffec"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#7cf8f7"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#50f7a3"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#8f99c4"
+            }
+          },
+          "categories": {
+            "web": "#7cf8f7",
+            "media": "#86a7df",
+            "data": "#50f7a3",
+            "remote": "#82FB9C",
+            "infra": "#829dd4",
+            "iot": "#cddbf4",
+            "other": "#8f99c4"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "jade-horse",
+      "name": "Jade Horse",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/jade-horse/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #203b31 and darker_background #0a1713. Stock accent #8bcbb1 sits at hue 160, outside Hearthlight's cool tailnet band, so accent uses named blue #96b7d0. muted lightened from #64887b to #93bfae at the same hue for 4.5:1 text contrast. online keeps stock green #8bcbb1 as the high-chroma green; history is #91ad9f, the stock dark foreground kept low-chroma."
+      },
+      "variants": [
+        {
+          "id": "jade-horse",
+          "name": "Jade Horse",
+          "mode": "dark",
+          "palette": {
+            "bg": "#142620",
+            "ink": "#dfede5",
+            "muted": "#93bfae",
+            "accent": "#96b7d0",
+            "line": "rgba(223, 237, 229, 0.14)",
+            "glass": "rgba(20, 38, 32, 0.74)",
+            "canvasTop": "#203b31",
+            "canvasMiddle": "#142620",
+            "canvasBottom": "#0a1713",
+            "grid": "rgba(150, 183, 208, 0.06)",
+            "ambientGlow": "rgba(150, 183, 208, 0.12)",
+            "online": "#8bcbb1",
+            "warning": "#c5cc91",
+            "danger": "#d88d91",
+            "history": "#91ad9f",
+            "vignette": "rgba(10, 23, 19, 0.55)",
+            "labelHalo": "rgba(10, 23, 19, 0.88)",
+            "bubble": "rgba(20, 38, 32, 0.94)",
+            "panel": "rgba(20, 38, 32, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#c5cc91"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#96b7d0"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#86c7c5"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#b7a1c8"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#8bcbb1"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#cfbce0"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#a2dcda"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#d2ab8d"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#91ad9f"
+            }
+          },
+          "categories": {
+            "web": "#86c7c5",
+            "media": "#b7a1c8",
+            "data": "#d2ab8d",
+            "remote": "#8bcbb1",
+            "infra": "#96b7d0",
+            "iot": "#a2dcda",
+            "other": "#91ad9f"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "last-horizon",
+      "name": "Last Horizon",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/last-horizon/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. The stock background and lighter_background are both #0c0b0c, so canvasBottom uses darker_background #060606 and canvasTop stays #0c0b0c. Stock accent #b59790 is warm and low-chroma, so accent uses named cyan #a5a0b6 for the cool tailnet and warning uses #d1a36f, a warm tan shifted from the stock red. muted lightened from #584e51 to #a89da1 at the same hue for 4.5:1 text contrast. green #87a9b0 carries online because the palette has no green hue; history is #6f6a70, a low-chroma grey. Several kind colours are lightness variants of the six stock hues, recorded here because the stock palette has fewer than nine distinct colours."
+      },
+      "variants": [
+        {
+          "id": "last-horizon",
+          "name": "Last Horizon",
+          "mode": "dark",
+          "palette": {
+            "bg": "#0c0b0c",
+            "ink": "#FAFCFB",
+            "muted": "#a89da1",
+            "accent": "#a5a0b6",
+            "line": "rgba(250, 252, 251, 0.14)",
+            "glass": "rgba(12, 11, 12, 0.74)",
+            "canvasTop": "#0c0b0c",
+            "canvasMiddle": "#0c0b0c",
+            "canvasBottom": "#060606",
+            "grid": "rgba(165, 160, 182, 0.06)",
+            "ambientGlow": "rgba(165, 160, 182, 0.12)",
+            "online": "#87a9b0",
+            "warning": "#d1a36f",
+            "danger": "#c38b7b",
+            "history": "#6f6a70",
+            "vignette": "rgba(6, 6, 6, 0.55)",
+            "labelHalo": "rgba(6, 6, 6, 0.88)",
+            "bubble": "rgba(12, 11, 12, 0.94)",
+            "panel": "rgba(12, 11, 12, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#d1a36f"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#a5a0b6"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#87a9b0"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#c4d8e2"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#9fc9b4"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#c9b8d4"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#b8d8db"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#d8b08f"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#9b9499"
+            }
+          },
+          "categories": {
+            "web": "#87a9b0",
+            "media": "#a5a0b6",
+            "data": "#d1a36f",
+            "remote": "#9fc9b4",
+            "infra": "#b59790",
+            "iot": "#c4d8e2",
+            "other": "#9b9499"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "lumon",
+      "name": "Lumon",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/lumon/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #1b2d40 and darker_background #0b1216. The stock palette is blue-only with no warm and no green, so warning uses Hearthlight amber #d9b36a for the warm LAN, danger uses #c96b6b for errors, and online uses mint #7fd1b0 to keep live state high-chroma. muted lightened from #304860 to #8fb0cc at the same hue for 4.5:1 text contrast. history is #6f86a0, a low-chroma blue."
+      },
+      "variants": [
+        {
+          "id": "lumon",
+          "name": "Lumon",
+          "mode": "dark",
+          "palette": {
+            "bg": "#16242d",
+            "ink": "#d6e2ee",
+            "muted": "#8fb0cc",
+            "accent": "#8bc9eb",
+            "line": "rgba(214, 226, 238, 0.14)",
+            "glass": "rgba(22, 36, 45, 0.74)",
+            "canvasTop": "#1b2d40",
+            "canvasMiddle": "#16242d",
+            "canvasBottom": "#0b1216",
+            "grid": "rgba(139, 201, 235, 0.06)",
+            "ambientGlow": "rgba(139, 201, 235, 0.12)",
+            "online": "#7fd1b0",
+            "warning": "#d9b36a",
+            "danger": "#c96b6b",
+            "history": "#6f86a0",
+            "vignette": "rgba(11, 18, 22, 0.55)",
+            "labelHalo": "rgba(11, 18, 22, 0.88)",
+            "bubble": "rgba(22, 36, 45, 0.94)",
+            "panel": "rgba(22, 36, 45, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#d9b36a"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#8bc9eb"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#6fb8e3"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#b1d8ee"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#7fd1b0"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#b4e4f6"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#d1eef8"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#73a6cb"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#8fb0cc"
+            }
+          },
+          "categories": {
+            "web": "#8bc9eb",
+            "media": "#6fb8e3",
+            "data": "#d9b36a",
+            "remote": "#7fd1b0",
+            "infra": "#73a6cb",
+            "iot": "#b1d8ee",
+            "other": "#8fb0cc"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "matte-black",
+      "name": "Matte Black",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/matte-black/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #1e1e1e and darker_background #090909. Stock accent #e68e0d is warm, so it becomes warning for the LAN and accent uses cool blue #6da8d8 for the tailnet. The palette has no green, so online, nas and remote use #7fc97f. muted lightened from #333333 to #9e9e9e at the same hue for 4.5:1 text contrast. history is #8a8a8d, the stock light foreground kept low-chroma. Phone, media and iot hues are Hearthlight additions because the stock palette has only warm and grey named colours."
+      },
+      "variants": [
+        {
+          "id": "matte-black",
+          "name": "Matte Black",
+          "mode": "dark",
+          "palette": {
+            "bg": "#121212",
+            "ink": "#bebebe",
+            "muted": "#9e9e9e",
+            "accent": "#6da8d8",
+            "line": "rgba(190, 190, 190, 0.14)",
+            "glass": "rgba(18, 18, 18, 0.74)",
+            "canvasTop": "#1e1e1e",
+            "canvasMiddle": "#121212",
+            "canvasBottom": "#090909",
+            "grid": "rgba(109, 168, 216, 0.06)",
+            "ambientGlow": "rgba(109, 168, 216, 0.12)",
+            "online": "#7fc97f",
+            "warning": "#e68e0d",
+            "danger": "#D35F5F",
+            "history": "#8a8a8d",
+            "vignette": "rgba(9, 9, 9, 0.55)",
+            "labelHalo": "rgba(9, 9, 9, 0.88)",
+            "bubble": "rgba(18, 18, 18, 0.94)",
+            "panel": "rgba(18, 18, 18, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#e68e0d"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#6da8d8"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#8ab8de"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#d38fa8"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#7fc97f"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#b79ad8"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#8fd8c8"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#c63d3d"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#9e9e9e"
+            }
+          },
+          "categories": {
+            "web": "#6da8d8",
+            "media": "#b79ad8",
+            "data": "#c63d3d",
+            "remote": "#7fc97f",
+            "infra": "#8ab8de",
+            "iot": "#8fd8c8",
+            "other": "#9e9e9e"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "miasma",
+      "name": "Miasma",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/miasma/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #2c2c2c and darker_background #121212. Stock accent #78824b is a warm olive at hue 68 and misses the cool tailnet band, so accent uses muted blue #7f93b3. warning keeps stock yellow #b36d43 for the warm LAN. The stock red is brown, so danger uses #b35a4a. muted lightened from #666666 to #a8a894 at the same hue for 4.5:1 text contrast. online keeps stock green #5f875f as the high-chroma green; history is #85857a, a low-chroma grey."
+      },
+      "variants": [
+        {
+          "id": "miasma",
+          "name": "Miasma",
+          "mode": "dark",
+          "palette": {
+            "bg": "#222222",
+            "ink": "#c2c2b0",
+            "muted": "#a8a894",
+            "accent": "#7f93b3",
+            "line": "rgba(194, 194, 176, 0.14)",
+            "glass": "rgba(34, 34, 34, 0.74)",
+            "canvasTop": "#2c2c2c",
+            "canvasMiddle": "#222222",
+            "canvasBottom": "#121212",
+            "grid": "rgba(127, 147, 179, 0.06)",
+            "ambientGlow": "rgba(127, 147, 179, 0.12)",
+            "online": "#5f875f",
+            "warning": "#b36d43",
+            "danger": "#b35a4a",
+            "history": "#85857a",
+            "vignette": "rgba(18, 18, 18, 0.55)",
+            "labelHalo": "rgba(18, 18, 18, 0.88)",
+            "bubble": "rgba(34, 34, 34, 0.94)",
+            "panel": "rgba(34, 34, 34, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#c9a554"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#7f93b3"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#9fb3c9"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#bb8a6a"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#5f875f"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#a58fc0"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#7fae9a"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#b36d43"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#a8a894"
+            }
+          },
+          "categories": {
+            "web": "#9fb3c9",
+            "media": "#a58fc0",
+            "data": "#b36d43",
+            "remote": "#5f875f",
+            "infra": "#7f93b3",
+            "iot": "#7fae9a",
+            "other": "#a8a894"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "retro-82",
+      "name": "Retro 82",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/retro-82/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #0a2540 and darker_background #020c17. Stock accent #faa968 is warm, so it becomes warning for the LAN and accent uses named green #028391, which sits at hue 186 in the cool tailnet band. muted lightened from #2a6b78 to #7fb8c2 at the same hue for 4.5:1 text contrast. online uses bright cyan-green #8cbfb8 over low-chroma history #7f98a0. media uses #a8c4d8 and iot #6fd1b8 to keep the cool category and device bands distinct."
+      },
+      "variants": [
+        {
+          "id": "retro-82",
+          "name": "Retro 82",
+          "mode": "dark",
+          "palette": {
+            "bg": "#05182e",
+            "ink": "#f6dcac",
+            "muted": "#7fb8c2",
+            "accent": "#028391",
+            "line": "rgba(246, 220, 172, 0.14)",
+            "glass": "rgba(5, 24, 46, 0.74)",
+            "canvasTop": "#0a2540",
+            "canvasMiddle": "#05182e",
+            "canvasBottom": "#020c17",
+            "grid": "rgba(2, 131, 145, 0.06)",
+            "ambientGlow": "rgba(2, 131, 145, 0.12)",
+            "online": "#8cbfb8",
+            "warning": "#faa968",
+            "danger": "#f85525",
+            "history": "#7f98a0",
+            "vignette": "rgba(2, 12, 23, 0.55)",
+            "labelHalo": "rgba(2, 12, 23, 0.88)",
+            "bubble": "rgba(5, 24, 46, 0.94)",
+            "panel": "rgba(5, 24, 46, 0.95)"
+          },
+          "kinds": {
+            "router": {
+              "label": "Router",
+              "color": "#faa968"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#028391"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3f8f8a"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#8cbfb8"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#5fc7a4"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#a8c4d8"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#6fd1b8"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#e97b3c"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#7f98a0"
+            }
+          },
+          "categories": {
+            "web": "#8cbfb8",
+            "media": "#a8c4d8",
+            "data": "#e97b3c",
+            "remote": "#6fd1b8",
+            "infra": "#3f8f8a",
+            "iot": "#028391",
+            "other": "#7f98a0"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
           }
         }
       ]
@@ -1520,15 +2914,42 @@
             "panel": "rgba(255, 252, 240, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#8F6E0E" },
-            "server": { "label": "Server", "color": "#205EA6" },
-            "computer": { "label": "Computer", "color": "#2F6FA8" },
-            "phone": { "label": "Phone", "color": "#C7508D" },
-            "nas": { "label": "NAS", "color": "#6E7D2E" },
-            "media": { "label": "Media", "color": "#6F4FA0" },
-            "iot": { "label": "IoT", "color": "#2B8A81" },
-            "printer": { "label": "Printer", "color": "#B35F17" },
-            "device": { "label": "Device", "color": "#7C7A72" }
+            "router": {
+              "label": "Router",
+              "color": "#8F6E0E"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#205EA6"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#2F6FA8"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#C7508D"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#6E7D2E"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#6F4FA0"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#2B8A81"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#B35F17"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#7C7A72"
+            }
           },
           "categories": {
             "web": "#205EA6",
@@ -1593,15 +3014,42 @@
             "panel": "rgba(250, 250, 250, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#8F5410" },
-            "server": { "label": "Server", "color": "#3264EB" },
-            "computer": { "label": "Computer", "color": "#013A6F" },
-            "phone": { "label": "Phone", "color": "#C900C4" },
-            "nas": { "label": "NAS", "color": "#4A2FD0" },
-            "media": { "label": "Media", "color": "#8A4AD7" },
-            "iot": { "label": "IoT", "color": "#0C67DE" },
-            "printer": { "label": "Printer", "color": "#B86A1E" },
-            "device": { "label": "Device", "color": "#747474" }
+            "router": {
+              "label": "Router",
+              "color": "#8F5410"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#3264EB"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#013A6F"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#C900C4"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#4A2FD0"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#8A4AD7"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#0C67DE"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#B86A1E"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#747474"
+            }
           },
           "categories": {
             "web": "#3264EB",
@@ -1666,15 +3114,42 @@
             "panel": "rgba(44, 37, 37, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#F9CC6C" },
-            "server": { "label": "Server", "color": "#A8A9EB" },
-            "computer": { "label": "Computer", "color": "#85DACC" },
-            "phone": { "label": "Phone", "color": "#FF8297" },
-            "nas": { "label": "NAS", "color": "#ADDA78" },
-            "media": { "label": "Media", "color": "#BEBFFD" },
-            "iot": { "label": "IoT", "color": "#9BF1E1" },
-            "printer": { "label": "Printer", "color": "#FB9A77" },
-            "device": { "label": "Device", "color": "#B0989A" }
+            "router": {
+              "label": "Router",
+              "color": "#F9CC6C"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#A8A9EB"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#85DACC"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#FF8297"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#ADDA78"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#BEBFFD"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#9BF1E1"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#FB9A77"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#B0989A"
+            }
           },
           "categories": {
             "web": "#A8A9EB",
@@ -1739,15 +3214,42 @@
             "panel": "rgba(16, 19, 21, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#D8CDBD" },
-            "server": { "label": "Server", "color": "#798186" },
-            "computer": { "label": "Computer", "color": "#A9B4BC" },
-            "phone": { "label": "Phone", "color": "#B59AA6" },
-            "nas": { "label": "NAS", "color": "#8FB59F" },
-            "media": { "label": "Media", "color": "#A2A7C4" },
-            "iot": { "label": "IoT", "color": "#8FAEB0" },
-            "printer": { "label": "Printer", "color": "#C08B72" },
-            "device": { "label": "Device", "color": "#9A9A9A" }
+            "router": {
+              "label": "Router",
+              "color": "#D8CDBD"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#798186"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#A9B4BC"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#B59AA6"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#8FB59F"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#A2A7C4"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#8FAEB0"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#C08B72"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#9A9A9A"
+            }
           },
           "categories": {
             "web": "#798186",
@@ -1812,15 +3314,42 @@
             "panel": "rgba(28, 28, 30, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#FFC27A" },
-            "server": { "label": "Server", "color": "#8FB8DE" },
-            "computer": { "label": "Computer", "color": "#B5D0EA" },
-            "phone": { "label": "Phone", "color": "#FF8FA3" },
-            "nas": { "label": "NAS", "color": "#FF9F0A" },
-            "media": { "label": "Media", "color": "#A6DCEF" },
-            "iot": { "label": "IoT", "color": "#CDEEFA" },
-            "printer": { "label": "Printer", "color": "#FF6A3D" },
-            "device": { "label": "Device", "color": "#98989D" }
+            "router": {
+              "label": "Router",
+              "color": "#FFC27A"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#8FB8DE"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#B5D0EA"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#FF8FA3"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#FF9F0A"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#A6DCEF"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#CDEEFA"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#FF6A3D"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#98989D"
+            }
           },
           "categories": {
             "web": "#8FB8DE",
@@ -1885,15 +3414,42 @@
             "panel": "rgba(0, 0, 0, 0.95)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#C9BDA3" },
-            "server": { "label": "Server", "color": "#8D9BA3" },
-            "computer": { "label": "Computer", "color": "#A7B4C2" },
-            "phone": { "label": "Phone", "color": "#B09FAE" },
-            "nas": { "label": "NAS", "color": "#86B386" },
-            "media": { "label": "Media", "color": "#9A9AAD" },
-            "iot": { "label": "IoT", "color": "#8FA8A4" },
-            "printer": { "label": "Printer", "color": "#B9A58F" },
-            "device": { "label": "Device", "color": "#8F8F8F" }
+            "router": {
+              "label": "Router",
+              "color": "#C9BDA3"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#8D9BA3"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#A7B4C2"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#B09FAE"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#86B386"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#9A9AAD"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#8FA8A4"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#B9A58F"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#8F8F8F"
+            }
           },
           "categories": {
             "web": "#8D9BA3",
@@ -1958,15 +3514,42 @@
             "panel": "rgba(255, 255, 255, 0.97)"
           },
           "kinds": {
-            "router": { "label": "Router", "color": "#7A694D" },
-            "server": { "label": "Server", "color": "#626B73" },
-            "computer": { "label": "Computer", "color": "#3F566B" },
-            "phone": { "label": "Phone", "color": "#7A4058" },
-            "nas": { "label": "NAS", "color": "#2F6B3A" },
-            "media": { "label": "Media", "color": "#5A4B7A" },
-            "iot": { "label": "IoT", "color": "#2F6B67" },
-            "printer": { "label": "Printer", "color": "#8A5A2B" },
-            "device": { "label": "Device", "color": "#6F6F6F" }
+            "router": {
+              "label": "Router",
+              "color": "#7A694D"
+            },
+            "server": {
+              "label": "Server",
+              "color": "#626B73"
+            },
+            "computer": {
+              "label": "Computer",
+              "color": "#3F566B"
+            },
+            "phone": {
+              "label": "Phone",
+              "color": "#7A4058"
+            },
+            "nas": {
+              "label": "NAS",
+              "color": "#2F6B3A"
+            },
+            "media": {
+              "label": "Media",
+              "color": "#5A4B7A"
+            },
+            "iot": {
+              "label": "IoT",
+              "color": "#2F6B67"
+            },
+            "printer": {
+              "label": "Printer",
+              "color": "#8A5A2B"
+            },
+            "device": {
+              "label": "Device",
+              "color": "#6F6F6F"
+            }
           },
           "categories": {
             "web": "#626B73",

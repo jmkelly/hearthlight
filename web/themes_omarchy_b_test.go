@@ -314,7 +314,7 @@ var wantWhiteCategories = map[string]string{
 	"other":  "#6F6F6F",
 }
 
-var wantOmarchyDarkEffects = map[string]any{
+var wantOmarchyDarkEffectsB = map[string]any{
 	"vignette":       0.55,
 	"deviceGlow":     0.22,
 	"devicePulse":    0.3,
@@ -380,7 +380,7 @@ func checkOmarchyPalette(t *testing.T, familyID, name, mode, sourceURL string, w
 	if !reflect.DeepEqual(variant.Categories, wantCategories) {
 		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantCategories)
 	}
-	wantEffects := wantOmarchyDarkEffects
+	wantEffects := wantOmarchyDarkEffectsB
 	if mode == "light" {
 		wantEffects = wantOmarchyLightEffects
 	}
