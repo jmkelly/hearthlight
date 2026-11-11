@@ -11,6 +11,7 @@ import (
 	"net/netip"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -42,6 +43,8 @@ func main() {
 	trafficEnabled := flag.Bool("traffic", true, "sample live traffic between this host and mapped devices")
 	token := flag.String("token", envOr("HEARTHLIGHT_TOKEN", ""), "shared token required for the API (empty disables)")
 	hostsFlag := flag.String("hosts", envOr("HEARTHLIGHT_HOSTS", ""), "extra hostnames allowed in the Host header, comma-separated")
+	omarchyEnabled := flag.Bool("omarchy-theme", envBool("HEARTHLIGHT_OMARCHY_THEME", false), "follow the Omarchy desktop theme from a normalized palette file")
+	omarchyThemeFile := flag.String("omarchy-theme-file", envOr("HEARTHLIGHT_OMARCHY_THEME_FILE", defaultOmarchyThemeFile()), "path to the normalized Omarchy theme JSON")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
 
@@ -68,12 +71,22 @@ func main() {
 		allowedHosts = append(allowedHosts, listenHost)
 	}
 	tokenValue := strings.TrimSpace(*token)
+	omarchyPath := ""
+	if *omarchyEnabled {
+		omarchyPath = strings.TrimSpace(*omarchyThemeFile)
+		if omarchyPath == "" {
+			fatal("omarchy theme file path is empty; pass -omarchy-theme-file")
+		}
+	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	if tokenValue != "" {
 		logger.Info("API token required; open the URL with ?token=<token> once to sign in")
 	} else if !listenIsLoopback(*listen) {
 		logger.Warn("listening beyond loopback without an API token; anyone who can reach the port can read the network inventory")
+	}
+	if omarchyPath != "" {
+		logger.Info("following Omarchy theme", "file", omarchyPath)
 	}
 	scanRequests := make(chan struct{}, 1)
 	var st *store.Store
@@ -87,13 +100,15 @@ func main() {
 		layout = st
 	}
 	app := api.New(scanRequests, api.Config{
-		Logger:       logger,
-		Token:        tokenValue,
-		AllowedHosts: allowedHosts,
-		Layout:       layout,
+		Logger:           logger,
+		Token:            tokenValue,
+		AllowedHosts:     allowedHosts,
+		Layout:           layout,
+		OmarchyThemeFile: omarchyPath,
 	})
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	app.WatchOmarchy(ctx)
 
 	if *demoMode {
 		logger.Info("starting in demo mode", "version", version)
@@ -334,6 +349,28 @@ func envOr(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func envBool(key string, fallback bool) bool {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv(key))) {
+	case "1", "true", "yes", "on":
+		return true
+	case "0", "false", "no", "off":
+		return false
+	default:
+		return fallback
+	}
+}
+
+// defaultOmarchyThemeFile is where the Omarchy plugin writes the normalized
+// palette for the current user. An unresolvable home leaves the source disabled
+// unless -omarchy-theme-file is set.
+func defaultOmarchyThemeFile() string {
+	home, err := os.UserHomeDir()
+	if err != nil || home == "" {
+		return ""
+	}
+	return filepath.Join(home, ".config", "hearthlight", "omarchy-theme.json")
 }
 
 func splitCSV(raw string) []string {

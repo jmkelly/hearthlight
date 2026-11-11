@@ -418,6 +418,150 @@ window.HearthlightThemes = {
           }
         }
       ]
+    },
+    {
+      "id": "everforest",
+      "name": "Everforest",
+      "source": {
+        "name": "Everforest",
+        "url": "https://github.com/sainnhe/everforest"
+      },
+      "variants": [
+        {
+          "id": "everforest-dark",
+          "name": "Everforest Dark",
+          "mode": "dark",
+          "palette": {
+            "bg": "#2d353b",
+            "ink": "#d3c6aa",
+            "muted": "#859289",
+            "accent": "#7fb8cc",
+            "line": "rgba(211, 198, 170, 0.14)",
+            "glass": "rgba(45, 53, 59, 0.74)",
+            "canvasTop": "#343f44",
+            "canvasMiddle": "#2d353b",
+            "canvasBottom": "#232a2e",
+            "grid": "rgba(127, 184, 204, 0.06)",
+            "ambientGlow": "rgba(127, 184, 204, 0.12)",
+            "online": "#a7c080",
+            "warning": "#dbbc7f",
+            "danger": "#e67e80",
+            "history": "#859289",
+            "vignette": "rgba(35, 42, 46, 0.55)",
+            "labelHalo": "rgba(35, 42, 46, 0.88)",
+            "bubble": "rgba(45, 53, 59, 0.94)",
+            "panel": "rgba(45, 53, 59, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#dbbc7f" },
+            "server": { "label": "Server", "color": "#7fb8cc" },
+            "computer": { "label": "Computer", "color": "#7fbbb3" },
+            "phone": { "label": "Phone", "color": "#d699b6" },
+            "nas": { "label": "NAS", "color": "#a7c080" },
+            "media": { "label": "Media", "color": "#b8a1d6" },
+            "iot": { "label": "IoT", "color": "#83c092" },
+            "printer": { "label": "Printer", "color": "#e69875" },
+            "device": { "label": "Device", "color": "#859289" }
+          },
+          "categories": {
+            "web": "#7fb8cc",
+            "media": "#b8a1d6",
+            "data": "#e69875",
+            "remote": "#a7c080",
+            "infra": "#7fbbb3",
+            "iot": "#83c092",
+            "other": "#859289"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "dracula",
+      "name": "Dracula",
+      "source": {
+        "name": "Dracula",
+        "url": "https://github.com/dracula/dracula-theme"
+      },
+      "variants": [
+        {
+          "id": "dracula",
+          "name": "Dracula",
+          "mode": "dark",
+          "palette": {
+            "bg": "#282a36",
+            "ink": "#f8f8f2",
+            "muted": "#6272a4",
+            "accent": "#8be9fd",
+            "line": "rgba(248, 248, 242, 0.14)",
+            "glass": "rgba(40, 42, 54, 0.74)",
+            "canvasTop": "#343746",
+            "canvasMiddle": "#282a36",
+            "canvasBottom": "#1e1f29",
+            "grid": "rgba(139, 233, 253, 0.06)",
+            "ambientGlow": "rgba(139, 233, 253, 0.12)",
+            "online": "#50fa7b",
+            "warning": "#f1fa8c",
+            "danger": "#ff5555",
+            "history": "#6272a4",
+            "vignette": "rgba(30, 31, 41, 0.55)",
+            "labelHalo": "rgba(30, 31, 41, 0.88)",
+            "bubble": "rgba(40, 42, 54, 0.94)",
+            "panel": "rgba(40, 42, 54, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#f1fa8c" },
+            "server": { "label": "Server", "color": "#8be9fd" },
+            "computer": { "label": "Computer", "color": "#8fa1e8" },
+            "phone": { "label": "Phone", "color": "#ff79c6" },
+            "nas": { "label": "NAS", "color": "#50fa7b" },
+            "media": { "label": "Media", "color": "#bd93f9" },
+            "iot": { "label": "IoT", "color": "#4ee6c4" },
+            "printer": { "label": "Printer", "color": "#ffb86c" },
+            "device": { "label": "Device", "color": "#6272a4" }
+          },
+          "categories": {
+            "web": "#8be9fd",
+            "media": "#bd93f9",
+            "data": "#ffb86c",
+            "remote": "#50fa7b",
+            "infra": "#8fa1e8",
+            "iot": "#4ee6c4",
+            "other": "#6272a4"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
     }
   ]
 }

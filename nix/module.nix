@@ -33,6 +33,11 @@ let
     "-hosts"
     (lib.concatStringsSep "," cfg.allowedHosts)
   ]
+  ++ lib.optionals cfg.omarchyTheme [
+    "-omarchy-theme"
+    "-omarchy-theme-file"
+    cfg.omarchyThemeFile
+  ]
   ++ [
     "-tailscale=${lib.boolToString cfg.tailnet}"
   ];
@@ -114,6 +119,28 @@ in
         Discover Tailscale peers by running `tailscale status --json` and probe
         them over their tailnet addresses. Requires tailscaled on the same host;
         a missing binary or a stopped daemon is logged and skipped.
+      '';
+    };
+
+    omarchyTheme = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Follow the active Omarchy desktop theme. The Omarchy plugin writes a
+        normalized JSON palette to `omarchyThemeFile`; Hearthlight only reads it
+        and exposes it at `GET /api/theme/omarchy`.
+      '';
+    };
+
+    omarchyThemeFile = lib.mkOption {
+      type = lib.types.str;
+      default = "/var/lib/hearthlight/omarchy-theme.json";
+      description = ''
+        Path to the normalized Omarchy palette JSON. The service runs as a
+        DynamicUser with ProtectHome enabled, so a file under a user's home is
+        not readable by default. Point the plugin at this path and grant the
+        service read access, or override the systemd user and ProtectHome
+        settings for a fixed desktop user.
       '';
     };
   };
