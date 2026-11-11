@@ -1484,6 +1484,590 @@
           }
         }
       ]
+    },
+    {
+      "id": "ethereal",
+      "name": "Ethereal",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/ethereal/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #131a3a and darker_background #030610. muted lightened from #6d7db6 to #919dd6 at the same hue for 4.5:1 text contrast. online uses #8fd6a4, a more saturated green than stock green #92a593 so online stays higher chroma than history; history is #7f8da8, desaturated from the stock muted blue. Shell accent #7d82d9 is already cool and clears 3:1, so it is used unchanged."
+      },
+      "variants": [
+        {
+          "id": "ethereal",
+          "name": "Ethereal",
+          "mode": "dark",
+          "palette": {
+            "bg": "#060B1E",
+            "ink": "#ffcead",
+            "muted": "#919dd6",
+            "accent": "#7d82d9",
+            "line": "rgba(255, 206, 173, 0.14)",
+            "glass": "rgba(6, 11, 30, 0.74)",
+            "canvasTop": "#131a3a",
+            "canvasMiddle": "#060B1E",
+            "canvasBottom": "#030610",
+            "grid": "rgba(125, 130, 217, 0.06)",
+            "ambientGlow": "rgba(125, 130, 217, 0.12)",
+            "online": "#8fd6a4",
+            "warning": "#E9BB4F",
+            "danger": "#ED5B5A",
+            "history": "#7f8da8",
+            "vignette": "rgba(3, 6, 16, 0.55)",
+            "labelHalo": "rgba(3, 6, 16, 0.88)",
+            "bubble": "rgba(6, 11, 30, 0.94)",
+            "panel": "rgba(6, 11, 30, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#E9BB4F" },
+            "server": { "label": "Server", "color": "#7d82d9" },
+            "computer": { "label": "Computer", "color": "#a3bfd1" },
+            "phone": { "label": "Phone", "color": "#c89dc1" },
+            "nas": { "label": "NAS", "color": "#92a593" },
+            "media": { "label": "Media", "color": "#c2c4f0" },
+            "iot": { "label": "IoT", "color": "#dfeaf0" },
+            "printer": { "label": "Printer", "color": "#eb8b54" },
+            "device": { "label": "Device", "color": "#c9b8a6" }
+          },
+          "categories": {
+            "web": "#a3bfd1",
+            "media": "#c2c4f0",
+            "data": "#eb8b54",
+            "remote": "#92a593",
+            "infra": "#7d82d9",
+            "iot": "#c89dc1",
+            "other": "#c9b8a6"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "hackerman",
+      "name": "Hackerman",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/hackerman/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #151828 and darker_background #06060c. The stock palette is a green terminal set with no cool accent and no warm hue, so accent uses named blue #829dd4 for the cool tailnet and warning uses Hearthlight amber #e0b36a for the warm LAN. danger uses #ff7a7a because the stock red is green. muted lightened from #2d3450 to #8f99c4 at the same hue for 4.5:1 text contrast. online keeps the stock accent #82FB9C as the high-chroma green; history is #7c85ad, a low-chroma blue-grey."
+      },
+      "variants": [
+        {
+          "id": "hackerman",
+          "name": "Hackerman",
+          "mode": "dark",
+          "palette": {
+            "bg": "#0B0C16",
+            "ink": "#ddf7ff",
+            "muted": "#8f99c4",
+            "accent": "#829dd4",
+            "line": "rgba(221, 247, 255, 0.14)",
+            "glass": "rgba(11, 12, 22, 0.74)",
+            "canvasTop": "#151828",
+            "canvasMiddle": "#0B0C16",
+            "canvasBottom": "#06060c",
+            "grid": "rgba(130, 157, 212, 0.06)",
+            "ambientGlow": "rgba(130, 157, 212, 0.12)",
+            "online": "#82FB9C",
+            "warning": "#e0b36a",
+            "danger": "#ff7a7a",
+            "history": "#7c85ad",
+            "vignette": "rgba(6, 6, 12, 0.55)",
+            "labelHalo": "rgba(6, 6, 12, 0.88)",
+            "bubble": "rgba(11, 12, 22, 0.94)",
+            "panel": "rgba(11, 12, 22, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#e0b36a" },
+            "server": { "label": "Server", "color": "#829dd4" },
+            "computer": { "label": "Computer", "color": "#86a7df" },
+            "phone": { "label": "Phone", "color": "#cddbf4" },
+            "nas": { "label": "NAS", "color": "#82FB9C" },
+            "media": { "label": "Media", "color": "#a4ffec" },
+            "iot": { "label": "IoT", "color": "#7cf8f7" },
+            "printer": { "label": "Printer", "color": "#50f7a3" },
+            "device": { "label": "Device", "color": "#8f99c4" }
+          },
+          "categories": {
+            "web": "#7cf8f7",
+            "media": "#86a7df",
+            "data": "#50f7a3",
+            "remote": "#82FB9C",
+            "infra": "#829dd4",
+            "iot": "#cddbf4",
+            "other": "#8f99c4"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "jade-horse",
+      "name": "Jade Horse",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/jade-horse/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #203b31 and darker_background #0a1713. Stock accent #8bcbb1 sits at hue 160, outside Hearthlight's cool tailnet band, so accent uses named blue #96b7d0. muted lightened from #64887b to #93bfae at the same hue for 4.5:1 text contrast. online keeps stock green #8bcbb1 as the high-chroma green; history is #91ad9f, the stock dark foreground kept low-chroma."
+      },
+      "variants": [
+        {
+          "id": "jade-horse",
+          "name": "Jade Horse",
+          "mode": "dark",
+          "palette": {
+            "bg": "#142620",
+            "ink": "#dfede5",
+            "muted": "#93bfae",
+            "accent": "#96b7d0",
+            "line": "rgba(223, 237, 229, 0.14)",
+            "glass": "rgba(20, 38, 32, 0.74)",
+            "canvasTop": "#203b31",
+            "canvasMiddle": "#142620",
+            "canvasBottom": "#0a1713",
+            "grid": "rgba(150, 183, 208, 0.06)",
+            "ambientGlow": "rgba(150, 183, 208, 0.12)",
+            "online": "#8bcbb1",
+            "warning": "#c5cc91",
+            "danger": "#d88d91",
+            "history": "#91ad9f",
+            "vignette": "rgba(10, 23, 19, 0.55)",
+            "labelHalo": "rgba(10, 23, 19, 0.88)",
+            "bubble": "rgba(20, 38, 32, 0.94)",
+            "panel": "rgba(20, 38, 32, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#c5cc91" },
+            "server": { "label": "Server", "color": "#96b7d0" },
+            "computer": { "label": "Computer", "color": "#86c7c5" },
+            "phone": { "label": "Phone", "color": "#b7a1c8" },
+            "nas": { "label": "NAS", "color": "#8bcbb1" },
+            "media": { "label": "Media", "color": "#cfbce0" },
+            "iot": { "label": "IoT", "color": "#a2dcda" },
+            "printer": { "label": "Printer", "color": "#d2ab8d" },
+            "device": { "label": "Device", "color": "#91ad9f" }
+          },
+          "categories": {
+            "web": "#86c7c5",
+            "media": "#b7a1c8",
+            "data": "#d2ab8d",
+            "remote": "#8bcbb1",
+            "infra": "#96b7d0",
+            "iot": "#a2dcda",
+            "other": "#91ad9f"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "last-horizon",
+      "name": "Last Horizon",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/last-horizon/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. The stock background and lighter_background are both #0c0b0c, so canvasBottom uses darker_background #060606 and canvasTop stays #0c0b0c. Stock accent #b59790 is warm and low-chroma, so accent uses named cyan #a5a0b6 for the cool tailnet and warning uses #d1a36f, a warm tan shifted from the stock red. muted lightened from #584e51 to #a89da1 at the same hue for 4.5:1 text contrast. green #87a9b0 carries online because the palette has no green hue; history is #6f6a70, a low-chroma grey. Several kind colours are lightness variants of the six stock hues, recorded here because the stock palette has fewer than nine distinct colours."
+      },
+      "variants": [
+        {
+          "id": "last-horizon",
+          "name": "Last Horizon",
+          "mode": "dark",
+          "palette": {
+            "bg": "#0c0b0c",
+            "ink": "#FAFCFB",
+            "muted": "#a89da1",
+            "accent": "#a5a0b6",
+            "line": "rgba(250, 252, 251, 0.14)",
+            "glass": "rgba(12, 11, 12, 0.74)",
+            "canvasTop": "#0c0b0c",
+            "canvasMiddle": "#0c0b0c",
+            "canvasBottom": "#060606",
+            "grid": "rgba(165, 160, 182, 0.06)",
+            "ambientGlow": "rgba(165, 160, 182, 0.12)",
+            "online": "#87a9b0",
+            "warning": "#d1a36f",
+            "danger": "#c38b7b",
+            "history": "#6f6a70",
+            "vignette": "rgba(6, 6, 6, 0.55)",
+            "labelHalo": "rgba(6, 6, 6, 0.88)",
+            "bubble": "rgba(12, 11, 12, 0.94)",
+            "panel": "rgba(12, 11, 12, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#d1a36f" },
+            "server": { "label": "Server", "color": "#a5a0b6" },
+            "computer": { "label": "Computer", "color": "#87a9b0" },
+            "phone": { "label": "Phone", "color": "#c4d8e2" },
+            "nas": { "label": "NAS", "color": "#9fc9b4" },
+            "media": { "label": "Media", "color": "#c9b8d4" },
+            "iot": { "label": "IoT", "color": "#b8d8db" },
+            "printer": { "label": "Printer", "color": "#d8b08f" },
+            "device": { "label": "Device", "color": "#9b9499" }
+          },
+          "categories": {
+            "web": "#87a9b0",
+            "media": "#a5a0b6",
+            "data": "#d1a36f",
+            "remote": "#9fc9b4",
+            "infra": "#b59790",
+            "iot": "#c4d8e2",
+            "other": "#9b9499"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "lumon",
+      "name": "Lumon",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/lumon/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #1b2d40 and darker_background #0b1216. The stock palette is blue-only with no warm and no green, so warning uses Hearthlight amber #d9b36a for the warm LAN, danger uses #c96b6b for errors, and online uses mint #7fd1b0 to keep live state high-chroma. muted lightened from #304860 to #8fb0cc at the same hue for 4.5:1 text contrast. history is #6f86a0, a low-chroma blue."
+      },
+      "variants": [
+        {
+          "id": "lumon",
+          "name": "Lumon",
+          "mode": "dark",
+          "palette": {
+            "bg": "#16242d",
+            "ink": "#d6e2ee",
+            "muted": "#8fb0cc",
+            "accent": "#8bc9eb",
+            "line": "rgba(214, 226, 238, 0.14)",
+            "glass": "rgba(22, 36, 45, 0.74)",
+            "canvasTop": "#1b2d40",
+            "canvasMiddle": "#16242d",
+            "canvasBottom": "#0b1216",
+            "grid": "rgba(139, 201, 235, 0.06)",
+            "ambientGlow": "rgba(139, 201, 235, 0.12)",
+            "online": "#7fd1b0",
+            "warning": "#d9b36a",
+            "danger": "#c96b6b",
+            "history": "#6f86a0",
+            "vignette": "rgba(11, 18, 22, 0.55)",
+            "labelHalo": "rgba(11, 18, 22, 0.88)",
+            "bubble": "rgba(22, 36, 45, 0.94)",
+            "panel": "rgba(22, 36, 45, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#d9b36a" },
+            "server": { "label": "Server", "color": "#8bc9eb" },
+            "computer": { "label": "Computer", "color": "#6fb8e3" },
+            "phone": { "label": "Phone", "color": "#b1d8ee" },
+            "nas": { "label": "NAS", "color": "#7fd1b0" },
+            "media": { "label": "Media", "color": "#b4e4f6" },
+            "iot": { "label": "IoT", "color": "#d1eef8" },
+            "printer": { "label": "Printer", "color": "#73a6cb" },
+            "device": { "label": "Device", "color": "#8fb0cc" }
+          },
+          "categories": {
+            "web": "#8bc9eb",
+            "media": "#6fb8e3",
+            "data": "#d9b36a",
+            "remote": "#7fd1b0",
+            "infra": "#73a6cb",
+            "iot": "#b1d8ee",
+            "other": "#8fb0cc"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "matte-black",
+      "name": "Matte Black",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/matte-black/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #1e1e1e and darker_background #090909. Stock accent #e68e0d is warm, so it becomes warning for the LAN and accent uses cool blue #6da8d8 for the tailnet. The palette has no green, so online, nas and remote use #7fc97f. muted lightened from #333333 to #9e9e9e at the same hue for 4.5:1 text contrast. history is #8a8a8d, the stock light foreground kept low-chroma. Phone, media and iot hues are Hearthlight additions because the stock palette has only warm and grey named colours."
+      },
+      "variants": [
+        {
+          "id": "matte-black",
+          "name": "Matte Black",
+          "mode": "dark",
+          "palette": {
+            "bg": "#121212",
+            "ink": "#bebebe",
+            "muted": "#9e9e9e",
+            "accent": "#6da8d8",
+            "line": "rgba(190, 190, 190, 0.14)",
+            "glass": "rgba(18, 18, 18, 0.74)",
+            "canvasTop": "#1e1e1e",
+            "canvasMiddle": "#121212",
+            "canvasBottom": "#090909",
+            "grid": "rgba(109, 168, 216, 0.06)",
+            "ambientGlow": "rgba(109, 168, 216, 0.12)",
+            "online": "#7fc97f",
+            "warning": "#e68e0d",
+            "danger": "#D35F5F",
+            "history": "#8a8a8d",
+            "vignette": "rgba(9, 9, 9, 0.55)",
+            "labelHalo": "rgba(9, 9, 9, 0.88)",
+            "bubble": "rgba(18, 18, 18, 0.94)",
+            "panel": "rgba(18, 18, 18, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#e68e0d" },
+            "server": { "label": "Server", "color": "#6da8d8" },
+            "computer": { "label": "Computer", "color": "#8ab8de" },
+            "phone": { "label": "Phone", "color": "#d38fa8" },
+            "nas": { "label": "NAS", "color": "#7fc97f" },
+            "media": { "label": "Media", "color": "#b79ad8" },
+            "iot": { "label": "IoT", "color": "#8fd8c8" },
+            "printer": { "label": "Printer", "color": "#c63d3d" },
+            "device": { "label": "Device", "color": "#9e9e9e" }
+          },
+          "categories": {
+            "web": "#6da8d8",
+            "media": "#b79ad8",
+            "data": "#c63d3d",
+            "remote": "#7fc97f",
+            "infra": "#8ab8de",
+            "iot": "#8fd8c8",
+            "other": "#9e9e9e"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "miasma",
+      "name": "Miasma",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/miasma/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #2c2c2c and darker_background #121212. Stock accent #78824b is a warm olive at hue 68 and misses the cool tailnet band, so accent uses muted blue #7f93b3. warning keeps stock yellow #b36d43 for the warm LAN. The stock red is brown, so danger uses #b35a4a. muted lightened from #666666 to #a8a894 at the same hue for 4.5:1 text contrast. online keeps stock green #5f875f as the high-chroma green; history is #85857a, a low-chroma grey."
+      },
+      "variants": [
+        {
+          "id": "miasma",
+          "name": "Miasma",
+          "mode": "dark",
+          "palette": {
+            "bg": "#222222",
+            "ink": "#c2c2b0",
+            "muted": "#a8a894",
+            "accent": "#7f93b3",
+            "line": "rgba(194, 194, 176, 0.14)",
+            "glass": "rgba(34, 34, 34, 0.74)",
+            "canvasTop": "#2c2c2c",
+            "canvasMiddle": "#222222",
+            "canvasBottom": "#121212",
+            "grid": "rgba(127, 147, 179, 0.06)",
+            "ambientGlow": "rgba(127, 147, 179, 0.12)",
+            "online": "#5f875f",
+            "warning": "#b36d43",
+            "danger": "#b35a4a",
+            "history": "#85857a",
+            "vignette": "rgba(18, 18, 18, 0.55)",
+            "labelHalo": "rgba(18, 18, 18, 0.88)",
+            "bubble": "rgba(34, 34, 34, 0.94)",
+            "panel": "rgba(34, 34, 34, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#c9a554" },
+            "server": { "label": "Server", "color": "#7f93b3" },
+            "computer": { "label": "Computer", "color": "#9fb3c9" },
+            "phone": { "label": "Phone", "color": "#bb8a6a" },
+            "nas": { "label": "NAS", "color": "#5f875f" },
+            "media": { "label": "Media", "color": "#a58fc0" },
+            "iot": { "label": "IoT", "color": "#7fae9a" },
+            "printer": { "label": "Printer", "color": "#b36d43" },
+            "device": { "label": "Device", "color": "#a8a894" }
+          },
+          "categories": {
+            "web": "#9fb3c9",
+            "media": "#a58fc0",
+            "data": "#b36d43",
+            "remote": "#5f875f",
+            "infra": "#7f93b3",
+            "iot": "#7fae9a",
+            "other": "#a8a894"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "retro-82",
+      "name": "Retro 82",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/retro-82/colors.toml",
+        "note": "Pinned to Omarchy Quattro commit 748fa3c. Canvas uses lighter_background #0a2540 and darker_background #020c17. Stock accent #faa968 is warm, so it becomes warning for the LAN and accent uses named green #028391, which sits at hue 186 in the cool tailnet band. muted lightened from #2a6b78 to #7fb8c2 at the same hue for 4.5:1 text contrast. online uses bright cyan-green #8cbfb8 over low-chroma history #7f98a0. media uses #a8c4d8 and iot #6fd1b8 to keep the cool category and device bands distinct."
+      },
+      "variants": [
+        {
+          "id": "retro-82",
+          "name": "Retro 82",
+          "mode": "dark",
+          "palette": {
+            "bg": "#05182e",
+            "ink": "#f6dcac",
+            "muted": "#7fb8c2",
+            "accent": "#028391",
+            "line": "rgba(246, 220, 172, 0.14)",
+            "glass": "rgba(5, 24, 46, 0.74)",
+            "canvasTop": "#0a2540",
+            "canvasMiddle": "#05182e",
+            "canvasBottom": "#020c17",
+            "grid": "rgba(2, 131, 145, 0.06)",
+            "ambientGlow": "rgba(2, 131, 145, 0.12)",
+            "online": "#8cbfb8",
+            "warning": "#faa968",
+            "danger": "#f85525",
+            "history": "#7f98a0",
+            "vignette": "rgba(2, 12, 23, 0.55)",
+            "labelHalo": "rgba(2, 12, 23, 0.88)",
+            "bubble": "rgba(5, 24, 46, 0.94)",
+            "panel": "rgba(5, 24, 46, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#faa968" },
+            "server": { "label": "Server", "color": "#028391" },
+            "computer": { "label": "Computer", "color": "#3f8f8a" },
+            "phone": { "label": "Phone", "color": "#8cbfb8" },
+            "nas": { "label": "NAS", "color": "#5fc7a4" },
+            "media": { "label": "Media", "color": "#a8c4d8" },
+            "iot": { "label": "IoT", "color": "#6fd1b8" },
+            "printer": { "label": "Printer", "color": "#e97b3c" },
+            "device": { "label": "Device", "color": "#7f98a0" }
+          },
+          "categories": {
+            "web": "#8cbfb8",
+            "media": "#a8c4d8",
+            "data": "#e97b3c",
+            "remote": "#6fd1b8",
+            "infra": "#3f8f8a",
+            "iot": "#028391",
+            "other": "#7f98a0"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
     }
   ]
 }
