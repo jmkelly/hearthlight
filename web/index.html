@@ -9,6 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='7' fill='%235ee7ff'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%235ee7ff' stroke-opacity='.4'/%3E%3C/svg%3E">
   <script src="/themes.js"></script>
   <script src="/theme-boot.js"></script>
+  <script src="/theme-import.js" defer></script>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -150,12 +151,26 @@
         <span class="settings-switch" aria-hidden="true"></span>
       </button>
       <div id="themeFamilies" class="theme-families" role="group" aria-label="Theme family"></div>
+      <div id="themeCustomSection" class="theme-custom-section" hidden>
+        <div class="theme-custom-head">
+          <h4 id="themeCustomHeading">Custom</h4>
+          <button id="themeExportAll" class="theme-custom-export" type="button">Export all</button>
+        </div>
+        <div id="themeCustomFamilies" class="theme-families" role="group" aria-labelledby="themeCustomHeading"></div>
+      </div>
       <div class="theme-modes" role="group" aria-label="Theme mode">
         <button id="themeModeDark" class="theme-mode" type="button" aria-pressed="true">Dark</button>
         <button id="themeModeLight" class="theme-mode" type="button" aria-pressed="false">Light</button>
         <button id="themeModeAuto" class="theme-mode" type="button" aria-pressed="false">Auto</button>
       </div>
       <p id="themeFallbackNote" class="theme-fallback-note" role="status" hidden>This theme family has no light variant; showing the available palette.</p>
+      <button id="themeImportBtn" class="settings-action" type="button" aria-haspopup="dialog" aria-controls="themeImportDialog">
+        <span class="settings-toggle-copy">
+          <span class="settings-toggle-label">Import theme</span>
+          <span class="settings-toggle-hint">Paste Hearthlight JSON or choose a .json file</span>
+        </span>
+        <span class="settings-action-state" aria-hidden="true">import</span>
+      </button>
       <button id="themeReset" class="settings-action" type="button">
         <span class="settings-toggle-copy">
           <span class="settings-toggle-label">Reset to default</span>
@@ -163,6 +178,35 @@
         </span>
         <span class="settings-action-state" aria-hidden="true">reset</span>
       </button>
+    </section>
+  </dialog>
+
+  <dialog id="themeImportDialog" class="settings theme-import" aria-labelledby="themeImportTitle">
+    <header class="settings-head">
+      <div>
+        <p class="settings-kicker">Appearance</p>
+        <h2 id="themeImportTitle">Import theme</h2>
+      </div>
+      <button id="themeImportClose" class="settings-close" type="button" aria-label="Close theme import">×</button>
+    </header>
+    <section class="settings-section" aria-describedby="themeImportHelp">
+      <p id="themeImportHelp" class="theme-import-note">Paste Hearthlight theme JSON or choose a .json file. A single variant, a family with dark and light variants, or a full catalog is accepted.</p>
+      <label class="theme-import-field" for="themeImportFile">
+        <span>Theme file</span>
+        <input id="themeImportFile" type="file" accept=".json,application/json">
+      </label>
+      <label class="theme-import-field" for="themeImportText">
+        <span>Paste JSON</span>
+        <textarea id="themeImportText" rows="9" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="themeImportHelp themeImportStorageNote" placeholder='{ "schemaVersion": 1, ... }'></textarea>
+      </label>
+      <p id="themeImportStorageNote" class="theme-import-note">Custom themes are stored in this browser only, under hearthlight.themes.custom.v1.</p>
+      <div id="themeImportPreview" class="theme-import-preview" hidden></div>
+      <ul id="themeImportErrors" class="theme-import-errors" role="alert" aria-live="assertive" hidden></ul>
+      <p id="themeImportStatus" class="theme-import-status" role="status" hidden></p>
+      <div class="theme-import-actions">
+        <button id="themeImportCancel" class="theme-import-secondary" type="button">Cancel</button>
+        <button id="themeImportSave" class="theme-import-save" type="button" disabled>Save theme</button>
+      </div>
     </section>
   </dialog>
 

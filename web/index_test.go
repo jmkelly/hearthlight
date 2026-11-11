@@ -680,3 +680,228 @@ func TestCanvasGridReadsThemeToken(t *testing.T) {
 	js := readAccessibilityFile(t, "app.js")
 	requireContains(t, functionBody(t, js, "drawBackground"), `themeColor("grid")`)
 }
+
+func TestThemeImportScriptLoadsBeforeApp(t *testing.T) {
+	html := readAccessibilityFile(t, "index.html")
+	importScript := `<script src="/theme-import.js" defer></script>`
+	appScript := `<script src="/app.js" defer></script>`
+	importIndex := strings.Index(html, importScript)
+	appIndex := strings.Index(html, appScript)
+	if importIndex < 0 {
+		t.Fatal("index.html does not load /theme-import.js")
+	}
+	if appIndex < 0 {
+		t.Fatal("index.html does not load /app.js")
+	}
+	if importIndex > appIndex {
+		t.Error("/theme-import.js must load before /app.js so stored custom themes register first")
+	}
+	if _, err := Files.ReadFile("theme-import.js"); err != nil {
+		t.Errorf("embedded files do not contain theme-import.js: %v", err)
+	}
+}
+
+func TestThemeImportDialogMarkup(t *testing.T) {
+	html := readAccessibilityFile(t, "index.html")
+	dialog := markupBetween(t, html, `<dialog id="themeImportDialog"`, `</dialog>`)
+	requireContains(t, dialog,
+		`aria-labelledby="themeImportTitle"`,
+		`<h2 id="themeImportTitle">Import theme</h2>`,
+		`id="themeImportClose"`,
+		`id="themeImportFile"`,
+		`type="file"`,
+		`accept=".json,application/json"`,
+		`id="themeImportText"`,
+		`aria-describedby="themeImportHelp themeImportStorageNote"`,
+		`id="themeImportStorageNote"`,
+		`id="themeImportPreview"`,
+		`id="themeImportErrors"`,
+		`role="alert"`,
+		`id="themeImportStatus"`,
+		`id="themeImportCancel"`,
+		`id="themeImportSave"`,
+		`disabled`,
+		`>Save theme<`,
+	)
+
+	appearance := markupBetween(t, html, `<section class="settings-section settings-appearance"`, `</section>`)
+	requireContains(t, appearance,
+		`id="themeImportBtn"`,
+		`aria-haspopup="dialog"`,
+		`aria-controls="themeImportDialog"`,
+		`>Import theme<`,
+		`id="themeCustomSection"`,
+		`id="themeCustomHeading"`,
+		`>Custom<`,
+		`id="themeCustomFamilies"`,
+		`id="themeExportAll"`,
+		`>Export all<`,
+	)
+}
+
+func TestThemeImportValidationSafety(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-import.js")
+	requireContains(t, source,
+		`const STORAGE_KEY = "hearthlight.themes.custom.v1";`,
+		`const MAX_IMPORT_BYTES = 256 * 1024;`,
+		`const MAX_CUSTOM_FAMILIES = 50;`,
+		`const REQUIRED_PALETTE_TOKENS = Object.freeze([`,
+		`const NUMERIC_EFFECT_RANGES = Object.freeze({`,
+		`const FORBIDDEN_KEYS = new Set(["__proto__", "constructor", "prototype"]);`,
+		`Object.create(null)`,
+		`"canvasTop", "canvasMiddle", "canvasBottom"`,
+		`window.localStorage.setItem(STORAGE_KEY, serialized);`,
+		`JSON.parse(raw)`,
+		`rejectForbiddenKeys(root, "$", errors)`,
+		`pushError(errors, "too_large"`,
+		`"missing_token"`,
+		`"invalid_color"`,
+		`"invalid_mode"`,
+		`"invalid_effect"`,
+		`"duplicate_id"`,
+		`"forbidden_key"`,
+		`typeof TextEncoder === "function"`,
+	)
+	for _, forbidden := range []string{"eval(", "new Function", "fetch(", "XMLHttpRequest", ".innerHTML"} {
+		if strings.Contains(source, forbidden) {
+			t.Errorf("theme-import.js must not use %s", forbidden)
+		}
+	}
+}
+
+func TestThemeBootRegisterFamiliesAPI(t *testing.T) {
+	source := readAccessibilityFile(t, "theme-boot.js")
+	api := markupBetween(t, source, "window.HearthlightTheme = Object.freeze({", "});")
+	requireContains(t, api,
+		`families: () => families.slice(),`,
+		`registerFamilies,`,
+	)
+	requireContains(t, source,
+		`const builtinFamilies = catalog && Array.isArray(catalog.families)`,
+		`let families = builtinFamilies.slice();`,
+		`const FORBIDDEN_KEYS = new Set(["__proto__", "constructor", "prototype"]);`,
+	)
+	register := arrowBody(t, source, "registerFamilies")
+	requireContains(t, register,
+		`const familyIDs = new Set(builtinFamilies`,
+		`const rejected = [];`,
+		`copyFamily(rawFamily)`,
+		`"family id is already in use"`,
+		`"variant id "`,
+		`families = builtinFamilies.slice().concat(custom);`,
+		`update(initialPreference());`,
+	)
+}
+
+func TestThemeImportAppWiring(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	requireContains(t, js,
+		`const themeImport = window.HearthlightThemeImport || null;`,
+		`themeImportBtn.addEventListener("click", openThemeImport);`,
+		`themeImportText.addEventListener("input", validateThemeImport);`,
+		`themeImportFile.addEventListener("change", readThemeImportFile);`,
+		`themeImportSave.addEventListener("click", saveThemeImport);`,
+		`themeExportAll.addEventListener("click", exportAllCustomThemes);`,
+		`themeCustomFamilies.addEventListener("click", onCustomThemeAction);`,
+		`if (themeImportDialog && themeImportDialog.open) return;`,
+		`window.addEventListener("hearthlight:custom-themes"`,
+	)
+
+	parse := functionBody(t, js, "validateThemeImport")
+	requireContains(t, parse,
+		`themeImport.parse(`,
+		`themeImportCollisions(`,
+		`renderThemeImportErrors(errors)`,
+		`renderThemeImportPreview(result.families)`,
+		`setAttribute("aria-invalid"`,
+	)
+
+	save := functionBody(t, js, "saveThemeImport")
+	requireContains(t, save,
+		`themeImport.persist(next)`,
+		`saved.quota`,
+		`previous theme kept`,
+		`window.confirm(`,
+		`Replace `,
+		`control.registerFamilies(next)`,
+		`themeImport.markCustomFamily`,
+		`imported for this session`,
+	)
+
+	read := functionBody(t, js, "readThemeImportFile")
+	requireContains(t, read,
+		`themeImport.MAX_IMPORT_BYTES`,
+		`file.text()`,
+		`new FileReader()`,
+	)
+
+	preview := functionBody(t, js, "renderThemeImportPreview")
+	requireContains(t, preview, `escapeHTML(value`, `theme-import-swatch`)
+
+	errors := functionBody(t, js, "renderThemeImportErrors")
+	requireContains(t, errors, `escapeHTML(error.path)`, `escapeHTML(message)`)
+
+	storage := functionBody(t, js, "themeImportStorageNote")
+	requireContains(t, storage, `"disabled"`, `session only`, `themeImport.STORAGE_KEY`)
+}
+
+func TestCustomThemePickerActions(t *testing.T) {
+	js := readAccessibilityFile(t, "app.js")
+	render := functionBody(t, js, "renderCustomThemeFamilies")
+	requireContains(t, render,
+		`customThemeFamilies()`,
+		`themeFamilyPreview(family)`,
+		`data-custom-action="rename"`,
+		`data-custom-action="duplicate"`,
+		`data-custom-action="export"`,
+		`data-custom-action="delete"`,
+		`escapeHTML(family.id)`,
+		`escapeHTML(name)`,
+	)
+
+	rename := functionBody(t, js, "renameCustomTheme")
+	requireContains(t, rename, `window.prompt("Rename theme"`, `themeImport.renameFamily(`)
+
+	duplicate := functionBody(t, js, "duplicateCustomTheme")
+	requireContains(t, duplicate, `themeImport.duplicateFamily(`, `selectId:`, `requireId:`)
+
+	remove := functionBody(t, js, "deleteCustomTheme")
+	requireContains(t, remove, `window.confirm(`, `activeRemoved`)
+
+	exportOne := functionBody(t, js, "exportCustomTheme")
+	requireContains(t, exportOne, `downloadThemeJSON(`)
+	exportAll := functionBody(t, js, "exportAllCustomThemes")
+	requireContains(t, exportAll, `hearthlight-custom-themes.json`, `customThemeFamilies()`)
+
+	download := functionBody(t, js, "downloadThemeJSON")
+	requireContains(t, download,
+		`themeImport.exportDocument(families)`,
+		`URL.createObjectURL(blob)`,
+		`link.download = filename`,
+		`URL.revokeObjectURL(url)`,
+	)
+
+	commit := functionBody(t, js, "commitCustomThemes")
+	requireContains(t, commit,
+		`themeImport.persist(next)`,
+		`saved.quota`,
+		`control.registerFamilies(next)`,
+		`renderThemeFamilies()`,
+	)
+}
+
+func TestThemeImportStylingUsesThemeTokens(t *testing.T) {
+	css := readAccessibilityFile(t, "style.css")
+	for _, selector := range []string{
+		".theme-custom-section {",
+		".theme-import-preview {",
+		".theme-import-swatch {",
+		".theme-import-errors {",
+		".theme-import-actions button {",
+	} {
+		body := cssRule(t, css, selector)
+		if !strings.Contains(body, "var(--theme-") {
+			t.Errorf("%s does not use theme variables", selector)
+		}
+	}
+}

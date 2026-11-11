@@ -358,6 +358,22 @@
   let themeFamilyButtons = [];
   let themeDefaultBadge = null;
   const themeFallbackNote = document.getElementById("themeFallbackNote");
+  const themeCustomSection = document.getElementById("themeCustomSection");
+  const themeCustomFamilies = document.getElementById("themeCustomFamilies");
+  const themeExportAll = document.getElementById("themeExportAll");
+  const themeImportBtn = document.getElementById("themeImportBtn");
+  const themeImportDialog = document.getElementById("themeImportDialog");
+  const themeImportClose = document.getElementById("themeImportClose");
+  const themeImportCancel = document.getElementById("themeImportCancel");
+  const themeImportFile = document.getElementById("themeImportFile");
+  const themeImportText = document.getElementById("themeImportText");
+  const themeImportPreview = document.getElementById("themeImportPreview");
+  const themeImportErrors = document.getElementById("themeImportErrors");
+  const themeImportNote = document.getElementById("themeImportStorageNote");
+  const themeImportStatus = document.getElementById("themeImportStatus");
+  const themeImportSave = document.getElementById("themeImportSave");
+  const themeImport = window.HearthlightThemeImport || null;
+  let pendingThemeImport = null;
   const conn = document.getElementById("conn");
   const legend = document.getElementById("legend");
   const empty = document.getElementById("empty");
@@ -1899,6 +1915,21 @@
     if (announce) showToast(view.highContrast ? "High contrast on" : "High contrast off");
   }
 
+  function currentThemeFamilies() {
+    const control = window.HearthlightTheme;
+    if (control && typeof control.families === "function") {
+      return control.families().filter((family) => family && typeof family.id === "string" && family.id);
+    }
+    const catalog = window.HearthlightThemes;
+    return catalog && Array.isArray(catalog.families)
+      ? catalog.families.filter((family) => family && typeof family.id === "string" && family.id)
+      : [];
+  }
+
+  function customThemeFamilies() {
+    return currentThemeFamilies().filter((family) => family && family.custom === true);
+  }
+
   function themeFamilyPreview(family) {
     const variants = family && Array.isArray(family.variants) ? family.variants : [];
     const dark = variants.find((variant) => variant && variant.mode === "dark") || variants[0] || null;
@@ -1921,20 +1952,21 @@
     const families = catalog && Array.isArray(catalog.families)
       ? catalog.families.filter((family) => family && typeof family.id === "string" && family.id)
       : [];
-    if (!families.length) {
-      themeFamilies.hidden = true;
-      return;
-    }
     const control = window.HearthlightTheme;
     const defaultFamily = control && control.DEFAULT_THEME ? control.DEFAULT_THEME.family : "hearthlight";
-    themeFamilies.hidden = false;
-    themeFamilies.innerHTML = families.map((family) => {
-      const swatches = themeFamilyPreview(family);
-      const name = typeof family.name === "string" && family.name ? family.name : family.id;
-      const badge = family.id === defaultFamily
-        ? '<span id="themeDefaultBadge" class="theme-default-badge">Default</span>'
-        : "";
-      return `
+    if (!families.length) {
+      themeFamilies.hidden = true;
+      themeFamilies.innerHTML = "";
+      themeFamilyButtons = [];
+    } else {
+      themeFamilies.hidden = false;
+      themeFamilies.innerHTML = families.map((family) => {
+        const swatches = themeFamilyPreview(family);
+        const name = typeof family.name === "string" && family.name ? family.name : family.id;
+        const badge = family.id === defaultFamily
+          ? '<span id="themeDefaultBadge" class="theme-default-badge">Default</span>'
+          : "";
+        return `
         <button type="button" class="theme-card theme-family" data-family="${escapeHTML(family.id)}" aria-pressed="false" tabindex="-1">
           <span class="theme-card-swatches" aria-hidden="true">
             <span class="theme-swatch theme-swatch-dark" style="${swatches}"></span>
@@ -1946,18 +1978,62 @@
           </span>
           ${badge}
         </button>`;
-    }).join("");
-    themeFamilyButtons = [...themeFamilies.querySelectorAll(".theme-family")];
-    themeDefaultBadge = document.getElementById("themeDefaultBadge");
-    for (const button of themeFamilyButtons) {
-      button.addEventListener("click", () => setThemeFamily(button.dataset.family));
+      }).join("");
+      themeFamilyButtons = [...themeFamilies.querySelectorAll(".theme-family")];
+      themeDefaultBadge = document.getElementById("themeDefaultBadge");
+      for (const button of themeFamilyButtons) {
+        button.addEventListener("click", () => setThemeFamily(button.dataset.family));
+      }
     }
+    renderCustomThemeFamilies();
+    syncThemeFamilies(view.theme);
     syncOmarchyControls();
   }
 
+  function renderCustomThemeFamilies() {
+    if (!themeCustomSection || !themeCustomFamilies) return;
+    const families = customThemeFamilies();
+    themeCustomSection.hidden = !families.length;
+    if (themeExportAll) themeExportAll.hidden = !families.length;
+    if (!families.length) {
+      themeCustomFamilies.innerHTML = "";
+      return;
+    }
+    themeCustomFamilies.innerHTML = families.map((family) => {
+      const swatches = themeFamilyPreview(family);
+      const name = typeof family.name === "string" && family.name ? family.name : family.id;
+      const modes = Array.isArray(family.variants)
+        ? family.variants.map((variant) => (variant.mode === "light" ? "light" : "dark")).join(" + ")
+        : "custom";
+      return `
+        <div class="theme-custom-item" data-custom-family="${escapeHTML(family.id)}">
+          <button type="button" class="theme-card theme-family" data-family="${escapeHTML(family.id)}" aria-pressed="false" tabindex="-1">
+            <span class="theme-card-swatches" aria-hidden="true">
+              <span class="theme-swatch theme-swatch-dark" style="${swatches}"></span>
+              <span class="theme-swatch theme-swatch-light" style="${swatches}"></span>
+            </span>
+            <span class="theme-card-copy">
+              <span class="theme-card-name">${escapeHTML(name)}</span>
+              <span class="theme-card-hint">Custom theme, ${escapeHTML(modes)}</span>
+            </span>
+          </button>
+          <div class="theme-custom-actions" role="group" aria-label="Actions for ${escapeHTML(name)}">
+            <button type="button" data-custom-action="rename" data-family="${escapeHTML(family.id)}" aria-label="Rename ${escapeHTML(name)}">Rename</button>
+            <button type="button" data-custom-action="duplicate" data-family="${escapeHTML(family.id)}" aria-label="Duplicate ${escapeHTML(name)}">Duplicate</button>
+            <button type="button" data-custom-action="export" data-family="${escapeHTML(family.id)}" aria-label="Export ${escapeHTML(name)}">Export</button>
+            <button type="button" data-custom-action="delete" data-family="${escapeHTML(family.id)}" aria-label="Delete ${escapeHTML(name)}">Delete</button>
+          </div>
+        </div>`;
+    }).join("");
+    const buttons = [...themeCustomFamilies.querySelectorAll(".theme-family")];
+    themeFamilyButtons.push(...buttons);
+    for (const button of buttons) {
+      button.addEventListener("click", () => setThemeFamily(button.dataset.family));
+    }
+  }
+
   function themeFamilyName(id) {
-    const catalog = window.HearthlightThemes;
-    const families = catalog && Array.isArray(catalog.families) ? catalog.families : [];
+    const families = currentThemeFamilies();
     const family = families.find((candidate) => candidate && candidate.id === id);
     return family && typeof family.name === "string" && family.name ? family.name : "Theme";
   }
@@ -2067,6 +2143,447 @@
     applyTheme(control.persist(control.DEFAULT_THEME));
     applyHighContrastPreference();
     showToast("Theme reset");
+  }
+
+  function themeImportStorageNote() {
+    if (!themeImportNote) return;
+    if (!themeImport) {
+      themeImportNote.textContent = "Theme import is unavailable in this browser.";
+      return;
+    }
+    const state = typeof themeImport.storageState === "function" ? themeImport.storageState() : "ok";
+    if (state === "disabled") {
+      themeImportNote.textContent = "Browser storage is disabled. Imported themes work for this session only.";
+    } else if (state === "quota") {
+      themeImportNote.textContent = "Browser storage is full. Delete a custom theme or import for this session only.";
+    } else {
+      themeImportNote.textContent = "Custom themes are stored in this browser only, under " + themeImport.STORAGE_KEY + ".";
+    }
+  }
+
+  function renderThemeImportErrors(errors) {
+    if (!themeImportErrors) return;
+    const list = Array.isArray(errors) ? errors : [];
+    themeImportErrors.hidden = !list.length;
+    if (!list.length) {
+      themeImportErrors.innerHTML = "";
+      return;
+    }
+    const shown = list.slice(0, 12).map((error) => {
+      const path = error && error.path ? `<code>${escapeHTML(error.path)}</code> ` : "";
+      const message = error && error.message ? error.message : "Invalid theme.";
+      return `<li>${path}${escapeHTML(message)}</li>`;
+    });
+    if (list.length > shown.length) shown.push(`<li>and ${list.length - shown.length} more.</li>`);
+    themeImportErrors.innerHTML = shown.join("");
+  }
+
+  function renderThemeImportPreview(families) {
+    if (!themeImportPreview) return;
+    const tokens = ["bg", "ink", "accent", "online", "warning", "danger", "canvasTop", "canvasBottom"];
+    const rows = [];
+    for (const family of Array.isArray(families) ? families : []) {
+      const name = family && family.name ? family.name : "Theme";
+      const variants = family && Array.isArray(family.variants) ? family.variants : [];
+      for (const variant of variants) {
+        const palette = variant && variant.palette ? variant.palette : {};
+        const swatches = tokens.map((token) => {
+          const value = typeof palette[token] === "string" ? palette[token] : "";
+          return `<span class="theme-import-swatch" style="background:${escapeHTML(value || "transparent")}" title="${escapeHTML(token)}"></span>`;
+        }).join("");
+        const mode = variant && variant.mode === "light" ? "Light" : "Dark";
+        rows.push(`
+          <div class="theme-import-preview-family">
+            <div class="theme-import-preview-head"><strong>${escapeHTML(name)}</strong><span>${mode}</span></div>
+            <div class="theme-import-swatches" aria-hidden="true">${swatches}</div>
+          </div>`);
+      }
+    }
+    themeImportPreview.hidden = !rows.length;
+    themeImportPreview.innerHTML = rows.join("");
+  }
+
+  function themeImportCollisions(families) {
+    const errors = [];
+    const existing = customThemeFamilies();
+    const existingIDs = new Set(existing.map((family) => family.id));
+    const importedIDs = new Set((families || []).map((family) => family && family.id).filter(Boolean));
+    const replacements = existing.filter((family) => importedIDs.has(family.id));
+    const variantOwners = new Map();
+    for (const family of existing) {
+      if (!family || !Array.isArray(family.variants)) continue;
+      for (const variant of family.variants) {
+        if (variant && variant.id) variantOwners.set(variant.id, family.id);
+      }
+    }
+    for (const family of families || []) {
+      if (!family || !Array.isArray(family.variants)) continue;
+      for (const variant of family.variants) {
+        const owner = variantOwners.get(variant.id);
+        if (owner && owner !== family.id) {
+          errors.push({
+            path: `variant "${variant.id}"`,
+            message: `Variant id is already used by the custom theme "${owner}".`,
+          });
+        }
+      }
+    }
+    const nextCount = existing.filter((family) => !importedIDs.has(family.id)).length + (families || []).length;
+    if (nextCount > themeImport.MAX_CUSTOM_FAMILIES) {
+      errors.push({
+        path: "$.families",
+        message: `Only ${themeImport.MAX_CUSTOM_FAMILIES} custom themes can be stored. Delete one first.`,
+      });
+    }
+    return { errors, replacements };
+  }
+
+  function showThemeImportFailure(errors) {
+    pendingThemeImport = null;
+    renderThemeImportErrors(errors);
+    renderThemeImportPreview([]);
+    if (themeImportSave) {
+      themeImportSave.disabled = true;
+      themeImportSave.textContent = "Save theme";
+    }
+    if (themeImportStatus) {
+      themeImportStatus.hidden = true;
+      themeImportStatus.textContent = "";
+    }
+    if (themeImportText) themeImportText.setAttribute("aria-invalid", "true");
+  }
+
+  function validateThemeImport() {
+    if (!themeImportText || !themeImport) return;
+    if (!themeImportText.value.trim()) {
+      pendingThemeImport = null;
+      renderThemeImportErrors([]);
+      renderThemeImportPreview([]);
+      if (themeImportSave) {
+        themeImportSave.disabled = true;
+        themeImportSave.textContent = "Save theme";
+      }
+      if (themeImportStatus) {
+        themeImportStatus.hidden = true;
+        themeImportStatus.textContent = "";
+      }
+      themeImportText.removeAttribute("aria-invalid");
+      return;
+    }
+    let result;
+    try {
+      result = themeImport.parse(themeImportText.value);
+    } catch (_error) {
+      showThemeImportFailure([{ path: "$", message: "Could not read that theme." }]);
+      return;
+    }
+    const collisions = themeImportCollisions(result.families);
+    const errors = result.errors.concat(collisions.errors);
+    const ok = result.ok && errors.length === 0;
+    pendingThemeImport = ok ? { families: result.families, replacements: collisions.replacements } : null;
+    renderThemeImportErrors(errors);
+    renderThemeImportPreview(result.families);
+    if (themeImportSave) {
+      themeImportSave.disabled = !ok;
+      themeImportSave.textContent = collisions.replacements.length ? "Replace theme" : "Save theme";
+    }
+    themeImportText.setAttribute("aria-invalid", String(!ok));
+    if (themeImportStatus) {
+      if (ok) {
+        const names = result.families.map((family) => family.name).join(", ");
+        const replacement = collisions.replacements.length
+          ? ` Replacing ${collisions.replacements.map((family) => family.name).join(", ")}.`
+          : "";
+        themeImportStatus.hidden = false;
+        themeImportStatus.textContent = `Ready to save ${names}.${replacement}`;
+      } else {
+        themeImportStatus.hidden = true;
+        themeImportStatus.textContent = "";
+      }
+    }
+  }
+
+  async function readThemeImportFile() {
+    if (!themeImportFile || !themeImport) return;
+    const file = themeImportFile.files && themeImportFile.files[0];
+    if (!file) return;
+    if (file.size > themeImport.MAX_IMPORT_BYTES) {
+      showThemeImportFailure([{
+        path: "$",
+        message: `File is ${Math.ceil(file.size / 1024)} KiB; the maximum is 256 KiB.`,
+      }]);
+      return;
+    }
+    try {
+      const text = typeof file.text === "function"
+        ? await file.text()
+        : await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ""));
+            reader.onerror = () => reject(reader.error);
+            reader.readAsText(file);
+          });
+      if (themeImportText) themeImportText.value = text;
+      validateThemeImport();
+    } catch (_error) {
+      showThemeImportFailure([{ path: "$", message: "Could not read that file." }]);
+    }
+  }
+
+  function saveThemeImport() {
+    if (!pendingThemeImport || !themeImport) return;
+    const control = window.HearthlightTheme;
+    if (!control || typeof control.registerFamilies !== "function") {
+      showToast("Theme import is unavailable");
+      return;
+    }
+    const existing = customThemeFamilies();
+    const imported = pendingThemeImport.families;
+    const importedIDs = new Set(imported.map((family) => family.id));
+    const next = existing
+      .filter((family) => !importedIDs.has(family.id))
+      .concat(imported.map((family) => themeImport.markCustomFamily(family)));
+    if (next.length > themeImport.MAX_CUSTOM_FAMILIES) {
+      showToast("Too many custom themes; delete one first.");
+      return;
+    }
+    const replacements = pendingThemeImport.replacements || [];
+    if (replacements.length && typeof window.confirm === "function" &&
+        !window.confirm(`Replace ${replacements.map((family) => family.name).join(", ")}? This overwrites the existing custom theme.`)) {
+      return;
+    }
+    const saved = themeImport.persist(next);
+    if (saved && saved.quota) {
+      showToast("Theme not saved. Browser storage is full; previous theme kept.");
+      return;
+    }
+    const registration = control.registerFamilies(next);
+    const registered = new Set(
+      registration && Array.isArray(registration.families)
+        ? registration.families.map((family) => family.id)
+        : [],
+    );
+    const missing = imported.filter((family) => !registered.has(family.id));
+    if (missing.length) {
+      themeImport.persist(existing);
+      control.registerFamilies(existing);
+      showToast("Theme could not be saved. The previous theme was kept.");
+      return;
+    }
+    const mode = control.initialPreference().mode;
+    const selected = imported[0];
+    applyTheme(control.persist({ family: selected.id, mode }));
+    renderThemeFamilies();
+    closeThemeImport();
+    if (saved && saved.disabled) {
+      showToast(`${selected.name} imported for this session`);
+    } else {
+      showToast(`${selected.name} imported`);
+    }
+  }
+
+  function resetThemeImport() {
+    pendingThemeImport = null;
+    if (themeImportText) themeImportText.value = "";
+    if (themeImportFile) themeImportFile.value = "";
+    renderThemeImportErrors([]);
+    renderThemeImportPreview([]);
+    if (themeImportStatus) {
+      themeImportStatus.hidden = true;
+      themeImportStatus.textContent = "";
+    }
+    if (themeImportSave) {
+      themeImportSave.disabled = true;
+      themeImportSave.textContent = "Save theme";
+    }
+    if (themeImportText) themeImportText.removeAttribute("aria-invalid");
+    themeImportStorageNote();
+  }
+
+  function openThemeImport() {
+    if (!themeImportDialog || !themeImport) {
+      showToast("Theme import is unavailable");
+      return;
+    }
+    resetThemeImport();
+    if (typeof themeImportDialog.showModal === "function") themeImportDialog.showModal();
+    else themeImportDialog.setAttribute("open", "");
+    if (themeImportText) themeImportText.focus();
+  }
+
+  function closeThemeImport() {
+    if (!themeImportDialog) return;
+    if (typeof themeImportDialog.close === "function") themeImportDialog.close();
+    else themeImportDialog.removeAttribute("open");
+    if (themeImportBtn) themeImportBtn.focus();
+  }
+
+  function trapThemeImportFocus(event) {
+    if (event.key !== "Tab") return;
+    const focusable = [...themeImportDialog.querySelectorAll(FOCUSABLE_SELECTOR)]
+      .filter((element) => element.getClientRects().length > 0);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function customThemeById(id) {
+    return customThemeFamilies().find((family) => family && family.id === id) || null;
+  }
+
+  function commitCustomThemes(next, options) {
+    const control = window.HearthlightTheme;
+    if (!themeImport || !control) return { ok: false };
+    const settings = options || {};
+    const previous = customThemeFamilies();
+    if (next.length > themeImport.MAX_CUSTOM_FAMILIES) {
+      showToast("Too many custom themes; delete one first.");
+      return { ok: false };
+    }
+    const saved = themeImport.persist(next);
+    if (saved && saved.quota) {
+      showToast("Theme not saved. Browser storage is full; previous theme kept.");
+      return { ok: false, quota: true };
+    }
+    const registration = control.registerFamilies(next);
+    const registered = new Set(
+      registration && Array.isArray(registration.families)
+        ? registration.families.map((family) => family.id)
+        : [],
+    );
+    if (settings.requireId && !registered.has(settings.requireId)) {
+      themeImport.persist(previous);
+      control.registerFamilies(previous);
+      showToast("Theme could not be saved. The previous theme was kept.");
+      return { ok: false };
+    }
+    if (settings.selectId) {
+      const mode = control.initialPreference().mode;
+      applyTheme(control.persist({ family: settings.selectId, mode }));
+    } else if (settings.activeRemoved && view.theme &&
+        !currentThemeFamilies().some((family) => family.id === view.theme.family)) {
+      applyTheme(control.persist(control.DEFAULT_THEME));
+    }
+    renderThemeFamilies();
+    return { ok: true, sessionOnly: Boolean(saved && saved.disabled) };
+  }
+
+  function renameCustomTheme(id) {
+    const family = customThemeById(id);
+    if (!family || !themeImport) return;
+    if (typeof window.prompt !== "function") {
+      showToast("Rename is unavailable in this browser");
+      return;
+    }
+    const proposed = window.prompt("Rename theme", family.name);
+    if (proposed === null) return;
+    const renamed = themeImport.renameFamily(customThemeFamilies(), id, proposed);
+    if (!renamed.ok) {
+      showToast(renamed.message);
+      return;
+    }
+    const result = commitCustomThemes(renamed.families);
+    if (result.ok) showToast(result.sessionOnly ? "Theme renamed for this session" : "Theme renamed");
+  }
+
+  function duplicateCustomTheme(id) {
+    if (!themeImport) return;
+    const duplicated = themeImport.duplicateFamily(customThemeFamilies(), id);
+    if (!duplicated.ok) {
+      showToast(duplicated.message);
+      return;
+    }
+    const result = commitCustomThemes(duplicated.families, {
+      selectId: duplicated.family.id,
+      requireId: duplicated.family.id,
+    });
+    if (result.ok) {
+      showToast(result.sessionOnly ? `${duplicated.family.name} duplicated for this session` : `${duplicated.family.name} duplicated`);
+    }
+  }
+
+  function themeFileName(value) {
+    return String(value || "theme")
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "theme";
+  }
+
+  function downloadThemeJSON(filename, families) {
+    if (!themeImport || typeof URL === "undefined" || typeof Blob !== "function") {
+      showToast("Theme export is unavailable");
+      return;
+    }
+    const text = themeImport.exportDocument(families);
+    const blob = new Blob([text], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.rel = "noopener";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportCustomTheme(id) {
+    const family = customThemeById(id);
+    if (!family) return;
+    downloadThemeJSON(`${themeFileName(family.id)}.json`, [family]);
+    showToast(`${family.name} exported`);
+  }
+
+  function exportAllCustomThemes() {
+    const families = customThemeFamilies();
+    if (!families.length) {
+      showToast("No custom themes to export");
+      return;
+    }
+    downloadThemeJSON("hearthlight-custom-themes.json", families);
+    showToast(`${families.length} custom theme${families.length === 1 ? "" : "s"} exported`);
+  }
+
+  function deleteCustomTheme(id) {
+    const family = customThemeById(id);
+    if (!family) return;
+    if (typeof window.confirm === "function" &&
+        !window.confirm(`Delete "${family.name}"? This cannot be undone.`)) {
+      return;
+    }
+    const next = customThemeFamilies().filter((candidate) => candidate.id !== id);
+    const activeRemoved = Boolean(view.theme && view.theme.family === id);
+    const result = commitCustomThemes(next, { activeRemoved });
+    if (result.ok) showToast(result.sessionOnly ? "Theme deleted for this session" : "Theme deleted");
+  }
+
+  function onCustomThemeAction(event) {
+    const action = event.target.closest("[data-custom-action]");
+    if (!action) return;
+    const id = action.dataset.family;
+    switch (action.dataset.customAction) {
+      case "rename":
+        renameCustomTheme(id);
+        break;
+      case "duplicate":
+        duplicateCustomTheme(id);
+        break;
+      case "export":
+        exportCustomTheme(id);
+        break;
+      case "delete":
+        deleteCustomTheme(id);
+        break;
+      default:
+        break;
+    }
   }
 
   function readOmarchyFollowPreference() {
@@ -4221,8 +4738,43 @@
   if (themeReset) {
     themeReset.addEventListener("click", resetTheme);
   }
+  if (themeImportBtn) {
+    themeImportBtn.addEventListener("click", openThemeImport);
+  }
+  if (themeImportClose) {
+    themeImportClose.addEventListener("click", closeThemeImport);
+  }
+  if (themeImportCancel) {
+    themeImportCancel.addEventListener("click", closeThemeImport);
+  }
+  if (themeImportSave) {
+    themeImportSave.addEventListener("click", saveThemeImport);
+  }
+  if (themeImportFile) {
+    themeImportFile.addEventListener("change", readThemeImportFile);
+  }
+  if (themeImportText) {
+    themeImportText.addEventListener("input", validateThemeImport);
+  }
+  if (themeImportDialog) {
+    themeImportDialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      closeThemeImport();
+    });
+    themeImportDialog.addEventListener("click", (event) => {
+      if (event.target === themeImportDialog) closeThemeImport();
+    });
+    themeImportDialog.addEventListener("keydown", trapThemeImportFocus);
+  }
   if (themeFamilies) {
     themeFamilies.addEventListener("keydown", onThemeFamilyKeydown);
+  }
+  if (themeCustomFamilies) {
+    themeCustomFamilies.addEventListener("keydown", onThemeFamilyKeydown);
+    themeCustomFamilies.addEventListener("click", onCustomThemeAction);
+  }
+  if (themeExportAll) {
+    themeExportAll.addEventListener("click", exportAllCustomThemes);
   }
   if (omarchyFollowBtn) {
     omarchyFollowBtn.addEventListener("click", () => setOmarchyFollow(!omarchyState.enabled));
@@ -4273,6 +4825,7 @@
   window.addEventListener("keydown", (event) => {
     if (event.target.matches("input, textarea, select, [contenteditable]")) return;
     if (deviceList && deviceList.contains(event.target)) return;
+    if (themeImportDialog && themeImportDialog.open) return;
     if (settingsDialog.open) return;
     if (event.key === "Escape") {
       if (view.deviceSheetOpen) {
@@ -4373,6 +4926,9 @@
   window.addEventListener("hearthlight:theme", (event) => {
     applyTheme(event.detail);
   });
+  window.addEventListener("hearthlight:custom-themes", () => {
+    renderThemeFamilies();
+  });
   window.addEventListener("hearthlight:contrast", (event) => {
     const enabled = Boolean(event.detail && event.detail.enabled);
     if (view.highContrast === enabled) {
@@ -4393,6 +4949,7 @@
   }, 15000);
 
   renderThemeFamilies();
+  themeImportStorageNote();
   resize();
   applyHighContrastPreference();
   applyTheme();
