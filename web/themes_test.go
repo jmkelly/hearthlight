@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -18,7 +19,13 @@ type themeCatalog struct {
 type themeFamily struct {
 	ID       string         `json:"id"`
 	Name     string         `json:"name"`
+	Source   themeSource    `json:"source"`
 	Variants []themeVariant `json:"variants"`
+}
+
+type themeSource struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
 }
 
 type themeVariant struct {
@@ -102,6 +109,67 @@ var wantDarkEffects = map[string]any{
 	"shadowStrength": 1.0,
 }
 
+var wantCatppuccinMochaPalette = map[string]string{
+	"bg":           "#1e1e2e",
+	"ink":          "#cdd6f4",
+	"muted":        "#a6adc8",
+	"accent":       "#89dceb",
+	"line":         "rgba(205, 214, 244, 0.14)",
+	"glass":        "rgba(30, 30, 46, 0.74)",
+	"canvasTop":    "#313244",
+	"canvasMiddle": "#181825",
+	"canvasBottom": "#11111b",
+	"grid":         "rgba(137, 180, 250, 0.06)",
+	"ambientGlow":  "rgba(116, 199, 236, 0.12)",
+	"online":       "#a6e3a1",
+	"warning":      "#f9e2af",
+	"danger":       "#f38ba8",
+	"history":      "#7f849c",
+	"vignette":     "rgba(17, 17, 27, 0.55)",
+	"labelHalo":    "rgba(17, 17, 27, 0.88)",
+	"bubble":       "rgba(24, 24, 37, 0.94)",
+	"panel":        "rgba(30, 30, 46, 0.95)",
+}
+
+var wantCatppuccinMochaKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#f9e2af"},
+	"server":   {Label: "Server", Color: "#89dceb"},
+	"computer": {Label: "Computer", Color: "#89b4fa"},
+	"phone":    {Label: "Phone", Color: "#f5c2e7"},
+	"nas":      {Label: "NAS", Color: "#a6e3a1"},
+	"media":    {Label: "Media", Color: "#cba6f7"},
+	"iot":      {Label: "IoT", Color: "#94e2d5"},
+	"printer":  {Label: "Printer", Color: "#fab387"},
+	"device":   {Label: "Device", Color: "#9399b2"},
+}
+
+var wantCatppuccinMochaCategories = map[string]string{
+	"web":    "#89dceb",
+	"media":  "#cba6f7",
+	"data":   "#fab387",
+	"remote": "#a6e3a1",
+	"infra":  "#89b4fa",
+	"iot":    "#94e2d5",
+	"other":  "#9399b2",
+}
+
+var wantCatppuccinMochaEffects = map[string]any{
+	"vignette":       0.55,
+	"deviceGlow":     0.22,
+	"devicePulse":    0.3,
+	"serviceGlow":    0.16,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "screen",
+	"territoryAlpha": 1.0,
+	"glowStrength":   1.0,
+	"labelHalo":      1.0,
+	"shadowStrength": 1.0,
+}
+
 var requiredPaletteTokens = []string{
 	"bg", "ink", "muted", "accent", "line", "glass",
 	"canvasTop", "canvasMiddle", "canvasBottom", "grid", "ambientGlow",
@@ -136,11 +204,12 @@ func TestThemeCatalog(t *testing.T) {
 	if catalog.SchemaVersion != 1 {
 		t.Fatalf("schemaVersion = %d, want 1", catalog.SchemaVersion)
 	}
-	if len(catalog.Families) != 1 {
-		t.Fatalf("families = %d, want 1", len(catalog.Families))
+	if len(catalog.Families) == 0 {
+		t.Fatal("themes.json has no families")
 	}
-	family := catalog.Families[0]
-	if family.ID != "hearthlight" || family.Name != "Hearthlight" {
+
+	family := findThemeFamily(t, catalog, "hearthlight")
+	if family.Name != "Hearthlight" {
 		t.Fatalf("family = %+v, want Hearthlight", family)
 	}
 	if len(family.Variants) != 2 {
@@ -247,6 +316,75 @@ func TestThemeCatalog(t *testing.T) {
 				t.Errorf("%s: missing effect token %q", variant.ID, name)
 			}
 		}
+	}
+}
+
+func findThemeFamily(t *testing.T, catalog themeCatalog, id string) themeFamily {
+	t.Helper()
+	for _, family := range catalog.Families {
+		if family.ID == id {
+			return family
+		}
+	}
+	t.Fatalf("themes.json has no family %q", id)
+	return themeFamily{}
+}
+
+func TestCatppuccinMochaVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "catppuccin")
+	if family.Name != "Catppuccin" {
+		t.Fatalf("family name = %q, want Catppuccin", family.Name)
+	}
+	if family.Source.Name != "Catppuccin" {
+		t.Errorf("source name = %q, want Catppuccin", family.Source.Name)
+	}
+	if !strings.HasPrefix(family.Source.URL, "https://") {
+		t.Errorf("source url = %q, want an https:// URL", family.Source.URL)
+	}
+	if len(family.Variants) != 1 {
+		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	}
+	variant := family.Variants[0]
+	if variant.ID != "catppuccin-mocha" || variant.Name != "Catppuccin Mocha" || variant.Mode != "dark" {
+		t.Fatalf("variant = %+v, want Catppuccin Mocha dark", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantCatppuccinMochaPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantCatppuccinMochaPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantCatppuccinMochaKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantCatppuccinMochaKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantCatppuccinMochaCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantCatppuccinMochaCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantCatppuccinMochaEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantCatppuccinMochaEffects)
+	}
+}
+
+func TestThemeIDsAreKebabCase(t *testing.T) {
+	_, catalog := readCatalog(t)
+	pattern := regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
+	for _, family := range catalog.Families {
+		checkThemeID(t, pattern, family.ID)
+		for _, variant := range family.Variants {
+			checkThemeID(t, pattern, variant.ID)
+		}
+	}
+}
+
+func checkThemeID(t *testing.T, pattern *regexp.Regexp, id string) {
+	t.Helper()
+	if !pattern.MatchString(id) {
+		t.Errorf("theme id %q is not kebab-case", id)
+	}
+	seen := make(map[string]bool)
+	for _, word := range strings.Split(id, "-") {
+		if seen[word] {
+			t.Errorf("theme id %q repeats the word %q", id, word)
+		}
+		seen[word] = true
 	}
 }
 
