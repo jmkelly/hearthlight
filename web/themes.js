@@ -130,6 +130,78 @@ window.HearthlightThemes = {
           }
         }
       ]
+    },
+    {
+      "id": "catppuccin",
+      "name": "Catppuccin",
+      "source": {
+        "name": "Catppuccin",
+        "url": "https://github.com/catppuccin/catppuccin"
+      },
+      "variants": [
+        {
+          "id": "catppuccin-mocha",
+          "name": "Catppuccin Mocha",
+          "mode": "dark",
+          "palette": {
+            "bg": "#1e1e2e",
+            "ink": "#cdd6f4",
+            "muted": "#a6adc8",
+            "accent": "#89dceb",
+            "line": "rgba(205, 214, 244, 0.14)",
+            "glass": "rgba(30, 30, 46, 0.74)",
+            "canvasTop": "#313244",
+            "canvasMiddle": "#181825",
+            "canvasBottom": "#11111b",
+            "grid": "rgba(137, 180, 250, 0.06)",
+            "ambientGlow": "rgba(116, 199, 236, 0.12)",
+            "online": "#a6e3a1",
+            "warning": "#f9e2af",
+            "danger": "#f38ba8",
+            "history": "#7f849c",
+            "vignette": "rgba(17, 17, 27, 0.55)",
+            "labelHalo": "rgba(17, 17, 27, 0.88)",
+            "bubble": "rgba(24, 24, 37, 0.94)",
+            "panel": "rgba(30, 30, 46, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#f9e2af" },
+            "server": { "label": "Server", "color": "#89dceb" },
+            "computer": { "label": "Computer", "color": "#89b4fa" },
+            "phone": { "label": "Phone", "color": "#f5c2e7" },
+            "nas": { "label": "NAS", "color": "#a6e3a1" },
+            "media": { "label": "Media", "color": "#cba6f7" },
+            "iot": { "label": "IoT", "color": "#94e2d5" },
+            "printer": { "label": "Printer", "color": "#fab387" },
+            "device": { "label": "Device", "color": "#9399b2" }
+          },
+          "categories": {
+            "web": "#89dceb",
+            "media": "#cba6f7",
+            "data": "#fab387",
+            "remote": "#a6e3a1",
+            "infra": "#89b4fa",
+            "iot": "#94e2d5",
+            "other": "#9399b2"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
     }
   ]
 }
