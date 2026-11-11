@@ -346,6 +346,78 @@
           }
         }
       ]
+    },
+    {
+      "id": "kanagawa",
+      "name": "Kanagawa",
+      "source": {
+        "name": "Kanagawa",
+        "url": "https://github.com/rebelot/kanagawa.nvim"
+      },
+      "variants": [
+        {
+          "id": "kanagawa-wave",
+          "name": "Kanagawa Wave",
+          "mode": "dark",
+          "palette": {
+            "bg": "#1F1F28",
+            "ink": "#DCD7BA",
+            "muted": "#727169",
+            "accent": "#7E9CD8",
+            "line": "rgba(220, 215, 186, 0.14)",
+            "glass": "rgba(31, 31, 40, 0.74)",
+            "canvasTop": "#2A2A37",
+            "canvasMiddle": "#1F1F28",
+            "canvasBottom": "#16161D",
+            "grid": "rgba(126, 156, 216, 0.06)",
+            "ambientGlow": "rgba(126, 156, 216, 0.12)",
+            "online": "#98BB6C",
+            "warning": "#E6C384",
+            "danger": "#E46876",
+            "history": "#727169",
+            "vignette": "rgba(22, 22, 29, 0.55)",
+            "labelHalo": "rgba(22, 22, 29, 0.88)",
+            "bubble": "rgba(31, 31, 40, 0.94)",
+            "panel": "rgba(31, 31, 40, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#E6C384" },
+            "server": { "label": "Server", "color": "#7E9CD8" },
+            "computer": { "label": "Computer", "color": "#7FB4CA" },
+            "phone": { "label": "Phone", "color": "#D27E99" },
+            "nas": { "label": "NAS", "color": "#98BB6C" },
+            "media": { "label": "Media", "color": "#957FB8" },
+            "iot": { "label": "IoT", "color": "#7AA89F" },
+            "printer": { "label": "Printer", "color": "#FFA066" },
+            "device": { "label": "Device", "color": "#727169" }
+          },
+          "categories": {
+            "web": "#7E9CD8",
+            "media": "#957FB8",
+            "data": "#FFA066",
+            "remote": "#98BB6C",
+            "infra": "#7FB4CA",
+            "iot": "#7AA89F",
+            "other": "#727169"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
     }
   ]
 }
