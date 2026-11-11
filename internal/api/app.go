@@ -523,13 +523,7 @@ func (a *App) handleThemes(static fs.FS) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-store")
-		if static == nil {
-			a.logger.Error("read theme catalog", "error", "static filesystem is nil")
-			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = io.WriteString(w, `{"error":"theme catalog unavailable"}`)
-			return
-		}
-		payload, err := fs.ReadFile(static, "themes.json")
+		payload, err := themeCatalogPayload(static)
 		if err != nil {
 			a.logger.Error("read theme catalog", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -538,6 +532,36 @@ func (a *App) handleThemes(static fs.FS) http.HandlerFunc {
 		}
 		_, _ = w.Write(payload)
 	}
+}
+
+// themeCatalogPayload merges the Omarchy name mapping into the catalog. The
+// catalog keeps its own top-level keys so existing clients still read
+// schemaVersion and families.
+func themeCatalogPayload(static fs.FS) ([]byte, error) {
+	if static == nil {
+		return nil, errors.New("static filesystem is nil")
+	}
+	catalog, err := fs.ReadFile(static, "themes.json")
+	if err != nil {
+		return nil, fmt.Errorf("read themes.json: %w", err)
+	}
+	mapping, err := fs.ReadFile(static, "omarchy.json")
+	if err != nil {
+		return nil, fmt.Errorf("read omarchy.json: %w", err)
+	}
+	if !json.Valid(mapping) {
+		return nil, errors.New("omarchy.json is not valid JSON")
+	}
+	payload := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(catalog, &payload); err != nil {
+		return nil, fmt.Errorf("parse themes.json: %w", err)
+	}
+	payload["omarchy"] = mapping
+	merged, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("encode theme catalog: %w", err)
+	}
+	return merged, nil
 }
 
 // handleOmarchyTheme serves the last palette the watcher accepted. A missing or

@@ -133,22 +133,41 @@ func TestThemesEndpoint(t *testing.T) {
 	if got := rec.Header().Get("Content-Type"); got != "application/json; charset=utf-8" {
 		t.Fatalf("Content-Type = %q, want application/json; charset=utf-8", got)
 	}
-	want, err := web.Files.ReadFile("themes.json")
-	if err != nil {
-		t.Fatalf("read embedded themes.json: %v", err)
-	}
-	if !bytes.Equal(rec.Body.Bytes(), want) {
-		t.Fatal("response body does not match the embedded theme catalog")
-	}
 	var catalog struct {
 		SchemaVersion int               `json:"schemaVersion"`
 		Families      []json.RawMessage `json:"families"`
+		Omarchy       struct {
+			SchemaVersion int               `json:"schemaVersion"`
+			Source        string            `json:"source"`
+			Commit        string            `json:"commit"`
+			Themes        map[string]string `json:"themes"`
+			Modes         map[string]string `json:"modes"`
+		} `json:"omarchy"`
 	}
 	if err := json.Unmarshal(rec.Body.Bytes(), &catalog); err != nil {
 		t.Fatalf("response is not valid JSON: %v", err)
 	}
 	if catalog.SchemaVersion != 1 || len(catalog.Families) != 26 {
 		t.Fatalf("schemaVersion = %d, families = %d, want 1 and 26", catalog.SchemaVersion, len(catalog.Families))
+	}
+	const commit = "748fa3c0d0418d7a199818d94c1f87d495d7e804"
+	if catalog.Omarchy.SchemaVersion != 1 {
+		t.Errorf("omarchy schemaVersion = %d, want 1", catalog.Omarchy.SchemaVersion)
+	}
+	if want := "https://github.com/omacom/omarchy/tree/" + commit + "/themes"; catalog.Omarchy.Source != want {
+		t.Errorf("omarchy source = %q, want %q", catalog.Omarchy.Source, want)
+	}
+	if catalog.Omarchy.Commit != commit {
+		t.Errorf("omarchy commit = %q, want %q", catalog.Omarchy.Commit, commit)
+	}
+	if len(catalog.Omarchy.Themes) != 23 || len(catalog.Omarchy.Modes) != 23 {
+		t.Fatalf("omarchy themes = %d, modes = %d, want 23 and 23", len(catalog.Omarchy.Themes), len(catalog.Omarchy.Modes))
+	}
+	if got := catalog.Omarchy.Themes["rose-pine"]; got != "rose-pine-dawn" {
+		t.Errorf("rose-pine maps to %q, want rose-pine-dawn", got)
+	}
+	if got := catalog.Omarchy.Modes["rose-pine"]; got != "light" {
+		t.Errorf("rose-pine mode = %q, want light", got)
 	}
 }
 
@@ -318,7 +337,7 @@ func TestOmarchyThemeWatcherRefreshesAndKeepsUnavailableState(t *testing.T) {
 
 func TestThemeAssetsAndIndexAreServed(t *testing.T) {
 	handler, _ := newTestHandler(t, Config{})
-	for _, target := range []string{"/", "/themes.json", "/themes.js"} {
+	for _, target := range []string{"/", "/themes.json", "/themes.js", "/omarchy.json"} {
 		rec := doRequest(handler, http.MethodGet, target, nil, nil)
 		if rec.Code != http.StatusOK {
 			t.Errorf("%s status = %d, want %d", target, rec.Code, http.StatusOK)
