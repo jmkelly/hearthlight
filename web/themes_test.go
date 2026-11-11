@@ -2,10 +2,13 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"math"
 	"os"
 	"reflect"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -26,17 +29,27 @@ type themeFamily struct {
 type themeSource struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
+	Note string `json:"note"`
 }
 
 type themeVariant struct {
-	ID         string               `json:"id"`
-	Name       string               `json:"name"`
-	Mode       string               `json:"mode"`
-	Palette    map[string]string    `json:"palette"`
-	Kinds      map[string]themeKind `json:"kinds"`
-	Categories map[string]string    `json:"categories"`
-	Effects    map[string]any       `json:"effects"`
+	ID                 string                   `json:"id"`
+	Name               string                   `json:"name"`
+	Mode               string                   `json:"mode"`
+	Palette            map[string]string        `json:"palette"`
+	Kinds              map[string]themeKind     `json:"kinds"`
+	Categories         map[string]string        `json:"categories"`
+	Effects            map[string]any           `json:"effects"`
+	ContrastExceptions []themeContrastException `json:"contrastExceptions"`
 }
+
+type themeContrastException struct {
+	Pair   string `json:"pair"`
+	Reason string `json:"reason"`
+}
+
+// A variant may exempt a non-text graphical pair such as
+// "kind.phone/canvasTop" with a reason. Text pairs are never exempt.
 
 type themeKind struct {
 	Label string `json:"label"`
@@ -185,7 +198,7 @@ var wantTokyoNightPalette = map[string]string{
 	"online":       "#9ece6a",
 	"warning":      "#e0af68",
 	"danger":       "#f7768e",
-	"history":      "#565f89",
+	"history":      "#707aa8",
 	"vignette":     "rgba(22, 22, 30, 0.55)",
 	"labelHalo":    "rgba(22, 22, 30, 0.88)",
 	"bubble":       "rgba(26, 27, 38, 0.94)",
@@ -234,7 +247,7 @@ var wantTokyoNightEffects = map[string]any{
 var wantRosePineMoonPalette = map[string]string{
 	"bg":           "#232136",
 	"ink":          "#e0def4",
-	"muted":        "#908caa",
+	"muted":        "#9591b2",
 	"accent":       "#9ccfd8",
 	"line":         "rgba(224, 222, 244, 0.14)",
 	"glass":        "rgba(35, 33, 54, 0.74)",
@@ -246,7 +259,7 @@ var wantRosePineMoonPalette = map[string]string{
 	"online":       "#86c79a",
 	"warning":      "#f6c177",
 	"danger":       "#eb6f92",
-	"history":      "#6e6a86",
+	"history":      "#908caa",
 	"vignette":     "rgba(35, 33, 54, 0.55)",
 	"labelHalo":    "rgba(35, 33, 54, 0.88)",
 	"bubble":       "rgba(42, 39, 63, 0.94)",
@@ -295,7 +308,7 @@ var wantRosePineMoonEffects = map[string]any{
 var wantKanagawaWavePalette = map[string]string{
 	"bg":           "#1F1F28",
 	"ink":          "#DCD7BA",
-	"muted":        "#727169",
+	"muted":        "#9E9B82",
 	"accent":       "#7E9CD8",
 	"line":         "rgba(220, 215, 186, 0.14)",
 	"glass":        "rgba(31, 31, 40, 0.74)",
@@ -307,7 +320,7 @@ var wantKanagawaWavePalette = map[string]string{
 	"online":       "#98BB6C",
 	"warning":      "#E6C384",
 	"danger":       "#E46876",
-	"history":      "#727169",
+	"history":      "#9E9B82",
 	"vignette":     "rgba(22, 22, 29, 0.55)",
 	"labelHalo":    "rgba(22, 22, 29, 0.88)",
 	"bubble":       "rgba(31, 31, 40, 0.94)",
@@ -323,7 +336,7 @@ var wantKanagawaWaveKinds = map[string]themeKind{
 	"media":    {Label: "Media", Color: "#957FB8"},
 	"iot":      {Label: "IoT", Color: "#7AA89F"},
 	"printer":  {Label: "Printer", Color: "#FFA066"},
-	"device":   {Label: "Device", Color: "#727169"},
+	"device":   {Label: "Device", Color: "#9E9B82"},
 }
 
 var wantKanagawaWaveCategories = map[string]string{
@@ -333,7 +346,7 @@ var wantKanagawaWaveCategories = map[string]string{
 	"remote": "#98BB6C",
 	"infra":  "#7FB4CA",
 	"iot":    "#7AA89F",
-	"other":  "#727169",
+	"other":  "#9E9B82",
 }
 
 var wantKanagawaWaveEffects = map[string]any{
@@ -356,7 +369,7 @@ var wantKanagawaWaveEffects = map[string]any{
 var wantEverforestDarkPalette = map[string]string{
 	"bg":           "#2d353b",
 	"ink":          "#d3c6aa",
-	"muted":        "#859289",
+	"muted":        "#9da9a0",
 	"accent":       "#7fb8cc",
 	"line":         "rgba(211, 198, 170, 0.14)",
 	"glass":        "rgba(45, 53, 59, 0.74)",
@@ -919,6 +932,445 @@ func contrastRatio(a, b [3]float64) float64 {
 		high, low = low, high
 	}
 	return (high + 0.05) / (low + 0.05)
+}
+
+const (
+	textContrastMinimum      = 4.5
+	graphicalContrastMinimum = 3.0
+)
+
+type textContrastPair struct {
+	token string
+	role  string
+}
+
+// themes.json calls the muted text token "muted"; the issue and the design
+// spec call the same role "inkMuted". Check the token the renderer applies.
+var themeTextPairs = []textContrastPair{
+	{token: "ink", role: "ink"},
+	{token: "muted", role: "inkMuted"},
+}
+
+type themeColour struct {
+	r, g, b, a float64
+}
+
+func parseThemeColour(value string) (themeColour, error) {
+	value = strings.TrimSpace(value)
+	if strings.HasPrefix(value, "#") {
+		hex := value[1:]
+		switch len(hex) {
+		case 3, 4:
+			var expanded strings.Builder
+			for _, digit := range hex {
+				expanded.WriteRune(digit)
+				expanded.WriteRune(digit)
+			}
+			hex = expanded.String()
+		case 6, 8:
+		default:
+			return themeColour{}, fmt.Errorf("%q is not a 3, 4, 6, or 8 digit hex colour", value)
+		}
+		if len(hex) == 6 {
+			hex += "ff"
+		}
+		var channels [4]float64
+		for i := range channels {
+			channel, err := strconv.ParseUint(hex[i*2:2+i*2], 16, 8)
+			if err != nil {
+				return themeColour{}, fmt.Errorf("%q has an invalid hex channel: %w", value, err)
+			}
+			channels[i] = float64(channel) / 255
+		}
+		return themeColour{r: channels[0], g: channels[1], b: channels[2], a: channels[3]}, nil
+	}
+
+	open := strings.Index(value, "(")
+	if open < 0 || !strings.HasSuffix(value, ")") {
+		return themeColour{}, fmt.Errorf("unsupported colour %q", value)
+	}
+	function := strings.TrimSpace(value[:open])
+	if function != "rgb" && function != "rgba" {
+		return themeColour{}, fmt.Errorf("unsupported colour %q", value)
+	}
+	parts := strings.Split(value[open+1:len(value)-1], ",")
+	if len(parts) != 3 && len(parts) != 4 {
+		return themeColour{}, fmt.Errorf("%q has %d channels, want 3 or 4", value, len(parts))
+	}
+	channels := [4]float64{0, 0, 0, 1}
+	for i, part := range parts {
+		part = strings.TrimSpace(part)
+		percent := strings.HasSuffix(part, "%")
+		part = strings.TrimSuffix(part, "%")
+		number, err := strconv.ParseFloat(part, 64)
+		if err != nil {
+			return themeColour{}, fmt.Errorf("%q has an invalid channel %q: %w", value, part, err)
+		}
+		if math.IsNaN(number) || math.IsInf(number, 0) {
+			return themeColour{}, fmt.Errorf("%q has a non-finite channel %q", value, part)
+		}
+		if percent {
+			channels[i] = number / 100
+		} else if i == 3 {
+			channels[i] = number
+		} else {
+			channels[i] = number / 255
+		}
+	}
+	for _, channel := range channels {
+		if channel < 0 || channel > 1 {
+			return themeColour{}, fmt.Errorf("%q has a channel outside 0..1", value)
+		}
+	}
+	return themeColour{r: channels[0], g: channels[1], b: channels[2], a: channels[3]}, nil
+}
+
+func compositeColour(foreground, background themeColour) themeColour {
+	alpha := foreground.a
+	return themeColour{
+		r: foreground.r*alpha + background.r*(1-alpha),
+		g: foreground.g*alpha + background.g*(1-alpha),
+		b: foreground.b*alpha + background.b*(1-alpha),
+		a: 1,
+	}
+}
+
+func contrastRatioColours(a, b themeColour) float64 {
+	return contrastRatio([3]float64{a.r, a.g, a.b}, [3]float64{b.r, b.g, b.b})
+}
+
+type themeSurface struct {
+	name   string
+	colour themeColour
+}
+
+func mustThemeColour(t *testing.T, variant themeVariant, token string) themeColour {
+	t.Helper()
+	value, ok := variant.Palette[token]
+	if !ok {
+		t.Fatalf("%s: palette is missing %q", variant.ID, token)
+	}
+	colour, err := parseThemeColour(value)
+	if err != nil {
+		t.Fatalf("%s: palette %q: %v", variant.ID, token, err)
+	}
+	return colour
+}
+
+func canvasSurfaces(t *testing.T, variant themeVariant) []themeSurface {
+	t.Helper()
+	return []themeSurface{
+		{name: "canvasTop", colour: mustThemeColour(t, variant, "canvasTop")},
+		{name: "canvasMiddle", colour: mustThemeColour(t, variant, "canvasMiddle")},
+		{name: "canvasBottom", colour: mustThemeColour(t, variant, "canvasBottom")},
+	}
+}
+
+func textSurfaces(t *testing.T, variant themeVariant) []themeSurface {
+	t.Helper()
+	background := mustThemeColour(t, variant, "bg")
+	panel := compositeColour(mustThemeColour(t, variant, "panel"), background)
+	bubble := mustThemeColour(t, variant, "bubble")
+	halo := mustThemeColour(t, variant, "labelHalo")
+
+	surfaces := []themeSurface{
+		{name: "bg", colour: background},
+		{name: "panel", colour: panel},
+	}
+	for _, canvas := range canvasSurfaces(t, variant) {
+		surfaces = append(surfaces,
+			themeSurface{name: "bubble." + canvas.name, colour: compositeColour(bubble, canvas.colour)},
+			themeSurface{name: "labelHalo." + canvas.name, colour: compositeColour(halo, canvas.colour)},
+		)
+	}
+	return surfaces
+}
+
+func graphicalSurfaces(t *testing.T, variant themeVariant) []themeSurface {
+	t.Helper()
+	surfaces := canvasSurfaces(t, variant)
+	background := mustThemeColour(t, variant, "bg")
+	return append(surfaces, themeSurface{
+		name:   "panel",
+		colour: compositeColour(mustThemeColour(t, variant, "panel"), background),
+	})
+}
+
+type contrastSubject struct {
+	name  string
+	value string
+}
+
+func graphicalSubjects(t *testing.T, variant themeVariant) []contrastSubject {
+	t.Helper()
+	subjects := make([]contrastSubject, 0, 3+len(variant.Kinds)+len(variant.Categories))
+	for _, token := range []string{"accent", "online", "history"} {
+		value, ok := variant.Palette[token]
+		if !ok {
+			t.Fatalf("%s: palette is missing %q", variant.ID, token)
+		}
+		subjects = append(subjects, contrastSubject{name: token, value: value})
+	}
+
+	kindNames := make([]string, 0, len(variant.Kinds))
+	for name := range variant.Kinds {
+		kindNames = append(kindNames, name)
+	}
+	sort.Strings(kindNames)
+	for _, name := range kindNames {
+		subjects = append(subjects, contrastSubject{name: "kind." + name, value: variant.Kinds[name].Color})
+	}
+
+	categoryNames := make([]string, 0, len(variant.Categories))
+	for name := range variant.Categories {
+		categoryNames = append(categoryNames, name)
+	}
+	sort.Strings(categoryNames)
+	for _, name := range categoryNames {
+		subjects = append(subjects, contrastSubject{name: "category." + name, value: variant.Categories[name]})
+	}
+	return subjects
+}
+
+func TestThemeContrast(t *testing.T) {
+	_, catalog := readCatalog(t)
+	for _, family := range catalog.Families {
+		for _, variant := range family.Variants {
+			variant := variant
+			t.Run(variant.ID, func(t *testing.T) {
+				exceptions := make(map[string]themeContrastException, len(variant.ContrastExceptions))
+				for _, exception := range variant.ContrastExceptions {
+					if _, exists := exceptions[exception.Pair]; exists {
+						t.Errorf("%s: duplicate contrast exception %q", variant.ID, exception.Pair)
+					}
+					exceptions[exception.Pair] = exception
+				}
+				usedExceptions := make(map[string]bool, len(exceptions))
+
+				surfaces := textSurfaces(t, variant)
+				for _, pair := range themeTextPairs {
+					colour := mustThemeColour(t, variant, pair.token)
+					for _, surface := range surfaces {
+						key := pair.token + "/" + surface.name
+						if exception, ok := exceptions[key]; ok {
+							usedExceptions[key] = true
+							t.Errorf("%s: text pair %s declares an exception (%q); text pairs must never be exempt",
+								variant.ID, key, exception.Reason)
+						}
+						ratio := contrastRatioColours(colour, surface.colour)
+						if ratio < textContrastMinimum {
+							label := pair.role
+							if label != pair.token {
+								label = fmt.Sprintf("%s (%s)", pair.role, pair.token)
+							}
+							t.Errorf("%s: %s on %s contrast is %.2f:1, want at least %.1f:1",
+								variant.ID, label, surface.name, ratio, textContrastMinimum)
+						}
+					}
+				}
+
+				surfaces = graphicalSurfaces(t, variant)
+				for _, subject := range graphicalSubjects(t, variant) {
+					colour, err := parseThemeColour(subject.value)
+					if err != nil {
+						t.Errorf("%s: %s colour: %v", variant.ID, subject.name, err)
+						continue
+					}
+					for _, surface := range surfaces {
+						key := subject.name + "/" + surface.name
+						if exception, ok := exceptions[key]; ok {
+							usedExceptions[key] = true
+							if strings.TrimSpace(exception.Reason) == "" {
+								t.Errorf("%s: contrast exception %q has no reason", variant.ID, key)
+							}
+							continue
+						}
+						ratio := contrastRatioColours(colour, surface.colour)
+						if ratio < graphicalContrastMinimum {
+							t.Errorf("%s: %s on %s contrast is %.2f:1, want at least %.1f:1",
+								variant.ID, subject.name, surface.name, ratio, graphicalContrastMinimum)
+						}
+					}
+				}
+
+				for key, exception := range exceptions {
+					if strings.TrimSpace(exception.Pair) == "" {
+						t.Errorf("%s: contrast exception has an empty pair", variant.ID)
+					}
+					if strings.TrimSpace(exception.Reason) == "" {
+						t.Errorf("%s: contrast exception %q has no reason", variant.ID, key)
+					}
+					if !usedExceptions[key] {
+						t.Errorf("%s: contrast exception %q does not match a checked graphical pair", variant.ID, key)
+					}
+				}
+			})
+		}
+	}
+}
+
+type effectRange struct {
+	min, max float64
+}
+
+const effectBlurMaximum = 64.0
+
+var themeEffectRanges = map[string]effectRange{
+	"vignette":       {min: 0, max: 1},
+	"deviceGlow":     {min: 0, max: 1},
+	"devicePulse":    {min: 0, max: 1},
+	"serviceGlow":    {min: 0, max: 1},
+	"territoryBlur":  {min: 0, max: effectBlurMaximum},
+	"ribbonBlur":     {min: 0, max: effectBlurMaximum},
+	"lensBlur":       {min: 0, max: effectBlurMaximum},
+	"glassBlur":      {min: 0, max: effectBlurMaximum},
+	"panelBlur":      {min: 0, max: effectBlurMaximum},
+	"territoryAlpha": {min: 0, max: 1},
+	"glowStrength":   {min: 0, max: 1},
+	"labelHalo":      {min: 0, max: 1},
+	"shadowStrength": {min: 0, max: 1},
+}
+
+var themeEffectChoices = map[string]map[string]bool{
+	"territoryBlend": {"screen": true, "multiply": true},
+}
+
+var themeEffectFlags = map[string]bool{
+	"highContrast": true,
+}
+
+func TestThemeEffectsAreInRange(t *testing.T) {
+	_, catalog := readCatalog(t)
+	for _, family := range catalog.Families {
+		for _, variant := range family.Variants {
+			for name, value := range variant.Effects {
+				switch typed := value.(type) {
+				case float64:
+					limits, ok := themeEffectRanges[name]
+					if !ok {
+						t.Errorf("%s: effect %q has no documented range", variant.ID, name)
+						continue
+					}
+					if math.IsNaN(typed) || math.IsInf(typed, 0) || typed < limits.min || typed > limits.max {
+						t.Errorf("%s: effect %q = %v, want between %v and %v",
+							variant.ID, name, typed, limits.min, limits.max)
+					}
+				case string:
+					allowed, ok := themeEffectChoices[name]
+					if !ok {
+						t.Errorf("%s: effect %q has no documented choices", variant.ID, name)
+						continue
+					}
+					if !allowed[typed] {
+						t.Errorf("%s: effect %q = %q, want one of %v", variant.ID, name, typed, sortedChoices(allowed))
+					}
+				case bool:
+					if !themeEffectFlags[name] {
+						t.Errorf("%s: effect %q = %v, want a documented flag", variant.ID, name, typed)
+					}
+				default:
+					t.Errorf("%s: effect %q = %#v, want a number, string, or flag", variant.ID, name, value)
+				}
+			}
+		}
+	}
+}
+
+func sortedChoices(choices map[string]bool) []string {
+	names := make([]string, 0, len(choices))
+	for name := range choices {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
+
+func TestThemeCatalogIDsAndModes(t *testing.T) {
+	_, catalog := readCatalog(t)
+
+	familyIDs := make(map[string]bool, len(catalog.Families))
+	variantIDs := make(map[string]bool)
+	for _, family := range catalog.Families {
+		if strings.TrimSpace(family.ID) == "" {
+			t.Error("theme family has an empty id")
+		}
+		if familyIDs[family.ID] {
+			t.Errorf("theme family id %q is not unique", family.ID)
+		}
+		familyIDs[family.ID] = true
+		if len(family.Variants) == 0 {
+			t.Errorf("theme family %q has no variants", family.ID)
+		}
+		for _, variant := range family.Variants {
+			if strings.TrimSpace(variant.ID) == "" {
+				t.Errorf("theme family %q has a variant with an empty id", family.ID)
+			}
+			if variantIDs[variant.ID] {
+				t.Errorf("theme variant id %q is not unique", variant.ID)
+			}
+			variantIDs[variant.ID] = true
+			if variant.Mode != "dark" && variant.Mode != "light" {
+				t.Errorf("%s: mode = %q, want dark or light", variant.ID, variant.Mode)
+			}
+		}
+	}
+}
+
+type omarchyMapping struct {
+	SchemaVersion int               `json:"schemaVersion"`
+	Themes        map[string]string `json:"themes"`
+	Modes         map[string]string `json:"modes"`
+}
+
+func TestOmarchyMapping(t *testing.T) {
+	raw, err := os.ReadFile("omarchy.json")
+	if errors.Is(err, os.ErrNotExist) {
+		t.Skip("web/omarchy.json is not present")
+	}
+	if err != nil {
+		t.Fatalf("read omarchy.json: %v", err)
+	}
+	var mapping omarchyMapping
+	if err := json.Unmarshal(raw, &mapping); err != nil {
+		t.Fatalf("parse omarchy.json: %v", err)
+	}
+	if mapping.SchemaVersion != 1 {
+		t.Fatalf("omarchy schemaVersion = %d, want 1", mapping.SchemaVersion)
+	}
+	if len(mapping.Themes) == 0 {
+		t.Fatal("omarchy.json has no theme mappings")
+	}
+
+	_, catalog := readCatalog(t)
+	variants := make(map[string]themeVariant)
+	for _, family := range catalog.Families {
+		for _, variant := range family.Variants {
+			variants[variant.ID] = variant
+		}
+	}
+	for name, id := range mapping.Themes {
+		variant, ok := variants[id]
+		if !ok {
+			t.Errorf("omarchy theme %q maps to unknown variant %q", name, id)
+			continue
+		}
+		mode, ok := mapping.Modes[name]
+		if !ok {
+			continue
+		}
+		if mode != "dark" && mode != "light" {
+			t.Errorf("omarchy theme %q mode = %q, want dark or light", name, mode)
+			continue
+		}
+		if variant.Mode != mode {
+			t.Errorf("omarchy theme %q maps to %s (%s mode), want %s mode", name, id, variant.Mode, mode)
+		}
+	}
+	for name := range mapping.Modes {
+		if _, ok := mapping.Themes[name]; !ok {
+			t.Errorf("omarchy mode %q has no theme mapping", name)
+		}
+	}
 }
 
 func TestGeneratedThemesFileIsFresh(t *testing.T) {
