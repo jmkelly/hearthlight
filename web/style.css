@@ -820,6 +820,10 @@ button:focus-visible {
   text-align: left;
 }
 
+.settings-toggle[hidden] {
+  display: none;
+}
+
 .settings-toggle + .settings-toggle {
   margin-top: 8px;
 }
@@ -877,12 +881,14 @@ button:focus-visible {
   transition: transform 0.18s ease, background 0.18s ease;
 }
 
-.settings-toggle[aria-pressed="true"] .settings-switch {
+.settings-toggle[aria-pressed="true"] .settings-switch,
+.settings-toggle[aria-checked="true"] .settings-switch {
   border-color: var(--theme-accent-edge);
   background: var(--theme-accent-wash);
 }
 
-.settings-toggle[aria-pressed="true"] .settings-switch::after {
+.settings-toggle[aria-pressed="true"] .settings-switch::after,
+.settings-toggle[aria-checked="true"] .settings-switch::after {
   background: var(--accent);
   box-shadow: 0 0 8px var(--theme-accent-glow);
   transform: translateX(14px);
@@ -1059,6 +1065,23 @@ button:focus-visible {
   border-color: var(--theme-accent-edge);
   background: var(--theme-accent-wash);
   color: var(--theme-service-name);
+}
+
+.theme-card[disabled],
+.theme-mode[disabled] {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.theme-card[disabled]:hover {
+  border-color: var(--theme-line-soft);
+  background: var(--theme-meta-surface);
+}
+
+.theme-mode[disabled]:hover {
+  border-color: transparent;
+  background: none;
+  color: var(--theme-section-label);
 }
 
 .theme-fallback-note {

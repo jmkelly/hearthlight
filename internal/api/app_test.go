@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -148,6 +149,170 @@ func TestThemesEndpoint(t *testing.T) {
 	}
 	if catalog.SchemaVersion != 1 || len(catalog.Families) != 7 {
 		t.Fatalf("schemaVersion = %d, families = %d, want 1 and 7", catalog.SchemaVersion, len(catalog.Families))
+	}
+}
+
+func TestOmarchyThemeMissingFileIsUnavailable(t *testing.T) {
+	handler, _ := newTestHandler(t, Config{
+		OmarchyThemeFile: filepath.Join(t.TempDir(), "missing.json"),
+	})
+	rec := doRequest(handler, http.MethodGet, "/api/theme/omarchy", nil, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if got := rec.Header().Get("Content-Type"); got != "application/json; charset=utf-8" {
+		t.Fatalf("Content-Type = %q", got)
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
+	}
+	var body struct {
+		Available bool `json:"available"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("response is not valid JSON: %v", err)
+	}
+	if body.Available {
+		t.Fatal("available = true for a missing file")
+	}
+}
+
+func TestOmarchyThemeMalformedFilesAreUnavailable(t *testing.T) {
+	cases := []struct {
+		name string
+		body string
+	}{
+		{"invalid json", `{"name":`},
+		{"missing colors", `{"schemaVersion":1,"name":"tokyo-night"}`},
+		{"missing background", `{"name":"tokyo-night","colors":{"foreground":"#a9b1d6"}}`},
+		{"non-hex colors", `{"name":"tokyo-night","colors":{"background":"tomato","foreground":"#a9b1d6"}}`},
+		{"trailing data", `{"name":"tokyo-night","colors":{"background":"#1a1b26","foreground":"#a9b1d6"}} {}`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "omarchy-theme.json")
+			if err := os.WriteFile(path, []byte(tc.body), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			handler, _ := newTestHandler(t, Config{OmarchyThemeFile: path})
+			rec := doRequest(handler, http.MethodGet, "/api/theme/omarchy", nil, nil)
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+			}
+			var body struct {
+				Available bool `json:"available"`
+			}
+			if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+				t.Fatalf("response is not valid JSON: %v", err)
+			}
+			if body.Available {
+				t.Fatal("available = true for a malformed file")
+			}
+		})
+	}
+}
+
+func TestOmarchyThemeValidFileIsServed(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "omarchy-theme.json")
+	body := `{
+		"schemaVersion": 1,
+		"name": "tokyo-night",
+		"displayName": "Tokyo Night",
+		"mode": "dark",
+		"generation": 1762700000,
+		"themeId": "tokyo-night",
+		"colors": {
+			"background": "#1a1b26",
+			"foreground": "#a9b1d6",
+			"accent": "#7aa2f7",
+			"bogus": "red",
+			"Bad Name": "#ffffff"
+		}
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	handler, _ := newTestHandler(t, Config{OmarchyThemeFile: path})
+	rec := doRequest(handler, http.MethodGet, "/api/theme/omarchy", nil, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	var got struct {
+		Available     bool              `json:"available"`
+		SchemaVersion int               `json:"schemaVersion"`
+		Name          string            `json:"name"`
+		DisplayName   string            `json:"displayName"`
+		Mode          string            `json:"mode"`
+		Generation    int64             `json:"generation"`
+		ThemeID       string            `json:"themeId"`
+		Colors        map[string]string `json:"colors"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
+		t.Fatalf("response is not valid JSON: %v", err)
+	}
+	if !got.Available || got.Name != "tokyo-night" || got.DisplayName != "Tokyo Night" || got.Mode != "dark" || got.ThemeID != "tokyo-night" {
+		t.Fatalf("response = %+v", got)
+	}
+	if got.SchemaVersion != 1 || got.Generation != 1762700000 {
+		t.Fatalf("schemaVersion = %d, generation = %d", got.SchemaVersion, got.Generation)
+	}
+	if got.Colors["background"] != "#1a1b26" || got.Colors["foreground"] != "#a9b1d6" || got.Colors["accent"] != "#7aa2f7" {
+		t.Fatalf("colors = %v", got.Colors)
+	}
+	if _, ok := got.Colors["bogus"]; ok {
+		t.Fatal("non-hex colour was not dropped")
+	}
+	if _, ok := got.Colors["Bad Name"]; ok {
+		t.Fatal("invalid colour name was not dropped")
+	}
+}
+
+func TestOmarchyThemeWatcherRefreshesAndKeepsUnavailableState(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "omarchy-theme.json")
+	write := func(name string) {
+		t.Helper()
+		body := `{"name":"` + name + `","colors":{"background":"#1a1b26","foreground":"#a9b1d6"}}`
+		if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("tokyo-night")
+	app := New(nil, Config{
+		Logger:           slog.New(slog.NewTextHandler(io.Discard, nil)),
+		OmarchyThemeFile: path,
+	})
+	handler := app.Handler(web.Files)
+
+	name := func() string {
+		t.Helper()
+		rec := doRequest(handler, http.MethodGet, "/api/theme/omarchy", nil, nil)
+		var body struct {
+			Available bool   `json:"available"`
+			Name      string `json:"name"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+			t.Fatalf("response is not valid JSON: %v", err)
+		}
+		if !body.Available {
+			return ""
+		}
+		return body.Name
+	}
+
+	if got := name(); got != "tokyo-night" {
+		t.Fatalf("initial theme = %q, want tokyo-night", got)
+	}
+	write("gruvbox")
+	app.refreshOmarchy()
+	if got := name(); got != "gruvbox" {
+		t.Fatalf("refreshed theme = %q, want gruvbox", got)
+	}
+	if err := os.Remove(path); err != nil {
+		t.Fatal(err)
+	}
+	app.refreshOmarchy()
+	if got := name(); got != "" {
+		t.Fatalf("theme after delete = %q, want unavailable", got)
 	}
 }
 
