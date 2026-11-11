@@ -149,6 +149,48 @@ func TestSettingsAppearanceMarkup(t *testing.T) {
 	}
 }
 
+func TestSettingsThemeDocsLinks(t *testing.T) {
+	html := readAccessibilityFile(t, "index.html")
+	dialog := markupBetween(t, html, `<dialog id="settingsDialog"`, `</dialog>`)
+	appearance := markupBetween(t, dialog, `<section class="settings-section settings-appearance"`, `</section>`)
+
+	gallery := "https://github.com/jmkelly/hearthlight/blob/main/docs/themes.md"
+	authoring := gallery + "#adding-a-theme"
+	omarchy := "https://github.com/jmkelly/hearthlight/blob/main/docs/omarchy.md"
+	plugin := "https://github.com/jmkelly/hearthlight/blob/main/integrations/omarchy-hearthlight-theme/README.md"
+
+	for href, text := range map[string]string{
+		gallery:   ">Theme gallery",
+		authoring: ">Authoring guide",
+		omarchy:   ">Omarchy setup",
+		plugin:    ">Plugin README",
+	} {
+		anchor := markupBetween(t, appearance, `<a class="settings-doc-link" href="`+href+`"`, `</a>`)
+		requireContains(t, anchor,
+			`target="_blank"`,
+			`rel="noopener noreferrer"`,
+			text,
+		)
+	}
+
+	if strings.Contains(appearance, "javascript:") || strings.Contains(appearance, " onclick=") {
+		t.Error("theme docs links use inline script")
+	}
+
+	omarchyDocs := markupBetween(t, appearance, `<nav id="omarchyDocs"`, `</nav>`)
+	if !strings.Contains(omarchyDocs, " hidden>") {
+		t.Error("Omarchy docs are visible before the Omarchy control is available")
+	}
+
+	js := readAccessibilityFile(t, "app.js")
+	sync := functionBody(t, js, "syncOmarchyControls")
+	requireContains(t, sync,
+		"const omarchyVisible = omarchyState.available || omarchyState.enabled;",
+		"omarchyFollowBtn.hidden = !omarchyVisible;",
+		"omarchyDocs.hidden = !omarchyVisible;",
+	)
+}
+
 func TestThemeFamilyMarkupUsesRadioGroups(t *testing.T) {
 	html := readAccessibilityFile(t, "index.html")
 	families := markupBetween(t, html, `<div id="themeFamilies"`, `</div>`)
@@ -362,6 +404,8 @@ func TestAppearanceStylingUsesThemeTokens(t *testing.T) {
 		`.theme-mode[aria-pressed="true"] {`,
 		".theme-default-badge {",
 		".theme-fallback-note {",
+		".settings-docs-label {",
+		".settings-doc-link {",
 	} {
 		body := cssRule(t, css, selector)
 		if !strings.Contains(body, "var(--theme-") {
