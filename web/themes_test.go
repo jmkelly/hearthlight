@@ -292,6 +292,67 @@ var wantRosePineMoonEffects = map[string]any{
 	"shadowStrength": 1.0,
 }
 
+var wantKanagawaWavePalette = map[string]string{
+	"bg":           "#1F1F28",
+	"ink":          "#DCD7BA",
+	"muted":        "#727169",
+	"accent":       "#7E9CD8",
+	"line":         "rgba(220, 215, 186, 0.14)",
+	"glass":        "rgba(31, 31, 40, 0.74)",
+	"canvasTop":    "#2A2A37",
+	"canvasMiddle": "#1F1F28",
+	"canvasBottom": "#16161D",
+	"grid":         "rgba(126, 156, 216, 0.06)",
+	"ambientGlow":  "rgba(126, 156, 216, 0.12)",
+	"online":       "#98BB6C",
+	"warning":      "#E6C384",
+	"danger":       "#E46876",
+	"history":      "#727169",
+	"vignette":     "rgba(22, 22, 29, 0.55)",
+	"labelHalo":    "rgba(22, 22, 29, 0.88)",
+	"bubble":       "rgba(31, 31, 40, 0.94)",
+	"panel":        "rgba(31, 31, 40, 0.95)",
+}
+
+var wantKanagawaWaveKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#E6C384"},
+	"server":   {Label: "Server", Color: "#7E9CD8"},
+	"computer": {Label: "Computer", Color: "#7FB4CA"},
+	"phone":    {Label: "Phone", Color: "#D27E99"},
+	"nas":      {Label: "NAS", Color: "#98BB6C"},
+	"media":    {Label: "Media", Color: "#957FB8"},
+	"iot":      {Label: "IoT", Color: "#7AA89F"},
+	"printer":  {Label: "Printer", Color: "#FFA066"},
+	"device":   {Label: "Device", Color: "#727169"},
+}
+
+var wantKanagawaWaveCategories = map[string]string{
+	"web":    "#7E9CD8",
+	"media":  "#957FB8",
+	"data":   "#FFA066",
+	"remote": "#98BB6C",
+	"infra":  "#7FB4CA",
+	"iot":    "#7AA89F",
+	"other":  "#727169",
+}
+
+var wantKanagawaWaveEffects = map[string]any{
+	"vignette":       0.55,
+	"deviceGlow":     0.22,
+	"devicePulse":    0.3,
+	"serviceGlow":    0.16,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "screen",
+	"territoryAlpha": 1.0,
+	"glowStrength":   1.0,
+	"labelHalo":      1.0,
+	"shadowStrength": 1.0,
+}
+
 var requiredPaletteTokens = []string{
 	"bg", "ink", "muted", "accent", "line", "glass",
 	"canvasTop", "canvasMiddle", "canvasBottom", "grid", "ambientGlow",
@@ -548,6 +609,39 @@ func TestRosePineMoonVariant(t *testing.T) {
 	}
 	if !reflect.DeepEqual(variant.Effects, wantRosePineMoonEffects) {
 		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantRosePineMoonEffects)
+	}
+}
+
+func TestKanagawaWaveVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "kanagawa")
+	if family.Name != "Kanagawa" {
+		t.Fatalf("family name = %q, want Kanagawa", family.Name)
+	}
+	if family.Source.Name != "Kanagawa" {
+		t.Errorf("source name = %q, want Kanagawa", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/rebelot/kanagawa.nvim" {
+		t.Errorf("source url = %q, want the Kanagawa project URL", family.Source.URL)
+	}
+	if len(family.Variants) != 1 {
+		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	}
+	variant := family.Variants[0]
+	if variant.ID != "kanagawa-wave" || variant.Name != "Kanagawa Wave" || variant.Mode != "dark" {
+		t.Fatalf("variant = %+v, want Kanagawa Wave dark", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantKanagawaWavePalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantKanagawaWavePalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantKanagawaWaveKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantKanagawaWaveKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantKanagawaWaveCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantKanagawaWaveCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantKanagawaWaveEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantKanagawaWaveEffects)
 	}
 }
 
