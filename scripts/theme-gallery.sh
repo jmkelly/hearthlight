@@ -82,50 +82,36 @@ replace_block() {
 }
 
 update_guide() {
-  python3 - "$catalog" "$images" "web/omarchy.json" "$work/table.md" "$work/gallery.md" <<'PY'
+  python3 - "$catalog" "$images" "web/omarchy.json" "$work/table.md" "$work/gallery.md" "$work/mapping.md" <<'PY'
 import json
 import os
 import sys
 
-catalog_path, image_dir, omarchy_path, table_path, gallery_path = sys.argv[1:6]
+catalog_path, image_dir, omarchy_path, table_path, gallery_path, mapping_path = sys.argv[1:7]
 
 with open(catalog_path, encoding="utf-8") as handle:
     catalog = json.load(handle)
 
-stock = {}
+mapping = {}
 if os.path.exists(omarchy_path):
     with open(omarchy_path, encoding="utf-8") as handle:
         mapping = json.load(handle)
-    stock = {variant: name for name, variant in mapping.get("themes", {}).items()}
 
-# Stock mapping from issue #22 until web/omarchy.json lands. Only names the
-# plugin or the Omarchy batch plan already ties to a shipped variant belong here.
-fallback_stock = {
-    "catppuccin-mocha": "Yes. Omarchy `catppuccin`.",
-    "everforest-dark": "Yes. Omarchy `everforest`.",
-    "gruvbox-dark": "Yes. Omarchy `gruvbox`.",
-    "kanagawa-wave": "Yes. Omarchy `kanagawa`.",
-    "nord-dark": "Yes. Omarchy `nord`.",
-    "tokyo-night": "Yes. Omarchy `tokyo-night`.",
-    "rose-pine-moon": "No. Omarchy stock `rose-pine` is the light Dawn palette.",
-    "everforest-light": "No. Omarchy stock `everforest` is dark only.",
-    "kanagawa-lotus": "No. Omarchy stock `kanagawa` is the dark Wave palette.",
-    "dracula": "No. Not an Omarchy stock theme.",
-    "dracula-alucard": "No. Not an Omarchy stock theme.",
-    "one-dark": "No. Not an Omarchy stock theme.",
-    "one-light": "No. Not an Omarchy stock theme.",
-    "solarized-dark": "No. Not an Omarchy stock theme.",
-    "solarized-light": "No. Not an Omarchy stock theme.",
-    "hearthlight-dark": "No, Hearthlight original.",
-    "hearthlight-light": "No, Hearthlight original.",
+stock = {}
+for name, variant in mapping.get("themes", {}).items():
+    stock.setdefault(variant, []).append(name)
+
+# Rosé Pine moved its site; keep the catalog credit pointing at the live
+# project page without editing the generated catalog from this script.
+source_url_aliases = {
+    "https://github.com/rose-pine/rose-pine": "https://rosepinetheme.com/",
 }
 
 
 def omarchy_status(family_id, variant_id):
-    if variant_id in stock:
-        return "Yes. Omarchy `%s`." % stock[variant_id]
-    if variant_id in fallback_stock:
-        return fallback_stock[variant_id]
+    names = sorted(stock.get(variant_id, []))
+    if names:
+        return "Yes. Omarchy " + ", ".join("`%s`" % name for name in names) + "."
     if family_id == "hearthlight":
         return "No, Hearthlight original."
     return "No."
@@ -135,10 +121,7 @@ def source_cell(family):
     source = family.get("source") or {}
     name = source.get("name", "")
     url = source.get("url", "")
-    # The catalog URL for Rosé Pine moved upstream. Keep the credit working
-    # until web/themes.json is corrected.
-    if url == "https://github.com/rose-pine/rose-pine":
-        url = "https://rosepinetheme.com/"
+    url = source_url_aliases.get(url, url)
     if name and url:
         return "[%s](%s)" % (name, url)
     if family.get("id") == "hearthlight":
@@ -182,6 +165,18 @@ for family in catalog.get("families", []):
 with open(table_path, "w", encoding="utf-8") as handle:
     handle.write("\n".join(table) + "\n")
 
+mapping_table = [
+    "| Omarchy theme | Mode | Hearthlight variant |",
+    "| --- | --- | --- |",
+]
+for name in sorted(mapping.get("themes", {})):
+    variant_id = mapping["themes"][name]
+    mode = mapping.get("modes", {}).get(name, "")
+    mapping_table.append("| `%s` | %s | `%s` |" % (cell(name), cell(mode), cell(variant_id)))
+
+with open(mapping_path, "w", encoding="utf-8") as handle:
+    handle.write("\n".join(mapping_table) + "\n")
+
 gallery = []
 any_image = any(
     os.path.isfile(image_path(variant.get("id", "")))
@@ -220,6 +215,7 @@ PY
 
   replace_block "$guide" '<!-- BEGIN THEME TABLE -->' '<!-- END THEME TABLE -->' "$work/table.md"
   replace_block "$guide" '<!-- BEGIN THEME GALLERY -->' '<!-- END THEME GALLERY -->' "$work/gallery.md"
+  replace_block "$guide" '<!-- BEGIN OMARCHY MAPPING -->' '<!-- END OMARCHY MAPPING -->' "$work/mapping.md"
 }
 
 optimise_image() {

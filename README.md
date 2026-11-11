@@ -33,30 +33,46 @@ at overview zoom. Service bubbles and labels appear as you zoom in.
 - Live updates over Server-Sent Events.
 - Live traffic edges between this host and the devices it talks to.
 - A Nix flake and a NixOS module.
-- A theme catalog with dark, light and auto modes, stored per browser.
+- A theme catalog with 26 families, 37 variants, auto mode, high contrast, and custom theme import/export, stored per browser.
 
 ## Themes
 
 Hearthlight Dark stays the default. Open **Settings → Appearance** (the gear
-button, or press `s`) to pick a theme family and mode. The choice is stored in
-this browser's `localStorage` under `hearthlight.theme.v1`, not on the server,
-so different browsers and devices can use different themes.
+button, or press `s`) to pick one of 26 theme families and 37 variants. The
+choice is stored in this browser's `localStorage` under `hearthlight.theme.v1`,
+not on the server, so different browsers and devices can use different themes.
 
 Dark and Light pin a mode. Auto follows the operating system's
 `prefers-color-scheme` and updates when it changes. Families without a light
 variant keep their available palette and Settings says so. **High contrast** in
-the same section strengthens labels and outlines without changing the palette.
+the same section strengthens labels and outlines without changing the palette and
+is stored under `hearthlight.contrast.v1`.
 
-Browse the [theme gallery and authoring guide](docs/themes.md). The catalog ships
-Hearthlight plus Catppuccin, Tokyo Night, Rosé Pine, Kanagawa, Everforest,
-Dracula, One, Solarized, Gruvbox and Nord.
+**Import and export.** Settings → Appearance → **Import theme** accepts a
+Hearthlight JSON theme or an Omarchy `colors.toml`, pasted or loaded from a file.
+Custom themes appear in a **Custom** section and can be renamed, duplicated,
+exported or deleted. They are stored in this browser under
+`hearthlight.themes.custom.v1`; built-in themes cannot be overwritten. Each import
+is limited to 256 KiB and 50 custom families. See the
+[theme gallery and authoring guide](docs/themes.md) for every family, the
+screenshot gallery, the JSON and TOML formats, validation and troubleshooting.
+
+The catalog ships Hearthlight, Catppuccin, Tokyo Night, Rosé Pine, Kanagawa,
+Everforest, Dracula, One, Solarized, Gruvbox, Nord, Ethereal, Hackerman, Jade
+Horse, Last Horizon, Lumon, Matte Black, Miasma, Retro 82, Flexoki Light,
+Lupine, Ristretto, Solitude, Starship, Vantablack and White.
 
 ### Omarchy
 
-Hearthlight can follow the active Omarchy desktop theme. The plugin in
+Hearthlight ships the full stock Omarchy name mapping in
+[`web/omarchy.json`](web/omarchy.json), pinned to Omarchy Quattro commit
+`748fa3c0d0418d7a199818d94c1f87d495d7e804`. All 23 stock names resolve to a
+shipped variant, including `rose-pine` to the light `rose-pine-dawn` palette.
+
+The plugin in
 [`integrations/omarchy-hearthlight-theme`](integrations/omarchy-hearthlight-theme/README.md)
 watches the current Omarchy theme and writes a normalized palette to
-`~/.config/hearthlight/omarchy-theme.json`. Hearthlight then exposes it at
+`~/.config/hearthlight/omarchy-theme.json`. Hearthlight exposes it at
 `GET /api/theme/omarchy`, and **Settings → Appearance → Follow Omarchy theme**
 applies it live. The toggle only appears when the endpoint reports an available
 theme.
@@ -69,15 +85,16 @@ hearthlight -omarchy-theme
 
 `-omarchy-theme-file` points at a different palette file. The environment
 variables `HEARTHLIGHT_OMARCHY_THEME` and `HEARTHLIGHT_OMARCHY_THEME_FILE` do the
-same. The stock Omarchy name mapping is still pending in
-[#22](https://github.com/jmkelly/hearthlight/issues/22); until it lands, the
-plugin supplies a matching shipped variant where it can, and Hearthlight
-synthesizes a palette for other names.
+same. Stock themes use their mapped variant. Third-party and custom Omarchy
+themes are synthesized from the raw colours.
 
-See [Omarchy theme source](docs/omarchy.md) for the file schema, API, NixOS
-options and service-user notes, and the
-[plugin README](integrations/omarchy-hearthlight-theme/README.md) for install,
-update, uninstall and security details.
+Build the plugin release archive with `make omarchy-plugin`. It writes
+`dist/omarchy-hearthlight-theme-<version>.tar.gz` and a `.sha256` checksum; unpack
+it into `$HOME/.config/omarchy/plugins/jmkelly.hearthlight-theme`. See
+[Omarchy theme source](docs/omarchy.md) for the mapping file, file schema, API,
+plugin archive install, NixOS options and service-user notes, and the
+[plugin README](integrations/omarchy-hearthlight-theme/README.md) for local
+checkout, published repository, update and uninstall commands.
 
 For screenshots or embedding, set the variant with a URL parameter. The override
 applies to that page load and does not overwrite the stored choice:
