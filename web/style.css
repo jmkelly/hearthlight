@@ -423,7 +423,12 @@ canvas.dragging {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   padding: 10px 16px 10px 12px;
+}
+
+.brand-text {
+  min-width: 0;
 }
 
 .brand-orb {
@@ -511,6 +516,58 @@ canvas.dragging {
 
 .stat.tailnet span {
   color: var(--theme-tailnet-muted);
+}
+
+.stats-compact {
+  display: none;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stats-compact-visual {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.compact-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.compact-stat b {
+  color: var(--ink);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.compact-stat b em {
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.compact-stat .compact-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.compact-stat.compact-tailnet b {
+  color: var(--theme-tailnet-text);
+}
+
+.compact-stat.compact-tailnet .compact-label {
+  color: var(--theme-tailnet-muted);
+}
+
+.compact-sep {
+  color: var(--theme-label);
 }
 
 .actions {
@@ -1633,9 +1690,41 @@ button:focus-visible {
   }
 }
 
-@media (max-width: 1260px) {
+@media (max-width: 1259.98px) {
   .stats {
     display: none;
+  }
+
+  .stats-compact {
+    display: flex;
+  }
+}
+
+@media (max-width: 1150px) {
+  .conn span {
+    display: none;
+  }
+
+  #historyBtn span:last-child,
+  #tailnetBtn span:last-child,
+  #devicesBtn span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .stats-compact {
+    padding: 9px 12px;
+  }
+
+  .stats-compact .compact-label,
+  .stats-compact .compact-sep,
+  .stats-compact .compact-tailnet {
+    display: none;
+  }
+
+  .stats-compact-visual {
+    gap: 10px;
   }
 }
 
@@ -1670,22 +1759,6 @@ button:focus-visible {
 
   .conn {
     padding-left: 4px;
-  }
-
-  .conn span {
-    display: none;
-  }
-
-  #historyBtn span:last-child {
-    display: none;
-  }
-
-  #tailnetBtn span:last-child {
-    display: none;
-  }
-
-  #devicesBtn span:last-child {
-    display: none;
   }
 
   .settings {
