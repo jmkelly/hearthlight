@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "jmkelly.hearthlight-theme",
+  "name": "Hearthlight Theme",
+  "version": "1.0.0",
+  "author": "James Kelly",
+  "license": "MIT",
+  "description": "Writes the active Omarchy palette to a file Hearthlight can follow.",
+  "kinds": ["service"],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "Service.qml"
+  }
+}
