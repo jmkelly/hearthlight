@@ -2,6 +2,8 @@
 package api
 
 import (
+	"bytes"
+	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/json"
@@ -16,6 +18,8 @@ import (
 	"net/http"
 	"net/netip"
 	"net/url"
+	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -40,6 +44,9 @@ type Config struct {
 	Token        string
 	AllowedHosts []string
 	Layout       LayoutStore
+	// OmarchyThemeFile is the normalized Omarchy palette file to read. An empty
+	// path disables the read-only theme source.
+	OmarchyThemeFile string
 }
 
 // App holds the latest snapshot and fans it out to connected browsers.
@@ -54,6 +61,11 @@ type App struct {
 	token        string
 	allowedHosts []string
 	layout       LayoutStore
+
+	omarchyFile      string
+	omarchy          []byte
+	omarchySource    []byte
+	omarchyAvailable bool
 }
 
 // sseEvent is one named Server-Sent Event.
@@ -61,6 +73,25 @@ type sseEvent struct {
 	name string
 	data []byte
 }
+
+// omarchyThemeResponse is the read-only theme source returned to browsers. The
+// palette file is written by the Omarchy plugin; Hearthlight only reads it.
+type omarchyThemeResponse struct {
+	Available     bool              `json:"available"`
+	SchemaVersion int               `json:"schemaVersion,omitempty"`
+	Name          string            `json:"name,omitempty"`
+	DisplayName   string            `json:"displayName,omitempty"`
+	Mode          string            `json:"mode,omitempty"`
+	Generation    int64             `json:"generation,omitempty"`
+	ThemeID       string            `json:"themeId,omitempty"`
+	Colors        map[string]string `json:"colors,omitempty"`
+}
+
+var (
+	unavailableOmarchyTheme = []byte(`{"available":false}`)
+	omarchyColorPattern     = regexp.MustCompile(`^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$`)
+	omarchyColorNamePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{0,31}$`)
+)
 
 const (
 	// maxSSEClients bounds concurrent event streams so one host cannot exhaust
@@ -74,6 +105,12 @@ const (
 	maxPosition = 1e6
 	// maxPositionBody bounds the request body the layout endpoints read.
 	maxPositionBody = 64 << 10
+	// omarchyPollInterval is how often the plugin's normalized palette file is
+	// reread. Atomic renames change the file in place, so polling the content
+	// is more reliable than trusting a timestamp.
+	omarchyPollInterval = time.Second
+	// maxOmarchyFileSize bounds the local palette file the watcher reads.
+	maxOmarchyFileSize = 1 << 20
 )
 
 func New(scanRequests chan<- struct{}, cfg Config) *App {
@@ -88,6 +125,8 @@ func New(scanRequests chan<- struct{}, cfg Config) *App {
 		token:        cfg.Token,
 		allowedHosts: cfg.AllowedHosts,
 		layout:       cfg.Layout,
+		omarchyFile:  cfg.OmarchyThemeFile,
+		omarchy:      unavailableOmarchyTheme,
 	}
 	initial := model.Snapshot{
 		GeneratedAt: time.Now(),
@@ -95,7 +134,139 @@ func New(scanRequests chan<- struct{}, cfg Config) *App {
 		Devices:     []model.Device{},
 	}
 	a.setSnapshot(initial)
+	if a.omarchyFile != "" {
+		a.refreshOmarchy()
+	}
 	return a
+}
+
+// WatchOmarchy rereads the normalized palette file until ctx ends. The file is
+// written by the Omarchy plugin, so a missing or malformed file only makes the
+// theme source unavailable; it never stops the server.
+func (a *App) WatchOmarchy(ctx context.Context) {
+	if a.omarchyFile == "" {
+		return
+	}
+	go func() {
+		ticker := time.NewTicker(omarchyPollInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				a.refreshOmarchy()
+			}
+		}
+	}()
+}
+
+func (a *App) refreshOmarchy() {
+	data, err := readOmarchyFile(a.omarchyFile)
+	if err != nil {
+		a.mu.Lock()
+		changed := a.omarchyAvailable || a.omarchySource != nil
+		if changed {
+			a.omarchy = unavailableOmarchyTheme
+			a.omarchySource = nil
+			a.omarchyAvailable = false
+			a.broadcastLocked(sseEvent{name: "omarchy", data: unavailableOmarchyTheme})
+		}
+		a.mu.Unlock()
+		if changed {
+			a.logger.Info("omarchy theme file unavailable", "path", a.omarchyFile, "error", err)
+		}
+		return
+	}
+
+	a.mu.RLock()
+	unchanged := bytes.Equal(data, a.omarchySource)
+	a.mu.RUnlock()
+	if unchanged {
+		return
+	}
+
+	theme, err := parseOmarchyTheme(data)
+	if err != nil {
+		a.mu.Lock()
+		changed := a.omarchyAvailable || !bytes.Equal(a.omarchySource, data)
+		a.omarchySource = data
+		a.omarchy = unavailableOmarchyTheme
+		a.omarchyAvailable = false
+		if changed {
+			a.broadcastLocked(sseEvent{name: "omarchy", data: unavailableOmarchyTheme})
+		}
+		a.mu.Unlock()
+		a.logger.Warn("omarchy theme file is malformed", "path", a.omarchyFile, "error", err)
+		return
+	}
+
+	payload, err := json.Marshal(theme)
+	if err != nil {
+		a.logger.Error("encode omarchy theme", "error", err)
+		return
+	}
+	a.mu.Lock()
+	a.omarchySource = data
+	a.omarchy = payload
+	a.omarchyAvailable = true
+	a.broadcastLocked(sseEvent{name: "omarchy", data: payload})
+	a.mu.Unlock()
+}
+
+func readOmarchyFile(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	data, err := io.ReadAll(io.LimitReader(file, maxOmarchyFileSize+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(data) > maxOmarchyFileSize {
+		return nil, fmt.Errorf("theme file exceeds %d bytes", maxOmarchyFileSize)
+	}
+	return data, nil
+}
+
+// parseOmarchyTheme accepts only the normalized palette shape. Unknown fields
+// are ignored and colour values must be hex, so theme content is data and never
+// code.
+func parseOmarchyTheme(data []byte) (omarchyThemeResponse, error) {
+	var theme omarchyThemeResponse
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	if err := decoder.Decode(&theme); err != nil {
+		return omarchyThemeResponse{}, err
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return omarchyThemeResponse{}, errors.New("theme file has trailing data")
+	}
+	theme.Name = strings.TrimSpace(theme.Name)
+	if theme.Name == "" {
+		return omarchyThemeResponse{}, errors.New("theme name is missing")
+	}
+	colors := make(map[string]string, len(theme.Colors))
+	for name, value := range theme.Colors {
+		name = strings.TrimSpace(name)
+		value = strings.TrimSpace(value)
+		if !omarchyColorNamePattern.MatchString(name) || !omarchyColorPattern.MatchString(value) {
+			continue
+		}
+		colors[name] = value
+	}
+	if _, ok := colors["background"]; !ok {
+		return omarchyThemeResponse{}, errors.New("background color is missing")
+	}
+	if _, ok := colors["foreground"]; !ok {
+		return omarchyThemeResponse{}, errors.New("foreground color is missing")
+	}
+	theme.Colors = colors
+	if theme.Mode != "dark" && theme.Mode != "light" {
+		theme.Mode = ""
+	}
+	theme.Available = true
+	return theme, nil
 }
 
 // SetSnapshot publishes a completed scan and wakes every SSE client.
@@ -184,6 +355,7 @@ func (a *App) Handler(static fs.FS) http.Handler {
 	})
 	mux.HandleFunc("GET /api/state", a.handleState)
 	mux.HandleFunc("GET /api/themes", a.handleThemes(static))
+	mux.HandleFunc("GET /api/theme/omarchy", a.handleOmarchyTheme)
 	mux.HandleFunc("GET /api/events", a.handleEvents)
 	mux.HandleFunc("POST /api/scan", a.handleScan)
 	mux.HandleFunc("POST /api/devices/{id}/position", a.handleDevicePosition)
@@ -366,6 +538,20 @@ func (a *App) handleThemes(static fs.FS) http.HandlerFunc {
 		}
 		_, _ = w.Write(payload)
 	}
+}
+
+// handleOmarchyTheme serves the last palette the watcher accepted. A missing or
+// malformed file is reported as unavailable; the browser keeps its last theme.
+func (a *App) handleOmarchyTheme(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-store")
+	a.mu.RLock()
+	payload := a.omarchy
+	a.mu.RUnlock()
+	if len(payload) == 0 {
+		payload = unavailableOmarchyTheme
+	}
+	_, _ = w.Write(payload)
 }
 
 func (a *App) handleScan(w http.ResponseWriter, r *http.Request) {
@@ -555,6 +741,10 @@ func (a *App) handleEvents(w http.ResponseWriter, r *http.Request) {
 	a.clients[client] = struct{}{}
 	initial := a.payload
 	initialTraffic := a.traffic
+	var initialOmarchy []byte
+	if a.omarchyAvailable {
+		initialOmarchy = a.omarchy
+	}
 	a.mu.Unlock()
 	defer func() {
 		a.mu.Lock()
@@ -586,6 +776,11 @@ func (a *App) handleEvents(w http.ResponseWriter, r *http.Request) {
 	}
 	if initialTraffic != nil {
 		if err := write("event: traffic\ndata: %s\n\n", initialTraffic); err != nil {
+			return
+		}
+	}
+	if initialOmarchy != nil {
+		if err := write("event: omarchy\ndata: %s\n\n", initialOmarchy); err != nil {
 			return
 		}
 	}

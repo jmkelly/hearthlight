@@ -132,6 +132,15 @@
     </section>
     <section class="settings-section settings-appearance" aria-labelledby="settingsAppearanceHeading">
       <h3 id="settingsAppearanceHeading">Appearance</h3>
+      <button id="omarchyFollowBtn" class="settings-toggle" type="button" role="switch" aria-checked="false" hidden>
+        <span class="settings-toggle-copy">
+          <span class="settings-toggle-label">Follow Omarchy theme</span>
+          <span id="omarchyFollowHint" class="settings-toggle-hint">Match the active Omarchy desktop theme</span>
+        </span>
+        <span class="settings-toggle-state" aria-hidden="true">off</span>
+        <span class="settings-switch" aria-hidden="true"></span>
+      </button>
+      <p id="omarchyNote" class="theme-fallback-note" role="status" hidden></p>
       <div id="themeFamilies" class="theme-families" role="group" aria-label="Theme family"></div>
       <div class="theme-modes" role="group" aria-label="Theme mode">
         <button id="themeModeDark" class="theme-mode" type="button" aria-pressed="true">Dark</button>
