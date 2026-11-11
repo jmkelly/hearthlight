@@ -491,7 +491,7 @@ var wantDraculaEffects = map[string]any{
 var wantOneDarkPalette = map[string]string{
 	"bg":           "#282c34",
 	"ink":          "#abb2bf",
-	"muted":        "#5c6370",
+	"muted":        "#8d94a1",
 	"accent":       "#61afef",
 	"line":         "rgba(171, 178, 191, 0.14)",
 	"glass":        "rgba(40, 44, 52, 0.74)",
@@ -503,7 +503,7 @@ var wantOneDarkPalette = map[string]string{
 	"online":       "#98c379",
 	"warning":      "#e5c07b",
 	"danger":       "#e06c75",
-	"history":      "#5c6370",
+	"history":      "#77808f",
 	"vignette":     "rgba(33, 37, 43, 0.55)",
 	"labelHalo":    "rgba(33, 37, 43, 0.88)",
 	"bubble":       "rgba(40, 44, 52, 0.94)",
@@ -552,7 +552,7 @@ var wantOneDarkEffects = map[string]any{
 var wantSolarizedDarkPalette = map[string]string{
 	"bg":           "#002b36",
 	"ink":          "#839496",
-	"muted":        "#586e75",
+	"muted":        "#79929a",
 	"accent":       "#268bd2",
 	"line":         "rgba(131, 148, 150, 0.14)",
 	"glass":        "rgba(0, 43, 54, 0.74)",
@@ -564,7 +564,7 @@ var wantSolarizedDarkPalette = map[string]string{
 	"online":       "#859900",
 	"warning":      "#b58900",
 	"danger":       "#dc322f",
-	"history":      "#586e75",
+	"history":      "#657e86",
 	"vignette":     "rgba(0, 31, 39, 0.55)",
 	"labelHalo":    "rgba(0, 31, 39, 0.88)",
 	"bubble":       "rgba(0, 43, 54, 0.94)",
@@ -574,22 +574,22 @@ var wantSolarizedDarkPalette = map[string]string{
 var wantSolarizedDarkKinds = map[string]themeKind{
 	"router":   {Label: "Router", Color: "#b58900"},
 	"server":   {Label: "Server", Color: "#268bd2"},
-	"computer": {Label: "Computer", Color: "#6c71c4"},
-	"phone":    {Label: "Phone", Color: "#d33682"},
+	"computer": {Label: "Computer", Color: "#6e73c5"},
+	"phone":    {Label: "Phone", Color: "#d53f88"},
 	"nas":      {Label: "NAS", Color: "#859900"},
 	"media":    {Label: "Media", Color: "#2aa198"},
-	"iot":      {Label: "IoT", Color: "#dc322f"},
-	"printer":  {Label: "Printer", Color: "#cb4b16"},
+	"iot":      {Label: "IoT", Color: "#de403d"},
+	"printer":  {Label: "Printer", Color: "#d44e17"},
 	"device":   {Label: "Device", Color: "#93a1a1"},
 }
 
 var wantSolarizedDarkCategories = map[string]string{
 	"web":    "#268bd2",
-	"media":  "#6c71c4",
-	"data":   "#cb4b16",
+	"media":  "#6e73c5",
+	"data":   "#d44e17",
 	"remote": "#859900",
 	"infra":  "#2aa198",
-	"iot":    "#d33682",
+	"iot":    "#d53f88",
 	"other":  "#93a1a1",
 }
 
