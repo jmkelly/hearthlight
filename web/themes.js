@@ -4,6 +4,10 @@ window.HearthlightThemes = {
     {
       "id": "hearthlight",
       "name": "Hearthlight",
+      "source": {
+        "name": "Hearthlight",
+        "url": "https://github.com/jmkelly/hearthlight"
+      },
       "variants": [
         {
           "id": "hearthlight-dark",
@@ -548,6 +552,152 @@ window.HearthlightThemes = {
             "infra": "#8fa1e8",
             "iot": "#4ee6c4",
             "other": "#8b97bc"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "gruvbox",
+      "name": "Gruvbox",
+      "source": {
+        "name": "Gruvbox",
+        "url": "https://github.com/morhetz/gruvbox",
+        "note": "accent shifts canonical blue #83a598 (hue 157) to #7fb0b5 (hue 186) so tailnet sits inside the cool 180-290 degree band and stays distinct from the computer blue; media shifts canonical purple #d3869b (hue 344) to #b986d3 (hue 280) for the same cool band; muted uses fg3 #bdae93 instead of fg4 #a89984 for 4.5:1 text contrast"
+      },
+      "variants": [
+        {
+          "id": "gruvbox-dark",
+          "name": "Gruvbox Dark",
+          "mode": "dark",
+          "palette": {
+            "bg": "#282828",
+            "ink": "#ebdbb2",
+            "muted": "#bdae93",
+            "accent": "#7fb0b5",
+            "line": "rgba(235, 219, 178, 0.14)",
+            "glass": "rgba(40, 40, 40, 0.74)",
+            "canvasTop": "#3c3836",
+            "canvasMiddle": "#282828",
+            "canvasBottom": "#1d2021",
+            "grid": "rgba(131, 165, 152, 0.06)",
+            "ambientGlow": "rgba(131, 165, 152, 0.12)",
+            "online": "#b8bb26",
+            "warning": "#fabd2f",
+            "danger": "#fb4934",
+            "history": "#928374",
+            "vignette": "rgba(29, 32, 33, 0.55)",
+            "labelHalo": "rgba(29, 32, 33, 0.88)",
+            "bubble": "rgba(50, 48, 47, 0.94)",
+            "panel": "rgba(40, 40, 40, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#fabd2f" },
+            "server": { "label": "Server", "color": "#7fb0b5" },
+            "computer": { "label": "Computer", "color": "#83a598" },
+            "phone": { "label": "Phone", "color": "#d3869b" },
+            "nas": { "label": "NAS", "color": "#b8bb26" },
+            "media": { "label": "Media", "color": "#b986d3" },
+            "iot": { "label": "IoT", "color": "#8ec07c" },
+            "printer": { "label": "Printer", "color": "#fe8019" },
+            "device": { "label": "Device", "color": "#928374" }
+          },
+          "categories": {
+            "web": "#7fb0b5",
+            "media": "#b986d3",
+            "data": "#fe8019",
+            "remote": "#b8bb26",
+            "infra": "#83a598",
+            "iot": "#8ec07c",
+            "other": "#928374"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "nord",
+      "name": "Nord",
+      "source": {
+        "name": "Nord",
+        "url": "https://github.com/nordtheme/nord",
+        "note": "muted uses #a7b1c2, lightened from nord3 #4c566a for 4.5:1 text contrast; history and device use #8a96ab, lightened from nord3 for 3:1 canvas contrast; media shifts nord15 #b48ead (hue 311) to #a18eb4 (hue 270) so the category sits inside the cool 180-290 degree band; canvasBottom is #242933, nord0 darkened because Nord defines no darker base"
+      },
+      "variants": [
+        {
+          "id": "nord-dark",
+          "name": "Nord Dark",
+          "mode": "dark",
+          "palette": {
+            "bg": "#2e3440",
+            "ink": "#d8dee9",
+            "muted": "#a7b1c2",
+            "accent": "#88c0d0",
+            "line": "rgba(216, 222, 233, 0.14)",
+            "glass": "rgba(46, 52, 64, 0.74)",
+            "canvasTop": "#3b4252",
+            "canvasMiddle": "#2e3440",
+            "canvasBottom": "#242933",
+            "grid": "rgba(136, 192, 208, 0.06)",
+            "ambientGlow": "rgba(136, 192, 208, 0.12)",
+            "online": "#a3be8c",
+            "warning": "#ebcb8b",
+            "danger": "#bf616a",
+            "history": "#8a96ab",
+            "vignette": "rgba(36, 41, 51, 0.55)",
+            "labelHalo": "rgba(36, 41, 51, 0.88)",
+            "bubble": "rgba(46, 52, 64, 0.94)",
+            "panel": "rgba(46, 52, 64, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#ebcb8b" },
+            "server": { "label": "Server", "color": "#88c0d0" },
+            "computer": { "label": "Computer", "color": "#81a1c1" },
+            "phone": { "label": "Phone", "color": "#b48ead" },
+            "nas": { "label": "NAS", "color": "#a3be8c" },
+            "media": { "label": "Media", "color": "#a18eb4" },
+            "iot": { "label": "IoT", "color": "#8fbcbb" },
+            "printer": { "label": "Printer", "color": "#d08770" },
+            "device": { "label": "Device", "color": "#8a96ab" }
+          },
+          "categories": {
+            "web": "#88c0d0",
+            "media": "#a18eb4",
+            "data": "#d08770",
+            "remote": "#a3be8c",
+            "infra": "#81a1c1",
+            "iot": "#8fbcbb",
+            "other": "#8a96ab"
           },
           "effects": {
             "vignette": 0.55,
