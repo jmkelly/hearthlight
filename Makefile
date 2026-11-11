@@ -2,7 +2,7 @@ BINARY := hearthlight
 VERSION ?= $(shell cat VERSION 2>/dev/null || echo 0.0.0-dev)
 GO ?= go
 
-.PHONY: build run demo test vet fmt fmt-check check clean themes
+.PHONY: build run demo test vet fmt fmt-check check clean themes omarchy-plugin
 
 build:
 	$(GO) build -trimpath -ldflags "-s -w -X main.version=$(VERSION)" -o bin/$(BINARY) .
@@ -27,6 +27,9 @@ fmt-check:
 
 themes:
 	{ printf 'window.HearthlightThemes = '; cat web/themes.json; printf ';\n'; } > web/themes.js
+
+omarchy-plugin:
+	@./scripts/omarchy-plugin-archive.sh '$(VERSION)'
 
 check: fmt-check vet test
 

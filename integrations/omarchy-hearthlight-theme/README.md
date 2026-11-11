@@ -18,16 +18,22 @@ a new mutation endpoint.
 
 ## Install
 
-`omarchy plugin add` expects `manifest.json` at the root of a git repository.
-This directory is that root. When the subtree is published as the standalone
-repository `jmkelly/omarchy-hearthlight-theme`, install it with:
+`omarchy plugin add` clones a git repository and reads `manifest.json` from its
+root. It does not read this subdirectory or a tarball directly. Use one of the
+paths below.
+
+### From the published repository
+
+Once this directory is published as `jmkelly/omarchy-hearthlight-theme`, install
+it with:
 
 ```bash
 omarchy plugin add https://github.com/jmkelly/omarchy-hearthlight-theme --enable
 ```
 
-To install from a checkout of the Hearthlight repository before the standalone
-repository exists, copy this directory into the Omarchy plugin directory:
+### From a local checkout
+
+Run these from the Hearthlight repository root:
 
 ```bash
 install_dir="$HOME/.config/omarchy/plugins/jmkelly.hearthlight-theme"
@@ -38,20 +44,66 @@ omarchy-shell shell rescanPlugins
 omarchy plugin enable jmkelly.hearthlight-theme
 ```
 
-The directory name should match the manifest id. A plugin copied into
-`~/.config/omarchy/plugins/` is not installable with `omarchy plugin add`, but
-the shell discovers it after `rescanPlugins`. `omarchy plugin add` clones a git
-repository, not an archive. A release archive whose root contains
-`manifest.json` can be unpacked with the manual copy commands above, or
-committed to a standalone repository and added by URL.
+The directory name must match the manifest id.
 
-To publish this directory as its own repository, split the subtree and push
-the resulting branch:
+### From a release archive
+
+Build the archive from the Hearthlight repository root:
+
+```bash
+make omarchy-plugin
+```
+
+That prints the paths to `dist/omarchy-hearthlight-theme-<version>.tar.gz` and
+its `.sha256` checksum. `<version>` is the contents of `VERSION` unless you pass
+an argument to `scripts/omarchy-plugin-archive.sh`. The archive root contains
+`manifest.json`, `Service.qml`, `README.md`, and `LICENSE`; the files are not
+wrapped in a directory.
+
+Verify the checksum, then unpack the archive into the plugin directory:
+
+```bash
+version=$(cat VERSION)
+(cd dist && sha256sum -c "omarchy-hearthlight-theme-$version.tar.gz.sha256")
+
+install_dir="$HOME/.config/omarchy/plugins/jmkelly.hearthlight-theme"
+rm -rf "$install_dir"
+mkdir -p "$install_dir"
+tar -xzf "dist/omarchy-hearthlight-theme-$version.tar.gz" -C "$install_dir"
+omarchy-shell shell rescanPlugins
+omarchy plugin enable jmkelly.hearthlight-theme
+```
+
+`sha256sum -c` prints `OK` when the archive matches. Omarchy already provides
+coreutils, so this needs no extra package.
+
+To install the same archive through `omarchy plugin add`, unpack it into a git
+repository and add that repository URL:
+
+```bash
+version=$(cat VERSION)
+repo_dir=$(mktemp -d)
+tar -xzf "dist/omarchy-hearthlight-theme-$version.tar.gz" -C "$repo_dir"
+git -C "$repo_dir" init -b main
+git -C "$repo_dir" add .
+git -C "$repo_dir" commit -m "Omarchy Hearthlight theme plugin"
+git -C "$repo_dir" remote add origin <git-url>
+git -C "$repo_dir" push -u origin main
+omarchy plugin add <git-url> --enable
+```
+
+### Publish a standalone repository
+
+To split this directory into its own repository and push it:
 
 ```bash
 git subtree split --prefix=integrations/omarchy-hearthlight-theme -b omarchy-hearthlight-theme
 git push <remote> omarchy-hearthlight-theme:main
 ```
+
+Marketplace submission is a separate publishing step. Submit the published
+repository at https://plugins.omarchy.org/ after release. Neither
+`make omarchy-plugin` nor the archive script submits anything.
 
 ## Uninstall
 
