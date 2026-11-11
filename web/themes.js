@@ -208,7 +208,8 @@ window.HearthlightThemes = {
       "name": "Tokyo Night",
       "source": {
         "name": "Tokyo Night",
-        "url": "https://github.com/folke/tokyonight.nvim"
+        "url": "https://github.com/folke/tokyonight.nvim",
+        "note": "history lightened from #565f89 to #707aa8 for 3:1 contrast on the canvas"
       },
       "variants": [
         {
@@ -230,7 +231,7 @@ window.HearthlightThemes = {
             "online": "#9ece6a",
             "warning": "#e0af68",
             "danger": "#f7768e",
-            "history": "#565f89",
+            "history": "#707aa8",
             "vignette": "rgba(22, 22, 30, 0.55)",
             "labelHalo": "rgba(22, 22, 30, 0.88)",
             "bubble": "rgba(26, 27, 38, 0.94)",
@@ -280,7 +281,8 @@ window.HearthlightThemes = {
       "name": "Rosé Pine",
       "source": {
         "name": "Rosé Pine",
-        "url": "https://github.com/rose-pine/rose-pine"
+        "url": "https://github.com/rose-pine/rose-pine",
+        "note": "muted lightened from #908caa to #9591b2 for 4.5:1 text contrast and history from #6e6a86 to #908caa for 3:1 canvas contrast"
       },
       "variants": [
         {
@@ -290,7 +292,7 @@ window.HearthlightThemes = {
           "palette": {
             "bg": "#232136",
             "ink": "#e0def4",
-            "muted": "#908caa",
+            "muted": "#9591b2",
             "accent": "#9ccfd8",
             "line": "rgba(224, 222, 244, 0.14)",
             "glass": "rgba(35, 33, 54, 0.74)",
@@ -302,7 +304,7 @@ window.HearthlightThemes = {
             "online": "#86c79a",
             "warning": "#f6c177",
             "danger": "#eb6f92",
-            "history": "#6e6a86",
+            "history": "#908caa",
             "vignette": "rgba(35, 33, 54, 0.55)",
             "labelHalo": "rgba(35, 33, 54, 0.88)",
             "bubble": "rgba(42, 39, 63, 0.94)",
@@ -352,7 +354,8 @@ window.HearthlightThemes = {
       "name": "Kanagawa",
       "source": {
         "name": "Kanagawa",
-        "url": "https://github.com/rebelot/kanagawa.nvim"
+        "url": "https://github.com/rebelot/kanagawa.nvim",
+        "note": "muted, history, device, and other lightened from #727169 to #9E9B82 for 4.5:1 text and 3:1 canvas contrast"
       },
       "variants": [
         {
@@ -362,7 +365,7 @@ window.HearthlightThemes = {
           "palette": {
             "bg": "#1F1F28",
             "ink": "#DCD7BA",
-            "muted": "#727169",
+            "muted": "#9E9B82",
             "accent": "#7E9CD8",
             "line": "rgba(220, 215, 186, 0.14)",
             "glass": "rgba(31, 31, 40, 0.74)",
@@ -374,7 +377,7 @@ window.HearthlightThemes = {
             "online": "#98BB6C",
             "warning": "#E6C384",
             "danger": "#E46876",
-            "history": "#727169",
+            "history": "#9E9B82",
             "vignette": "rgba(22, 22, 29, 0.55)",
             "labelHalo": "rgba(22, 22, 29, 0.88)",
             "bubble": "rgba(31, 31, 40, 0.94)",
@@ -389,7 +392,7 @@ window.HearthlightThemes = {
             "media": { "label": "Media", "color": "#957FB8" },
             "iot": { "label": "IoT", "color": "#7AA89F" },
             "printer": { "label": "Printer", "color": "#FFA066" },
-            "device": { "label": "Device", "color": "#727169" }
+            "device": { "label": "Device", "color": "#9E9B82" }
           },
           "categories": {
             "web": "#7E9CD8",
@@ -398,7 +401,7 @@ window.HearthlightThemes = {
             "remote": "#98BB6C",
             "infra": "#7FB4CA",
             "iot": "#7AA89F",
-            "other": "#727169"
+            "other": "#9E9B82"
           },
           "effects": {
             "vignette": 0.55,
@@ -424,7 +427,8 @@ window.HearthlightThemes = {
       "name": "Everforest",
       "source": {
         "name": "Everforest",
-        "url": "https://github.com/sainnhe/everforest"
+        "url": "https://github.com/sainnhe/everforest",
+        "note": "muted lightened from #859289 to #9da9a0 for 4.5:1 text contrast"
       },
       "variants": [
         {
@@ -434,7 +438,7 @@ window.HearthlightThemes = {
           "palette": {
             "bg": "#2d353b",
             "ink": "#d3c6aa",
-            "muted": "#859289",
+            "muted": "#9da9a0",
             "accent": "#7fb8cc",
             "line": "rgba(211, 198, 170, 0.14)",
             "glass": "rgba(45, 53, 59, 0.74)",
@@ -496,7 +500,8 @@ window.HearthlightThemes = {
       "name": "Dracula",
       "source": {
         "name": "Dracula",
-        "url": "https://github.com/dracula/dracula-theme"
+        "url": "https://github.com/dracula/dracula-theme",
+        "note": "muted, history, device, and other lightened from #6272a4 to #8b97bc, lifting lightness from 51.4% to 64.1% at the same blue-violet hue for 4.5:1 text and 3:1 canvas contrast"
       },
       "variants": [
         {
@@ -506,7 +511,7 @@ window.HearthlightThemes = {
           "palette": {
             "bg": "#282a36",
             "ink": "#f8f8f2",
-            "muted": "#6272a4",
+            "muted": "#8b97bc",
             "accent": "#8be9fd",
             "line": "rgba(248, 248, 242, 0.14)",
             "glass": "rgba(40, 42, 54, 0.74)",
@@ -518,7 +523,7 @@ window.HearthlightThemes = {
             "online": "#50fa7b",
             "warning": "#f1fa8c",
             "danger": "#ff5555",
-            "history": "#6272a4",
+            "history": "#8b97bc",
             "vignette": "rgba(30, 31, 41, 0.55)",
             "labelHalo": "rgba(30, 31, 41, 0.88)",
             "bubble": "rgba(40, 42, 54, 0.94)",
@@ -533,7 +538,7 @@ window.HearthlightThemes = {
             "media": { "label": "Media", "color": "#bd93f9" },
             "iot": { "label": "IoT", "color": "#4ee6c4" },
             "printer": { "label": "Printer", "color": "#ffb86c" },
-            "device": { "label": "Device", "color": "#6272a4" }
+            "device": { "label": "Device", "color": "#8b97bc" }
           },
           "categories": {
             "web": "#8be9fd",
@@ -542,7 +547,7 @@ window.HearthlightThemes = {
             "remote": "#50fa7b",
             "infra": "#8fa1e8",
             "iot": "#4ee6c4",
-            "other": "#6272a4"
+            "other": "#8b97bc"
           },
           "effects": {
             "vignette": 0.55,
