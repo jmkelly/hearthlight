@@ -1484,6 +1484,517 @@ window.HearthlightThemes = {
           }
         }
       ]
+    },
+    {
+      "id": "flexoki-light",
+      "name": "Flexoki Light",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/flexoki-light/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. Accent is the Omarchy shell accent #205EA6. Muted/device/other darkened from #B7B5AC to #6F6D64 and history to #7C7A72 for 4.5:1 text and 3:1 canvas contrast; online/nas/remote darkened from green #879A39 to #6E7D2E, warning/router from yellow #D0A215 to #8F6E0E, computer/infra from bright_blue #4385BE to #2F6FA8, iot/web-cyan from cyan #3AA99F to #2B8A81, printer/data from orange #D0772B to #B35F17, and phone from magenta #CE5D97 to #C7508D at the same hues; media uses an authored violet #6F4FA0 so it stays distinct from the phone magenta."
+      },
+      "variants": [
+        {
+          "id": "flexoki-light",
+          "name": "Flexoki Light",
+          "mode": "light",
+          "palette": {
+            "bg": "#FFFCF0",
+            "ink": "#100F0F",
+            "muted": "#6F6D64",
+            "accent": "#205EA6",
+            "line": "rgba(16, 15, 15, 0.16)",
+            "glass": "rgba(255, 252, 240, 0.82)",
+            "canvasTop": "#FFFEF8",
+            "canvasMiddle": "#FFFCF0",
+            "canvasBottom": "#E5E2D8",
+            "grid": "rgba(32, 94, 166, 0.07)",
+            "ambientGlow": "rgba(32, 94, 166, 0.12)",
+            "online": "#6E7D2E",
+            "warning": "#8F6E0E",
+            "danger": "#D14D41",
+            "history": "#7C7A72",
+            "vignette": "rgba(229, 226, 216, 0.55)",
+            "labelHalo": "#FFFEF8",
+            "bubble": "rgba(255, 254, 248, 0.94)",
+            "panel": "rgba(255, 252, 240, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#8F6E0E" },
+            "server": { "label": "Server", "color": "#205EA6" },
+            "computer": { "label": "Computer", "color": "#2F6FA8" },
+            "phone": { "label": "Phone", "color": "#C7508D" },
+            "nas": { "label": "NAS", "color": "#6E7D2E" },
+            "media": { "label": "Media", "color": "#6F4FA0" },
+            "iot": { "label": "IoT", "color": "#2B8A81" },
+            "printer": { "label": "Printer", "color": "#B35F17" },
+            "device": { "label": "Device", "color": "#7C7A72" }
+          },
+          "categories": {
+            "web": "#205EA6",
+            "media": "#6F4FA0",
+            "data": "#B35F17",
+            "remote": "#6E7D2E",
+            "infra": "#2F6FA8",
+            "iot": "#2B8A81",
+            "other": "#7C7A72"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "lupine",
+      "name": "Lupine",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/lupine/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. Accent is the Omarchy shell accent #3264EB. Muted darkened from #9E9E9E to #656565 for 4.5:1 text contrast and history/device/other darkened to #747474 for 3:1 canvas contrast; this palette ships no warm hue, so warning/router uses an authored amber #8F5410 and printer/data a matching #B86A1E to keep LAN traffic warm; computer/infra uses the deep-blue brown slot #013A6F and iot/web-cyan the cyan slot #0C67DE."
+      },
+      "variants": [
+        {
+          "id": "lupine",
+          "name": "Lupine",
+          "mode": "light",
+          "palette": {
+            "bg": "#FAFAFA",
+            "ink": "#212121",
+            "muted": "#656565",
+            "accent": "#3264EB",
+            "line": "rgba(33, 33, 33, 0.16)",
+            "glass": "rgba(250, 250, 250, 0.82)",
+            "canvasTop": "#FFFFFF",
+            "canvasMiddle": "#FAFAFA",
+            "canvasBottom": "#ECECEC",
+            "grid": "rgba(50, 100, 235, 0.07)",
+            "ambientGlow": "rgba(50, 100, 235, 0.12)",
+            "online": "#4A2FD0",
+            "warning": "#8F5410",
+            "danger": "#C900C4",
+            "history": "#747474",
+            "vignette": "rgba(236, 236, 236, 0.55)",
+            "labelHalo": "#FFFFFF",
+            "bubble": "rgba(255, 255, 255, 0.94)",
+            "panel": "rgba(250, 250, 250, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#8F5410" },
+            "server": { "label": "Server", "color": "#3264EB" },
+            "computer": { "label": "Computer", "color": "#013A6F" },
+            "phone": { "label": "Phone", "color": "#C900C4" },
+            "nas": { "label": "NAS", "color": "#4A2FD0" },
+            "media": { "label": "Media", "color": "#8A4AD7" },
+            "iot": { "label": "IoT", "color": "#0C67DE" },
+            "printer": { "label": "Printer", "color": "#B86A1E" },
+            "device": { "label": "Device", "color": "#747474" }
+          },
+          "categories": {
+            "web": "#3264EB",
+            "media": "#8A4AD7",
+            "data": "#B86A1E",
+            "remote": "#4A2FD0",
+            "infra": "#013A6F",
+            "iot": "#0C67DE",
+            "other": "#747474"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "ristretto",
+      "name": "Ristretto",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/ristretto/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. The Omarchy shell accent is the warm #F38D70; accent and media use the magenta slot #A8A9EB/#BEBFFD instead so tailnet highlights stay cool and inside the 180-290 degree band. Muted/device/other lightened from #72696A to #A89D9E for 4.5:1 text and 3:1 canvas contrast, with history at #B0989A to stay quieter than the online green #ADDA78."
+      },
+      "variants": [
+        {
+          "id": "ristretto",
+          "name": "Ristretto",
+          "mode": "dark",
+          "palette": {
+            "bg": "#2C2525",
+            "ink": "#E6D9DB",
+            "muted": "#A89D9E",
+            "accent": "#A8A9EB",
+            "line": "rgba(230, 217, 219, 0.14)",
+            "glass": "rgba(44, 37, 37, 0.74)",
+            "canvasTop": "#3D2F2A",
+            "canvasMiddle": "#2C2525",
+            "canvasBottom": "#211B1B",
+            "grid": "rgba(168, 169, 235, 0.06)",
+            "ambientGlow": "rgba(168, 169, 235, 0.12)",
+            "online": "#ADDA78",
+            "warning": "#F9CC6C",
+            "danger": "#FD6883",
+            "history": "#B0989A",
+            "vignette": "rgba(33, 27, 27, 0.55)",
+            "labelHalo": "rgba(33, 27, 27, 0.88)",
+            "bubble": "rgba(44, 37, 37, 0.94)",
+            "panel": "rgba(44, 37, 37, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#F9CC6C" },
+            "server": { "label": "Server", "color": "#A8A9EB" },
+            "computer": { "label": "Computer", "color": "#85DACC" },
+            "phone": { "label": "Phone", "color": "#FF8297" },
+            "nas": { "label": "NAS", "color": "#ADDA78" },
+            "media": { "label": "Media", "color": "#BEBFFD" },
+            "iot": { "label": "IoT", "color": "#9BF1E1" },
+            "printer": { "label": "Printer", "color": "#FB9A77" },
+            "device": { "label": "Device", "color": "#B0989A" }
+          },
+          "categories": {
+            "web": "#A8A9EB",
+            "media": "#BEBFFD",
+            "data": "#FB9A77",
+            "remote": "#ADDA78",
+            "infra": "#85DACC",
+            "iot": "#FF8297",
+            "other": "#B0989A"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "solitude",
+      "name": "Solitude",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/solitude/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. Accent is the Omarchy shell accent #798186. Muted/device/other lightened from #4B4E55 to #8A9097 for 4.5:1 text contrast, with history at #9A9A9A and an authored muted green #8FB59F for online/nas/remote so live state keeps more chroma than history; warning/router uses the bright-yellow slot #D8CDBD for a warm LAN cue, and media uses an authored lavender-grey #A2A7C4 to stay cool."
+      },
+      "variants": [
+        {
+          "id": "solitude",
+          "name": "Solitude",
+          "mode": "dark",
+          "palette": {
+            "bg": "#101315",
+            "ink": "#CACCCC",
+            "muted": "#8A9097",
+            "accent": "#798186",
+            "line": "rgba(202, 204, 204, 0.14)",
+            "glass": "rgba(16, 19, 21, 0.74)",
+            "canvasTop": "#1E2225",
+            "canvasMiddle": "#101315",
+            "canvasBottom": "#0C0E10",
+            "grid": "rgba(121, 129, 134, 0.06)",
+            "ambientGlow": "rgba(121, 129, 134, 0.12)",
+            "online": "#8FB59F",
+            "warning": "#D8CDBD",
+            "danger": "#DE6145",
+            "history": "#9A9A9A",
+            "vignette": "rgba(12, 14, 16, 0.55)",
+            "labelHalo": "rgba(12, 14, 16, 0.88)",
+            "bubble": "rgba(16, 19, 21, 0.94)",
+            "panel": "rgba(16, 19, 21, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#D8CDBD" },
+            "server": { "label": "Server", "color": "#798186" },
+            "computer": { "label": "Computer", "color": "#A9B4BC" },
+            "phone": { "label": "Phone", "color": "#B59AA6" },
+            "nas": { "label": "NAS", "color": "#8FB59F" },
+            "media": { "label": "Media", "color": "#A2A7C4" },
+            "iot": { "label": "IoT", "color": "#8FAEB0" },
+            "printer": { "label": "Printer", "color": "#C08B72" },
+            "device": { "label": "Device", "color": "#9A9A9A" }
+          },
+          "categories": {
+            "web": "#798186",
+            "media": "#A2A7C4",
+            "data": "#C08B72",
+            "remote": "#8FB59F",
+            "infra": "#A9B4BC",
+            "iot": "#8FAEB0",
+            "other": "#9A9A9A"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "starship",
+      "name": "Starship",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/starship/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. The Omarchy shell accent is the warm #FF9F0A; accent and media use the blue and cyan slots #8FB8DE/#A6DCEF instead so tailnet highlights stay cool. Warning/router uses the yellow slot #FFC27A, online/nas/remote uses the green slot #FF9F0A (macOS-style orange in this palette) for the high-chroma live cue, and history/device/other uses #98989D for the low-chroma cue."
+      },
+      "variants": [
+        {
+          "id": "starship",
+          "name": "Starship",
+          "mode": "dark",
+          "palette": {
+            "bg": "#1C1C1E",
+            "ink": "#F5F5F7",
+            "muted": "#8E8E93",
+            "accent": "#8FB8DE",
+            "line": "rgba(245, 245, 247, 0.14)",
+            "glass": "rgba(28, 28, 30, 0.74)",
+            "canvasTop": "#2C2C2E",
+            "canvasMiddle": "#1C1C1E",
+            "canvasBottom": "#161618",
+            "grid": "rgba(143, 184, 222, 0.06)",
+            "ambientGlow": "rgba(143, 184, 222, 0.12)",
+            "online": "#FF9F0A",
+            "warning": "#FFC27A",
+            "danger": "#FF5F4A",
+            "history": "#98989D",
+            "vignette": "rgba(22, 22, 24, 0.55)",
+            "labelHalo": "rgba(22, 22, 24, 0.88)",
+            "bubble": "rgba(28, 28, 30, 0.94)",
+            "panel": "rgba(28, 28, 30, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#FFC27A" },
+            "server": { "label": "Server", "color": "#8FB8DE" },
+            "computer": { "label": "Computer", "color": "#B5D0EA" },
+            "phone": { "label": "Phone", "color": "#FF8FA3" },
+            "nas": { "label": "NAS", "color": "#FF9F0A" },
+            "media": { "label": "Media", "color": "#A6DCEF" },
+            "iot": { "label": "IoT", "color": "#CDEEFA" },
+            "printer": { "label": "Printer", "color": "#FF6A3D" },
+            "device": { "label": "Device", "color": "#98989D" }
+          },
+          "categories": {
+            "web": "#8FB8DE",
+            "media": "#A6DCEF",
+            "data": "#FF6A3D",
+            "remote": "#FF9F0A",
+            "infra": "#B5D0EA",
+            "iot": "#CDEEFA",
+            "other": "#98989D"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "vantablack",
+      "name": "Vantablack",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/vantablack/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. Accent is a cool-tinted #8D9BA3 derived from the Omarchy shell accent #8D8D8D so tailnet keeps a cool cue. On a pure-black palette the greys are deliberately tinted while staying near-monochrome: muted lifted from #7A7A7A to #8A8A8A for 4.5:1 text, warning/router #C9BDA3 warm, online/nas/remote #86B386 green, history/device/other #8F8F8F neutral, and every kind and category keeps a distinct lightness so device and service marks stay separable."
+      },
+      "variants": [
+        {
+          "id": "vantablack",
+          "name": "Vantablack",
+          "mode": "dark",
+          "palette": {
+            "bg": "#000000",
+            "ink": "#FFFFFF",
+            "muted": "#8A8A8A",
+            "accent": "#8D9BA3",
+            "line": "rgba(255, 255, 255, 0.14)",
+            "glass": "rgba(0, 0, 0, 0.74)",
+            "canvasTop": "#1A1A1A",
+            "canvasMiddle": "#090909",
+            "canvasBottom": "#070707",
+            "grid": "rgba(141, 155, 163, 0.06)",
+            "ambientGlow": "rgba(141, 155, 163, 0.12)",
+            "online": "#86B386",
+            "warning": "#C9BDA3",
+            "danger": "#C08A8A",
+            "history": "#8F8F8F",
+            "vignette": "rgba(7, 7, 7, 0.55)",
+            "labelHalo": "rgba(7, 7, 7, 0.88)",
+            "bubble": "rgba(9, 9, 9, 0.94)",
+            "panel": "rgba(0, 0, 0, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#C9BDA3" },
+            "server": { "label": "Server", "color": "#8D9BA3" },
+            "computer": { "label": "Computer", "color": "#A7B4C2" },
+            "phone": { "label": "Phone", "color": "#B09FAE" },
+            "nas": { "label": "NAS", "color": "#86B386" },
+            "media": { "label": "Media", "color": "#9A9AAD" },
+            "iot": { "label": "IoT", "color": "#8FA8A4" },
+            "printer": { "label": "Printer", "color": "#B9A58F" },
+            "device": { "label": "Device", "color": "#8F8F8F" }
+          },
+          "categories": {
+            "web": "#8D9BA3",
+            "media": "#9A9AAD",
+            "data": "#B9A58F",
+            "remote": "#86B386",
+            "infra": "#A7B4C2",
+            "iot": "#8FA8A4",
+            "other": "#8F8F8F"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "white",
+      "name": "White",
+      "source": {
+        "name": "Omarchy",
+        "url": "https://github.com/omacom/omarchy/blob/748fa3c0d0418d7a199818d94c1f87d495d7e804/themes/white/colors.toml",
+        "note": "Omarchy Quattro commit 748fa3c0d0418d7a199818d94c1f87d495d7e804. Accent is a cool-tinted #626B73 derived from the Omarchy shell accent #6E6E6E so tailnet keeps a cool cue. On a pure-white palette muted is darkened from #808080 to #666666 for 4.5:1 text, warning/router #7A694D keeps LAN warm, online/nas/remote #2F6B3A keeps a high-chroma green, history/device/other #6F6F6F stays neutral, and every kind and category keeps a distinct dark shade so device and service marks stay separable on #E8E8E8."
+      },
+      "variants": [
+        {
+          "id": "white",
+          "name": "White",
+          "mode": "light",
+          "palette": {
+            "bg": "#FFFFFF",
+            "ink": "#000000",
+            "muted": "#666666",
+            "accent": "#626B73",
+            "line": "rgba(0, 0, 0, 0.16)",
+            "glass": "rgba(255, 255, 255, 0.82)",
+            "canvasTop": "#FFFFFF",
+            "canvasMiddle": "#FFFFFF",
+            "canvasBottom": "#E8E8E8",
+            "grid": "rgba(98, 107, 115, 0.07)",
+            "ambientGlow": "rgba(98, 107, 115, 0.12)",
+            "online": "#2F6B3A",
+            "warning": "#7A694D",
+            "danger": "#A02F2F",
+            "history": "#6F6F6F",
+            "vignette": "rgba(232, 232, 232, 0.55)",
+            "labelHalo": "#FFFFFF",
+            "bubble": "rgba(255, 255, 255, 0.94)",
+            "panel": "rgba(255, 255, 255, 0.97)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#7A694D" },
+            "server": { "label": "Server", "color": "#626B73" },
+            "computer": { "label": "Computer", "color": "#3F566B" },
+            "phone": { "label": "Phone", "color": "#7A4058" },
+            "nas": { "label": "NAS", "color": "#2F6B3A" },
+            "media": { "label": "Media", "color": "#5A4B7A" },
+            "iot": { "label": "IoT", "color": "#2F6B67" },
+            "printer": { "label": "Printer", "color": "#8A5A2B" },
+            "device": { "label": "Device", "color": "#6F6F6F" }
+          },
+          "categories": {
+            "web": "#626B73",
+            "media": "#5A4B7A",
+            "data": "#8A5A2B",
+            "remote": "#2F6B3A",
+            "infra": "#3F566B",
+            "iot": "#2F6B67",
+            "other": "#6F6F6F"
+          },
+          "effects": {
+            "vignette": 0.3,
+            "deviceGlow": 0.14,
+            "devicePulse": 0.22,
+            "serviceGlow": 0.08,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "multiply",
+            "territoryAlpha": 0.72,
+            "glowStrength": 0.6,
+            "labelHalo": 0.9,
+            "shadowStrength": 0.5
+          }
+        }
+      ]
     }
   ]
 }
