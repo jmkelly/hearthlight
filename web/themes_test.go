@@ -231,6 +231,67 @@ var wantTokyoNightEffects = map[string]any{
 	"shadowStrength": 1.0,
 }
 
+var wantRosePineMoonPalette = map[string]string{
+	"bg":           "#232136",
+	"ink":          "#e0def4",
+	"muted":        "#908caa",
+	"accent":       "#9ccfd8",
+	"line":         "rgba(224, 222, 244, 0.14)",
+	"glass":        "rgba(35, 33, 54, 0.74)",
+	"canvasTop":    "#393552",
+	"canvasMiddle": "#232136",
+	"canvasBottom": "#1b1929",
+	"grid":         "rgba(156, 207, 216, 0.06)",
+	"ambientGlow":  "rgba(196, 167, 231, 0.12)",
+	"online":       "#86c79a",
+	"warning":      "#f6c177",
+	"danger":       "#eb6f92",
+	"history":      "#6e6a86",
+	"vignette":     "rgba(35, 33, 54, 0.55)",
+	"labelHalo":    "rgba(35, 33, 54, 0.88)",
+	"bubble":       "rgba(42, 39, 63, 0.94)",
+	"panel":        "rgba(35, 33, 54, 0.95)",
+}
+
+var wantRosePineMoonKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#f6c177"},
+	"server":   {Label: "Server", Color: "#9ccfd8"},
+	"computer": {Label: "Computer", Color: "#3e8fb0"},
+	"phone":    {Label: "Phone", Color: "#eb6f92"},
+	"nas":      {Label: "NAS", Color: "#86c79a"},
+	"media":    {Label: "Media", Color: "#c4a7e7"},
+	"iot":      {Label: "IoT", Color: "#7dc4b8"},
+	"printer":  {Label: "Printer", Color: "#ea9a97"},
+	"device":   {Label: "Device", Color: "#908caa"},
+}
+
+var wantRosePineMoonCategories = map[string]string{
+	"web":    "#9ccfd8",
+	"media":  "#c4a7e7",
+	"data":   "#ea9a97",
+	"remote": "#86c79a",
+	"infra":  "#3e8fb0",
+	"iot":    "#7dc4b8",
+	"other":  "#908caa",
+}
+
+var wantRosePineMoonEffects = map[string]any{
+	"vignette":       0.55,
+	"deviceGlow":     0.22,
+	"devicePulse":    0.3,
+	"serviceGlow":    0.16,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "screen",
+	"territoryAlpha": 1.0,
+	"glowStrength":   1.0,
+	"labelHalo":      1.0,
+	"shadowStrength": 1.0,
+}
+
 var requiredPaletteTokens = []string{
 	"bg", "ink", "muted", "accent", "line", "glass",
 	"canvasTop", "canvasMiddle", "canvasBottom", "grid", "ambientGlow",
@@ -454,6 +515,39 @@ func TestTokyoNightVariant(t *testing.T) {
 	}
 	if !reflect.DeepEqual(variant.Effects, wantTokyoNightEffects) {
 		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantTokyoNightEffects)
+	}
+}
+
+func TestRosePineMoonVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "rose-pine")
+	if family.Name != "Rosé Pine" {
+		t.Fatalf("family name = %q, want Rosé Pine", family.Name)
+	}
+	if family.Source.Name != "Rosé Pine" {
+		t.Errorf("source name = %q, want Rosé Pine", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/rose-pine/rose-pine" {
+		t.Errorf("source url = %q, want the Rosé Pine project URL", family.Source.URL)
+	}
+	if len(family.Variants) != 1 {
+		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	}
+	variant := family.Variants[0]
+	if variant.ID != "rose-pine-moon" || variant.Name != "Rosé Pine Moon" || variant.Mode != "dark" {
+		t.Fatalf("variant = %+v, want Rosé Pine Moon dark", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantRosePineMoonPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantRosePineMoonPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantRosePineMoonKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantRosePineMoonKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantRosePineMoonCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantRosePineMoonCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantRosePineMoonEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantRosePineMoonEffects)
 	}
 }
 
