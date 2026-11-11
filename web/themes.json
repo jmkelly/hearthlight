@@ -418,6 +418,78 @@
           }
         }
       ]
+    },
+    {
+      "id": "everforest",
+      "name": "Everforest",
+      "source": {
+        "name": "Everforest",
+        "url": "https://github.com/sainnhe/everforest"
+      },
+      "variants": [
+        {
+          "id": "everforest-dark",
+          "name": "Everforest Dark",
+          "mode": "dark",
+          "palette": {
+            "bg": "#2d353b",
+            "ink": "#d3c6aa",
+            "muted": "#859289",
+            "accent": "#7fb8cc",
+            "line": "rgba(211, 198, 170, 0.14)",
+            "glass": "rgba(45, 53, 59, 0.74)",
+            "canvasTop": "#343f44",
+            "canvasMiddle": "#2d353b",
+            "canvasBottom": "#232a2e",
+            "grid": "rgba(127, 184, 204, 0.06)",
+            "ambientGlow": "rgba(127, 184, 204, 0.12)",
+            "online": "#a7c080",
+            "warning": "#dbbc7f",
+            "danger": "#e67e80",
+            "history": "#859289",
+            "vignette": "rgba(35, 42, 46, 0.55)",
+            "labelHalo": "rgba(35, 42, 46, 0.88)",
+            "bubble": "rgba(45, 53, 59, 0.94)",
+            "panel": "rgba(45, 53, 59, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#dbbc7f" },
+            "server": { "label": "Server", "color": "#7fb8cc" },
+            "computer": { "label": "Computer", "color": "#7fbbb3" },
+            "phone": { "label": "Phone", "color": "#d699b6" },
+            "nas": { "label": "NAS", "color": "#a7c080" },
+            "media": { "label": "Media", "color": "#b8a1d6" },
+            "iot": { "label": "IoT", "color": "#83c092" },
+            "printer": { "label": "Printer", "color": "#e69875" },
+            "device": { "label": "Device", "color": "#859289" }
+          },
+          "categories": {
+            "web": "#7fb8cc",
+            "media": "#b8a1d6",
+            "data": "#e69875",
+            "remote": "#a7c080",
+            "infra": "#7fbbb3",
+            "iot": "#83c092",
+            "other": "#859289"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
     }
   ]
 }

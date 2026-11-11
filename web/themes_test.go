@@ -353,6 +353,67 @@ var wantKanagawaWaveEffects = map[string]any{
 	"shadowStrength": 1.0,
 }
 
+var wantEverforestDarkPalette = map[string]string{
+	"bg":           "#2d353b",
+	"ink":          "#d3c6aa",
+	"muted":        "#859289",
+	"accent":       "#7fb8cc",
+	"line":         "rgba(211, 198, 170, 0.14)",
+	"glass":        "rgba(45, 53, 59, 0.74)",
+	"canvasTop":    "#343f44",
+	"canvasMiddle": "#2d353b",
+	"canvasBottom": "#232a2e",
+	"grid":         "rgba(127, 184, 204, 0.06)",
+	"ambientGlow":  "rgba(127, 184, 204, 0.12)",
+	"online":       "#a7c080",
+	"warning":      "#dbbc7f",
+	"danger":       "#e67e80",
+	"history":      "#859289",
+	"vignette":     "rgba(35, 42, 46, 0.55)",
+	"labelHalo":    "rgba(35, 42, 46, 0.88)",
+	"bubble":       "rgba(45, 53, 59, 0.94)",
+	"panel":        "rgba(45, 53, 59, 0.95)",
+}
+
+var wantEverforestDarkKinds = map[string]themeKind{
+	"router":   {Label: "Router", Color: "#dbbc7f"},
+	"server":   {Label: "Server", Color: "#7fb8cc"},
+	"computer": {Label: "Computer", Color: "#7fbbb3"},
+	"phone":    {Label: "Phone", Color: "#d699b6"},
+	"nas":      {Label: "NAS", Color: "#a7c080"},
+	"media":    {Label: "Media", Color: "#b8a1d6"},
+	"iot":      {Label: "IoT", Color: "#83c092"},
+	"printer":  {Label: "Printer", Color: "#e69875"},
+	"device":   {Label: "Device", Color: "#859289"},
+}
+
+var wantEverforestDarkCategories = map[string]string{
+	"web":    "#7fb8cc",
+	"media":  "#b8a1d6",
+	"data":   "#e69875",
+	"remote": "#a7c080",
+	"infra":  "#7fbbb3",
+	"iot":    "#83c092",
+	"other":  "#859289",
+}
+
+var wantEverforestDarkEffects = map[string]any{
+	"vignette":       0.55,
+	"deviceGlow":     0.22,
+	"devicePulse":    0.3,
+	"serviceGlow":    0.16,
+	"territoryBlur":  26.0,
+	"ribbonBlur":     16.0,
+	"lensBlur":       14.0,
+	"glassBlur":      16.0,
+	"panelBlur":      22.0,
+	"territoryBlend": "screen",
+	"territoryAlpha": 1.0,
+	"glowStrength":   1.0,
+	"labelHalo":      1.0,
+	"shadowStrength": 1.0,
+}
+
 var requiredPaletteTokens = []string{
 	"bg", "ink", "muted", "accent", "line", "glass",
 	"canvasTop", "canvasMiddle", "canvasBottom", "grid", "ambientGlow",
@@ -642,6 +703,39 @@ func TestKanagawaWaveVariant(t *testing.T) {
 	}
 	if !reflect.DeepEqual(variant.Effects, wantKanagawaWaveEffects) {
 		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantKanagawaWaveEffects)
+	}
+}
+
+func TestEverforestDarkVariant(t *testing.T) {
+	_, catalog := readCatalog(t)
+	family := findThemeFamily(t, catalog, "everforest")
+	if family.Name != "Everforest" {
+		t.Fatalf("family name = %q, want Everforest", family.Name)
+	}
+	if family.Source.Name != "Everforest" {
+		t.Errorf("source name = %q, want Everforest", family.Source.Name)
+	}
+	if family.Source.URL != "https://github.com/sainnhe/everforest" {
+		t.Errorf("source url = %q, want the Everforest project URL", family.Source.URL)
+	}
+	if len(family.Variants) != 1 {
+		t.Fatalf("variants = %d, want 1", len(family.Variants))
+	}
+	variant := family.Variants[0]
+	if variant.ID != "everforest-dark" || variant.Name != "Everforest Dark" || variant.Mode != "dark" {
+		t.Fatalf("variant = %+v, want Everforest Dark", variant)
+	}
+	if !reflect.DeepEqual(variant.Palette, wantEverforestDarkPalette) {
+		t.Fatalf("palette = %#v, want %#v", variant.Palette, wantEverforestDarkPalette)
+	}
+	if !reflect.DeepEqual(variant.Kinds, wantEverforestDarkKinds) {
+		t.Fatalf("kinds = %#v, want %#v", variant.Kinds, wantEverforestDarkKinds)
+	}
+	if !reflect.DeepEqual(variant.Categories, wantEverforestDarkCategories) {
+		t.Fatalf("categories = %#v, want %#v", variant.Categories, wantEverforestDarkCategories)
+	}
+	if !reflect.DeepEqual(variant.Effects, wantEverforestDarkEffects) {
+		t.Fatalf("effects = %#v, want %#v", variant.Effects, wantEverforestDarkEffects)
 	}
 }
 
