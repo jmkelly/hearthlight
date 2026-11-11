@@ -567,6 +567,152 @@
           }
         }
       ]
+    },
+    {
+      "id": "one",
+      "name": "One",
+      "source": {
+        "name": "Atom One Dark",
+        "url": "https://github.com/atom/one-dark-syntax",
+        "note": "muted lightened from #5c6370 to #8d94a1 (40% to 59.2% lightness) for 4.5:1 text contrast and history from #5c6370 to #77808f (40% to 51.5% lightness) for 3:1 canvas contrast, both at the 219 degree hue"
+      },
+      "variants": [
+        {
+          "id": "one-dark",
+          "name": "One Dark",
+          "mode": "dark",
+          "palette": {
+            "bg": "#282c34",
+            "ink": "#abb2bf",
+            "muted": "#8d94a1",
+            "accent": "#61afef",
+            "line": "rgba(171, 178, 191, 0.14)",
+            "glass": "rgba(40, 44, 52, 0.74)",
+            "canvasTop": "#313640",
+            "canvasMiddle": "#282c34",
+            "canvasBottom": "#21252b",
+            "grid": "rgba(97, 175, 239, 0.06)",
+            "ambientGlow": "rgba(97, 175, 239, 0.12)",
+            "online": "#98c379",
+            "warning": "#e5c07b",
+            "danger": "#e06c75",
+            "history": "#77808f",
+            "vignette": "rgba(33, 37, 43, 0.55)",
+            "labelHalo": "rgba(33, 37, 43, 0.88)",
+            "bubble": "rgba(40, 44, 52, 0.94)",
+            "panel": "rgba(40, 44, 52, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#e5c07b" },
+            "server": { "label": "Server", "color": "#61afef" },
+            "computer": { "label": "Computer", "color": "#528bff" },
+            "phone": { "label": "Phone", "color": "#e06c75" },
+            "nas": { "label": "NAS", "color": "#98c379" },
+            "media": { "label": "Media", "color": "#c678dd" },
+            "iot": { "label": "IoT", "color": "#56b6c2" },
+            "printer": { "label": "Printer", "color": "#d19a66" },
+            "device": { "label": "Device", "color": "#818896" }
+          },
+          "categories": {
+            "web": "#61afef",
+            "media": "#c678dd",
+            "data": "#d19a66",
+            "remote": "#98c379",
+            "infra": "#56b6c2",
+            "iot": "#528bff",
+            "other": "#818896"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "solarized",
+      "name": "Solarized",
+      "source": {
+        "name": "Solarized",
+        "url": "https://github.com/altercation/solarized",
+        "note": "muted lightened from #586e75 to #79929a (40.2% to 53.9% lightness) for 4.5:1 text contrast and history to #657e86 for 3:1 canvas contrast at the same 194 degree hue; computer/media violet, kind iot red, phone/category iot magenta, and printer/data orange lightened at their canonical hues to clear 3:1 on canvasTop"
+      },
+      "variants": [
+        {
+          "id": "solarized-dark",
+          "name": "Solarized Dark",
+          "mode": "dark",
+          "palette": {
+            "bg": "#002b36",
+            "ink": "#839496",
+            "muted": "#79929a",
+            "accent": "#268bd2",
+            "line": "rgba(131, 148, 150, 0.14)",
+            "glass": "rgba(0, 43, 54, 0.74)",
+            "canvasTop": "#073642",
+            "canvasMiddle": "#002b36",
+            "canvasBottom": "#001f27",
+            "grid": "rgba(38, 139, 210, 0.06)",
+            "ambientGlow": "rgba(38, 139, 210, 0.12)",
+            "online": "#859900",
+            "warning": "#b58900",
+            "danger": "#dc322f",
+            "history": "#657e86",
+            "vignette": "rgba(0, 31, 39, 0.55)",
+            "labelHalo": "rgba(0, 31, 39, 0.88)",
+            "bubble": "rgba(0, 43, 54, 0.94)",
+            "panel": "rgba(0, 43, 54, 0.95)"
+          },
+          "kinds": {
+            "router": { "label": "Router", "color": "#b58900" },
+            "server": { "label": "Server", "color": "#268bd2" },
+            "computer": { "label": "Computer", "color": "#6e73c5" },
+            "phone": { "label": "Phone", "color": "#d53f88" },
+            "nas": { "label": "NAS", "color": "#859900" },
+            "media": { "label": "Media", "color": "#2aa198" },
+            "iot": { "label": "IoT", "color": "#de403d" },
+            "printer": { "label": "Printer", "color": "#d44e17" },
+            "device": { "label": "Device", "color": "#93a1a1" }
+          },
+          "categories": {
+            "web": "#268bd2",
+            "media": "#6e73c5",
+            "data": "#d44e17",
+            "remote": "#859900",
+            "infra": "#2aa198",
+            "iot": "#d53f88",
+            "other": "#93a1a1"
+          },
+          "effects": {
+            "vignette": 0.55,
+            "deviceGlow": 0.22,
+            "devicePulse": 0.3,
+            "serviceGlow": 0.16,
+            "territoryBlur": 26,
+            "ribbonBlur": 16,
+            "lensBlur": 14,
+            "glassBlur": 16,
+            "panelBlur": 22,
+            "territoryBlend": "screen",
+            "territoryAlpha": 1,
+            "glowStrength": 1,
+            "labelHalo": 1,
+            "shadowStrength": 1
+          }
+        }
+      ]
     }
   ]
 }
