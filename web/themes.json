@@ -500,7 +500,8 @@
       "name": "Dracula",
       "source": {
         "name": "Dracula",
-        "url": "https://github.com/dracula/dracula-theme"
+        "url": "https://github.com/dracula/dracula-theme",
+        "note": "muted, history, device, and other lightened from #6272a4 to #8b97bc, lifting lightness from 51.4% to 64.1% at the same blue-violet hue for 4.5:1 text and 3:1 canvas contrast"
       },
       "variants": [
         {
@@ -510,7 +511,7 @@
           "palette": {
             "bg": "#282a36",
             "ink": "#f8f8f2",
-            "muted": "#6272a4",
+            "muted": "#8b97bc",
             "accent": "#8be9fd",
             "line": "rgba(248, 248, 242, 0.14)",
             "glass": "rgba(40, 42, 54, 0.74)",
@@ -522,7 +523,7 @@
             "online": "#50fa7b",
             "warning": "#f1fa8c",
             "danger": "#ff5555",
-            "history": "#6272a4",
+            "history": "#8b97bc",
             "vignette": "rgba(30, 31, 41, 0.55)",
             "labelHalo": "rgba(30, 31, 41, 0.88)",
             "bubble": "rgba(40, 42, 54, 0.94)",
@@ -537,7 +538,7 @@
             "media": { "label": "Media", "color": "#bd93f9" },
             "iot": { "label": "IoT", "color": "#4ee6c4" },
             "printer": { "label": "Printer", "color": "#ffb86c" },
-            "device": { "label": "Device", "color": "#6272a4" }
+            "device": { "label": "Device", "color": "#8b97bc" }
           },
           "categories": {
             "web": "#8be9fd",
@@ -546,7 +547,7 @@
             "remote": "#50fa7b",
             "infra": "#8fa1e8",
             "iot": "#4ee6c4",
-            "other": "#6272a4"
+            "other": "#8b97bc"
           },
           "effects": {
             "vignette": 0.55,

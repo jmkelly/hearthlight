@@ -430,7 +430,7 @@ var wantEverforestDarkEffects = map[string]any{
 var wantDraculaPalette = map[string]string{
 	"bg":           "#282a36",
 	"ink":          "#f8f8f2",
-	"muted":        "#6272a4",
+	"muted":        "#8b97bc",
 	"accent":       "#8be9fd",
 	"line":         "rgba(248, 248, 242, 0.14)",
 	"glass":        "rgba(40, 42, 54, 0.74)",
@@ -442,7 +442,7 @@ var wantDraculaPalette = map[string]string{
 	"online":       "#50fa7b",
 	"warning":      "#f1fa8c",
 	"danger":       "#ff5555",
-	"history":      "#6272a4",
+	"history":      "#8b97bc",
 	"vignette":     "rgba(30, 31, 41, 0.55)",
 	"labelHalo":    "rgba(30, 31, 41, 0.88)",
 	"bubble":       "rgba(40, 42, 54, 0.94)",
@@ -458,7 +458,7 @@ var wantDraculaKinds = map[string]themeKind{
 	"media":    {Label: "Media", Color: "#bd93f9"},
 	"iot":      {Label: "IoT", Color: "#4ee6c4"},
 	"printer":  {Label: "Printer", Color: "#ffb86c"},
-	"device":   {Label: "Device", Color: "#6272a4"},
+	"device":   {Label: "Device", Color: "#8b97bc"},
 }
 
 var wantDraculaCategories = map[string]string{
@@ -468,7 +468,7 @@ var wantDraculaCategories = map[string]string{
 	"remote": "#50fa7b",
 	"infra":  "#8fa1e8",
 	"iot":    "#4ee6c4",
-	"other":  "#6272a4",
+	"other":  "#8b97bc",
 }
 
 var wantDraculaEffects = map[string]any{
